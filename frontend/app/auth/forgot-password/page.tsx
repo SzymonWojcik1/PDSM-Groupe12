@@ -17,9 +17,22 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // TODO: Implémenter la logique de récupération de mot de passe
-      console.log('Email de récupération:', email);
-      // Simuler un succès
+      const res = await fetch('http://localhost:8000/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errorMessage = data.message || Object.values(data.errors || {}).flat().join('\n');
+        throw new Error(errorMessage || 'Erreur lors de l’envoi du lien');
+      }
+
       setSuccess('Un email de réinitialisation a été envoyé à votre adresse.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -29,8 +42,8 @@ export default function ForgotPassword() {
   };
 
   const footer = (
-    <Link 
-      href="/auth/login" 
+    <Link
+      href="/auth/login"
       className="font-medium text-indigo-600 hover:text-indigo-500"
     >
       Retour à la connexion
@@ -65,4 +78,4 @@ export default function ForgotPassword() {
       </div>
     </AuthForm>
   );
-} 
+}
