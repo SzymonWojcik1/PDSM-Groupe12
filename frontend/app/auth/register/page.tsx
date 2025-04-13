@@ -2,18 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AuthForm from '../../components/AuthForm';
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    prenom: '',
+    nom: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    password_confirmation: '',
+    telephone: ''
   });
+
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,13 +33,27 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      // Validation des mots de passe
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error('Les mots de passe ne correspondent pas');
+      const res = await fetch('http://localhost:8000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const messages = Object.values(data.errors || {}).flat().join('\n');
+        throw new Error(messages || data.message || 'Erreur lors de l’inscription');
       }
 
-      // TODO: Implémenter la logique d'inscription
-      console.log('Données d\'inscription:', formData);
+      // Stocker le token reçu
+      localStorage.setItem('token', data.token);
+
+      // Rediriger vers le profil
+      router.push('/profile');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
@@ -46,8 +64,8 @@ export default function Register() {
   const footer = (
     <p className="text-sm text-gray-600">
       Déjà un compte ?{' '}
-      <Link 
-        href="/auth/login" 
+      <Link
+        href="/auth/login"
         className="font-medium text-indigo-600 hover:text-indigo-500"
       >
         Se connecter
@@ -65,32 +83,32 @@ export default function Register() {
       footer={footer}
     >
       <div>
-        <label htmlFor="firstName" className="sr-only">
+        <label htmlFor="prenom" className="sr-only">
           Prénom
         </label>
         <input
-          id="firstName"
-          name="firstName"
+          id="prenom"
+          name="prenom"
           type="text"
           required
-          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           placeholder="Prénom"
-          value={formData.firstName}
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+          value={formData.prenom}
           onChange={handleChange}
         />
       </div>
       <div>
-        <label htmlFor="lastName" className="sr-only">
+        <label htmlFor="nom" className="sr-only">
           Nom
         </label>
         <input
-          id="lastName"
-          name="lastName"
+          id="nom"
+          name="nom"
           type="text"
           required
-          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           placeholder="Nom"
-          value={formData.lastName}
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+          value={formData.nom}
           onChange={handleChange}
         />
       </div>
@@ -103,9 +121,23 @@ export default function Register() {
           name="email"
           type="email"
           required
-          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           placeholder="Adresse email"
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           value={formData.email}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <label htmlFor="telephone" className="sr-only">
+          Téléphone
+        </label>
+        <input
+          id="telephone"
+          name="telephone"
+          type="text"
+          placeholder="Téléphone (facultatif)"
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+          value={formData.telephone}
           onChange={handleChange}
         />
       </div>
@@ -118,27 +150,27 @@ export default function Register() {
           name="password"
           type="password"
           required
-          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           placeholder="Mot de passe"
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           value={formData.password}
           onChange={handleChange}
         />
       </div>
       <div>
-        <label htmlFor="confirmPassword" className="sr-only">
+        <label htmlFor="password_confirmation" className="sr-only">
           Confirmer le mot de passe
         </label>
         <input
-          id="confirmPassword"
-          name="confirmPassword"
+          id="password_confirmation"
+          name="password_confirmation"
           type="password"
           required
-          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           placeholder="Confirmer le mot de passe"
-          value={formData.confirmPassword}
+          className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+          value={formData.password_confirmation}
           onChange={handleChange}
         />
       </div>
     </AuthForm>
   );
-} 
+}

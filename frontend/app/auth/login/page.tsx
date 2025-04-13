@@ -18,21 +18,26 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // TODO: Implémenter la logique de connexion
-      console.log('Email:', email, 'Password:', password);
-      
-      // Simuler une erreur pour test@error.com
-      if (email === 'test@error.com') {
-        throw new Error('Identifiants invalides');
+      const res = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Identifiants incorrects');
       }
 
-      // Simuler une connexion réussie
-      // TODO: Remplacer par votre vraie logique d'authentification
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation d'un délai réseau
-      
-      // Redirection vers la page profil
+      // Stocker le token dans localStorage
+      localStorage.setItem('token', data.token);
+
+      // Rediriger vers la page profil
       router.push('/profile');
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
@@ -43,8 +48,8 @@ export default function Login() {
   const footer = (
     <p className="text-sm text-gray-600">
       Pas encore de compte ?{' '}
-      <Link 
-        href="/auth/register" 
+      <Link
+        href="/auth/register"
         className="font-medium text-indigo-600 hover:text-indigo-500"
       >
         S'inscrire
@@ -93,8 +98,8 @@ export default function Login() {
       </div>
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          <Link 
-            href="/auth/forgot-password" 
+          <Link
+            href="/auth/forgot-password"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Mot de passe oublié ?
@@ -103,4 +108,4 @@ export default function Login() {
       </div>
     </AuthForm>
   );
-} 
+}
