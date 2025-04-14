@@ -33,11 +33,13 @@ export default function Login() {
         throw new Error(data.message || 'Identifiants incorrects');
       }
 
-      // Stocker le token dans localStorage
       localStorage.setItem('token', data.token);
 
-      // Rediriger vers la page profil
-      router.push('/profile');
+      if (data.two_factor_required) {
+        router.push('/auth/two-factor-auth');
+      } else {
+        router.push('/profile');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
@@ -48,10 +50,7 @@ export default function Login() {
   const footer = (
     <p className="text-sm text-gray-600">
       Pas encore de compte ?{' '}
-      <Link
-        href="/auth/register"
-        className="font-medium text-indigo-600 hover:text-indigo-500"
-      >
+      <Link href="/auth/register" className="font-medium text-indigo-600 hover:text-indigo-500">
         S'inscrire
       </Link>
     </p>
@@ -98,10 +97,7 @@ export default function Login() {
       </div>
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          <Link
-            href="/auth/forgot-password"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
+          <Link href="/auth/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
             Mot de passe oublié ?
           </Link>
         </div>
