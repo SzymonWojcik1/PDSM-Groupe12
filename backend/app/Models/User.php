@@ -18,6 +18,21 @@ class User extends Authenticatable
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    public function sendTwoFactorCodeNotification()
+    {
+        $this->notify(new TwoFactorCodeNotification($this->two_factor_code));
+    }
+
+    public function generateTwoFactorCode()
+    {
+        $this->two_factor_code = rand(100000, 999999);
+        $this->two_factor_expires_at = now()->addMinutes(10);
+        $this->save();
+
+        $this->sendTwoFactorCodeNotification();
+    }
+
+
     protected $fillable = [
         'nom',
         'prenom',
