@@ -87,7 +87,7 @@ class BeneficiaireController extends Controller
             'ethnicite' => 'required|string',
         ]);
 
-        // 🔁 Caster les enums pour que les comparaisons marchent
+        // Caster les enums pour que les comparaisons marchent
         $validated['type'] = Type::from($validated['type']);
         $validated['zone'] = Zone::from($validated['zone']);
         $validated['sexe'] = Sexe::from($validated['sexe']);
@@ -95,7 +95,7 @@ class BeneficiaireController extends Controller
             $validated['genre'] = Genre::from($validated['genre']);
         }
 
-        // 🔎 Vérifications des champs "autre"
+        // Vérifications des champs "autre"
         $erreurs = [];
 
         if ($validated['type'] === Type::AUTRE && empty($validated['type_autre'])) {
@@ -186,7 +186,7 @@ class BeneficiaireController extends Controller
             'ethnicite' => 'required|string',
         ]);
 
-        // 🔁 Cast manuel des enums après validation
+        // Cast manuel des enums après validation
         $validated['type'] = Type::from($validated['type']);
         $validated['zone'] = Zone::from($validated['zone']);
         $validated['sexe'] = Sexe::from($validated['sexe']);
@@ -194,7 +194,7 @@ class BeneficiaireController extends Controller
             $validated['genre'] = Genre::from($validated['genre']);
         }
 
-        // 🔎 Vérifications des champs "autre"
+        // Vérifications des champs "autre"
         $erreurs = [];
 
         if ($validated['type'] === Type::AUTRE && empty($validated['type_autre'])) {
