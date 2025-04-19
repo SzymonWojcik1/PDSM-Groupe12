@@ -33,7 +33,7 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail($notifiable)
     {
-        $url = config('app.frontend_url') . '/auth/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
+        $url = config('app.frontend_url') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
 
         return (new MailMessage)
             ->subject('Réinitialisation de votre mot de passe')
