@@ -17,7 +17,22 @@ class BeneficiaireController extends Controller
      */
     public function index(Request $request)
     {
-        $beneficiaires = \App\Models\Beneficiaire::all()->map(function ($b) {
+        $beneficiaires = Beneficiaire::query()
+            ->when($request->region, fn($q) => $q->where('region', $request->region))
+            ->when($request->pays, fn($q) => $q->where('pays', $request->pays))
+            ->when($request->zone, fn($q) => $q->where('zone', $request->zone))
+            ->when($request->type, fn($q) => $q->where('type', $request->type))
+            ->when($request->sexe, fn($q) => $q->where('sexe', $request->sexe))
+            ->when($request->genre, fn($q) => $q->where('genre', $request->genre))
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('prenom', 'like', "%$search%")
+                    ->orWhere('nom', 'like', "%$search%");
+                });
+            })
+            ->get();
+        
+        $beneficiaires = $beneficiaires->map(function ($b) {
             return [
                 'id' => $b->id,
                 'prenom' => $b->prenom,
@@ -41,22 +56,11 @@ class BeneficiaireController extends Controller
                 'updated_at' => $b->updated_at,
             ];
         });
-        $beneficiaires = Beneficiaire::query()
-        ->when($request->region, fn($q) => $q->where('region', $request->region))
-        ->when($request->pays, fn($q) => $q->where('pays', $request->pays))
-        ->when($request->zone, fn($q) => $q->where('zone', $request->zone))
-        ->when($request->type, fn($q) => $q->where('type', $request->type))
-        ->when($request->sexe, fn($q) => $q->where('sexe', $request->sexe))
-        ->when($request->genre, fn($q) => $q->where('genre', $request->genre))
-        ->when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('prenom', 'like', "%$search%")
-                  ->orWhere('nom', 'like', "%$search%");
-            });
-        })
-        ->get();
+
+        // ✅ Ce return est maintenant à la bonne place
         return response()->json($beneficiaires);
     }
+
 
     /**
      * Show the form for creating a new resource.
