@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('prenom');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('role')->default('utilisateur');
+            $table->enum('role', ['utilisateur', 'cn', 'cr', 'siege'])->default('utilisateur');
             $table->string('telephone')->nullable();
             $table->string('two_factor_code')->nullable();
             $table->timestamp('two_factor_expires_at')->nullable();

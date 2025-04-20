@@ -46,6 +46,18 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function getRoleEnum(): Role
+    {
+        return Role::from($this->role);
+    }
+
+    public function hasRole(Role $role): bool
+    {
+        return $this->role === $role->value;
+    }
+
+
 }
 
 
