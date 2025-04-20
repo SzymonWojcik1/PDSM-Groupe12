@@ -7,33 +7,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\TwoFactorCodeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 
 class AuthControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    /** @test */
-    public function it_registers_a_user()
-    {
-        $response = $this->postJson('/api/register', [
-            'nom' => 'Husmann',
-            'prenom' => 'Yann',
-            'email' => 'yann.husmann@hes-so.ch',
-            'password' => 'Test1234!',
-            'password_confirmation' => 'Test1234!',
-        ]);
-
-        $response->assertStatus(201)
-                 ->assertJsonStructure(['user', 'token']);
-        $this->assertDatabaseHas('users', ['email' => 'yann.husmann@hes-so.ch']);
-    }
-
-    /** @test */
-    public function it_requires_valid_registration_data()
-    {
-        $response = $this->postJson('/api/register', []);
-        $response->assertStatus(422);
-    }
 
     /** @test */
     public function it_logs_in_a_user_and_sends_2fa_code()
@@ -42,7 +20,7 @@ class AuthControllerTest extends TestCase
 
         $user = User::factory()->create([
             'email' => 'yann.husmann@hes-so.ch',
-            'password' => bcrypt('Password123!'),
+            'password' => Hash::make('Password123!'),
         ]);
 
         $response = $this->postJson('/api/login', [
@@ -60,7 +38,7 @@ class AuthControllerTest extends TestCase
     public function it_rejects_invalid_login()
     {
         $response = $this->postJson('/api/login', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => 'inexistant@example.com',
             'password' => 'WrongPassword',
         ]);
 

@@ -7,48 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Notifications\TwoFactorCodeNotification;
+use App\Enums\Role;
+use Illuminate\Validation\Rule;
+
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $request->validate([
-            'nom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
-            'prenom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'unique:users,email'],
-            'password' => [
-                'required',
-                'string',
-                'confirmed',
-                'min:8',
-                'regex:/[A-Z]/',
-                'regex:/[!@#$%^&*(),.?":{}|<>]/'
-            ],
-            'role' => ['nullable', 'string'],
-            'telephone' => ['nullable', 'string', 'max:20'],
-        ],
-        [
-            'password.regex' => 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un caractère spécial.',
-            'nom.regex' => 'Le nom ne peut contenir que des lettres, apostrophes ou tirets.',
-            'prenom.regex' => 'Le prénom ne peut contenir que des lettres, apostrophes ou tirets.',
-        ]);
-
-        $user = User::create([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'utilisateur',
-            'telephone' => $request->telephone,
-        ]);
-
-        $token = $user->createToken('apitoken')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token
-        ], 201);
-    }
 
     public function login(Request $request)
     {
