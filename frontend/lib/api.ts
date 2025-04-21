@@ -9,3 +9,9 @@ export async function fetchBeneficiaires() {
   if (!res.ok) throw new Error('Erreur lors de la récupération des bénéficiaires');
   return res.json();
 }
+
+export async function fetchEnums() {
+  const res = await fetch('http://localhost:8000/api/enums');
+  if (!res.ok) throw new Error('Erreur lors de la récupération des enums');
+  return res.json();
+}

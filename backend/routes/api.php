@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\BeneficiaireController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EnumController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
@@ -15,6 +16,10 @@ Route::get('/beneficiaires', [BeneficiaireController::class, 'index']);
 Route::get('/beneficiaires/{id}', [BeneficiaireController::class, 'show']);
 Route::put('/beneficiaires/{id}', [BeneficiaireController::class, 'update']);
 Route::delete('/beneficiaires/{id}', [BeneficiaireController::class, 'destroy']);
+
+// Enums
+Route::get('/enums', [EnumController::class, 'enums']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     // User

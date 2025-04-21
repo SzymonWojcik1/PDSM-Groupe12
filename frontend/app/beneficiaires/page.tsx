@@ -25,14 +25,17 @@ export default function BeneficiairesPage() {
   return (
     <main className="p-4">
       <div className="flex gap-4 mb-6">
-        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Créer
+        <button
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+          onClick={() => router.push('/beneficiaires/add')}
+          >
+          Ajouter un bénéficiaire
         </button>
         <button
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-800"
           onClick={() => router.push('/beneficiaires/delete')}
         >
-          Supprimer
+          Supprimer un bénéficiiaire
         </button>
       </div>
 
