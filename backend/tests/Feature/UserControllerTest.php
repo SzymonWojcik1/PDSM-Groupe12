@@ -197,4 +197,94 @@ class UserControllerTest extends TestCase
                 ->assertJsonValidationErrors(['nom', 'prenom']);
     }
 
+    /** @test */
+    public function it_rejects_weak_password_on_update()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+        $user = User::factory()->create();
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->putJson("/api/users/{$user->id}", [
+                            'password' => 'weakpass',
+                            'password_confirmation' => 'weakpass',
+                        ]);
+
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['password']);
+    }
+
+    /** @test */
+    public function it_assigns_default_role_utilisateur_if_not_specified()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson('/api/users', [
+                            'nom' => 'Nom',
+                            'prenom' => 'Prenom',
+                            'email' => 'defaultrole@example.com',
+                            'password' => 'Password123!',
+                            'password_confirmation' => 'Password123!',
+                        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('users', [
+            'email' => 'defaultrole@example.com',
+            'role' => 'utilisateur',
+        ]);
+    }
+
+    /** @test */
+    public function it_rejects_invalid_role_on_create_or_update()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+        $user = User::factory()->create();
+
+        // Création
+        $create = $this->withHeader('Authorization', 'Bearer ' . $token)
+                    ->postJson('/api/users', [
+                        'nom' => 'Test',
+                        'prenom' => 'Invalide',
+                        'email' => 'invalidrole@example.com',
+                        'password' => 'Password123!',
+                        'password_confirmation' => 'Password123!',
+                        'role' => 'HACKER',
+                    ]);
+        $create->assertStatus(422)->assertJsonValidationErrors(['role']);
+
+        // Mise à jour
+        $update = $this->withHeader('Authorization', 'Bearer ' . $token)
+                    ->putJson("/api/users/{$user->id}", [
+                        'role' => 'INVALID_ROLE',
+                    ]);
+        $update->assertStatus(422)->assertJsonValidationErrors(['role']);
+    }
+
+    /** @test */
+    public function it_accepts_apostrophes_and_hyphens_in_nom_and_prenom()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson('/api/users', [
+                            'nom' => "O'Connor",
+                            'prenom' => "Jean-Luc",
+                            'email' => 'jean.luc@example.com',
+                            'password' => 'Password123!',
+                            'password_confirmation' => 'Password123!',
+                        ]);
+
+        $response->assertStatus(201)
+                ->assertJsonStructure(['user']);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'jean.luc@example.com',
+            'nom' => "O'Connor",
+            'prenom' => "Jean-Luc",
+        ]);
+    }
 }

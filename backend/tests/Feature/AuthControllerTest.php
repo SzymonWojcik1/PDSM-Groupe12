@@ -177,6 +177,36 @@ class AuthControllerTest extends TestCase
         $this->assertNull($user->two_factor_expires_at);
     }
 
+    /** @test */
+    public function it_rejects_login_with_missing_or_invalid_fields()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'invalid-email',
+            'password' => '', // vide
+        ]);
+
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    /** @test */
+    public function it_rejects_2fa_verification_if_code_is_missing_or_invalid()
+    {
+        $user = User::factory()->create([
+            'two_factor_code' => '123456',
+            'two_factor_expires_at' => now()->addMinutes(5),
+        ]);
+
+        $token = $user->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson('/api/2fa/verify', [
+                            'code' => '', // vide
+                        ]);
+
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['code']);
+    }
 
 
 }
