@@ -34,6 +34,8 @@ Route::controller(PartenaireController::class)->group(function(){
     Route::get('/partenaires', [PartenaireController::class, 'index']);
     Route::post('/partenaires', [PartenaireController::class, 'store']);
     Route::delete('/partenaires/{id}', [PartenaireController::class, 'destroy']);
+    Route::put('/partenaires/{id}', [PartenaireController::class, 'update']);
+    Route::get('/partenaires/{id}', [PartenaireController::class, 'show']);
 });
 
 

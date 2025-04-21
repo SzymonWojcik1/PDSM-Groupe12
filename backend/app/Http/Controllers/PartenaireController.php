@@ -38,4 +38,35 @@ class PartenaireController extends Controller
 
         return response()->json(['message' => 'Partenaire supprimé']);
     }
+
+    public function update(Request $request, $id)
+    {
+        $partenaire = Partenaire::find($id);
+
+        if (!$partenaire) {
+            return response()->json(['message' => 'Partenaire non trouvé'], 404);
+        }
+
+        $validated = $request->validate([
+            'part_nom' => 'required|string|max:255',
+            'part_pays' => 'required|string|max:255',
+            'part_region' => 'required|string|max:255',
+        ]);
+
+        $partenaire->update($validated);
+
+        return response()->json($partenaire);
+    }
+
+    public function show($id)
+    {
+        $partenaire = Partenaire::find($id);
+
+        if (!$partenaire) {
+            return response()->json(['message' => 'Partenaire non trouvé'], 404);
+        }
+
+        return response()->json($partenaire);
+    }
+
 }
