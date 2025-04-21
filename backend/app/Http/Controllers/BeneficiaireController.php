@@ -57,7 +57,7 @@ class BeneficiaireController extends Controller
             ];
         });
 
-        // ✅ Ce return est maintenant à la bonne place
+        // Ce return est maintenant à la bonne place
         return response()->json($beneficiaires);
     }
 
