@@ -107,4 +107,51 @@ class AuthControllerTest extends TestCase
         $response->assertStatus(200)
                  ->assertJson(['message' => 'Déconnecté avec succès']);
     }
+
+    /** @test */
+    public function it_rejects_expired_two_factor_code()
+    {
+        $user = User::factory()->create([
+            'two_factor_code' => '654321',
+            'two_factor_expires_at' => now()->subMinutes(1),
+        ]);
+
+        $token = $user->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson('/api/2fa/verify', [
+                            'code' => '654321',
+                        ]);
+
+        $response->assertStatus(422)
+                ->assertJson(['message' => 'Code invalide ou expiré']);
+    }
+
+    /** @test */
+    public function it_overwrites_old_two_factor_code_on_new_login()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('Password123!'),
+            'two_factor_code' => '111111',
+            'two_factor_expires_at' => now()->addMinutes(5),
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@example.com',
+            'password' => 'Password123!',
+        ]);
+
+        $response->assertStatus(200);
+
+        $user->refresh();
+
+        $this->assertNotEquals('111111', $user->two_factor_code);
+        $this->assertNotNull($user->two_factor_code);
+        Notification::assertSentTo($user, TwoFactorCodeNotification::class);
+    }
+
+
 }
