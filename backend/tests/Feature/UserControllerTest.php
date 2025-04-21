@@ -177,4 +177,24 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    /** @test */
+    public function it_rejects_invalid_characters_in_nom_or_prenom()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/users', [
+                'nom' => 'Dupont123!',
+                'prenom' => 'Jean@',
+                'email' => 'invalidchars@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+            ]);
+
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['nom', 'prenom']);
+    }
+
 }

@@ -153,5 +153,30 @@ class AuthControllerTest extends TestCase
         Notification::assertSentTo($user, TwoFactorCodeNotification::class);
     }
 
+    /** @test */
+    public function it_deletes_two_factor_code_after_successful_verification()
+    {
+        $user = User::factory()->create([
+            'two_factor_code' => '222222',
+            'two_factor_expires_at' => now()->addMinutes(5),
+        ]);
+
+        $token = $user->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson('/api/2fa/verify', [
+                            'code' => '222222',
+                        ]);
+
+        $response->assertStatus(200)
+                ->assertJson(['message' => 'Double authentification réussie']);
+
+        $user->refresh();
+
+        $this->assertNull($user->two_factor_code);
+        $this->assertNull($user->two_factor_expires_at);
+    }
+
+
 
 }
