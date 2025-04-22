@@ -21,12 +21,19 @@ class PartenaireController extends Controller
             'part_region' => 'required|string|max:255',
         ]);
 
-        $partenaire = Partenaire::create($validated);
+        $exists = Partenaire::whereRaw('LOWER(part_nom) = ?', [strtolower($validated['part_nom'])])
+            ->whereRaw('LOWER(part_pays) = ?', [strtolower($validated['part_pays'])])
+            ->exists();
 
+        if ($exists) {
+            return response()->json(['message' => 'Un partenaire avec ce nom et ce pays existe déjà.'], 409);
+        }
+
+        $partenaire = Partenaire::create($validated);
         return response()->json($partenaire, 201);
     }
 
-    public function destroy($id)
+    public function show($id)
     {
         $partenaire = Partenaire::find($id);
 
@@ -34,9 +41,7 @@ class PartenaireController extends Controller
             return response()->json(['message' => 'Partenaire non trouvé'], 404);
         }
 
-        $partenaire->delete();
-
-        return response()->json(['message' => 'Partenaire supprimé']);
+        return response()->json($partenaire);
     }
 
     public function update(Request $request, $id)
@@ -53,12 +58,20 @@ class PartenaireController extends Controller
             'part_region' => 'required|string|max:255',
         ]);
 
-        $partenaire->update($validated);
+        $exists = Partenaire::whereRaw('LOWER(part_nom) = ?', [strtolower($validated['part_nom'])])
+            ->whereRaw('LOWER(part_pays) = ?', [strtolower($validated['part_pays'])])
+            ->where('part_id', '!=', $id)
+            ->exists();
 
+        if ($exists) {
+            return response()->json(['message' => 'Un partenaire avec ce nom et ce pays existe déjà.'], 409);
+        }
+
+        $partenaire->update($validated);
         return response()->json($partenaire);
     }
 
-    public function show($id)
+    public function destroy($id)
     {
         $partenaire = Partenaire::find($id);
 
@@ -66,7 +79,7 @@ class PartenaireController extends Controller
             return response()->json(['message' => 'Partenaire non trouvé'], 404);
         }
 
-        return response()->json($partenaire);
+        $partenaire->delete();
+        return response()->json(['message' => 'Partenaire supprimé']);
     }
-
 }

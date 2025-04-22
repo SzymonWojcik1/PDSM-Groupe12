@@ -39,8 +39,17 @@ export default function CreateProjetPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.pro_dateDebut > formData.pro_dateFin) {
+    const debut = new Date(formData.pro_dateDebut);
+    const fin = new Date(formData.pro_dateFin);
+    const now = new Date();
+
+    if (debut > fin) {
       setErrorMessage("La date de début ne peut pas être après la date de fin.");
+      return;
+    }
+
+    if (debut < now || fin < now) {
+      setErrorMessage("Les dates du projet ne peuvent pas être dans le passé.");
       return;
     }
 

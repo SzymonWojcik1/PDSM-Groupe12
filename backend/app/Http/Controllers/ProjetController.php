@@ -24,6 +24,21 @@ class ProjetController extends Controller
             'pro_part_id' => 'required|exists:partenaires,part_id',
         ]);
 
+<<<<<<< HEAD
+=======
+        // Vérifie si un projet identique existe déjà
+        $exists = Projet::whereRaw('LOWER(pro_nom) = ?', [strtolower($validated['pro_nom'])])
+            ->where('pro_dateDebut', $validated['pro_dateDebut'])
+            ->where('pro_dateFin', $validated['pro_dateFin'])
+            ->where('pro_part_id', $validated['pro_part_id'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'Un projet identique existe déjà pour ce partenaire à ces dates.'], 409);
+        }
+
+        // Vérification des dates dans le futur
+>>>>>>> feature/frontend/activites
         $dateDebut = Carbon::parse($validated['pro_dateDebut']);
         $dateFin = Carbon::parse($validated['pro_dateFin']);
 
@@ -67,10 +82,29 @@ class ProjetController extends Controller
             'pro_part_id' => 'required|exists:partenaires,part_id',
         ]);
 
+<<<<<<< HEAD
         $now = Carbon::now();
         $ancienDebut = Carbon::parse($projet->pro_dateDebut);
 
         // Empêcher modification si projet a déjà commencé
+=======
+        // Vérifie s’il existe un doublon avec une autre ligne
+        $exists = Projet::whereRaw('LOWER(pro_nom) = ?', [strtolower($validated['pro_nom'])])
+            ->where('pro_dateDebut', $validated['pro_dateDebut'])
+            ->where('pro_dateFin', $validated['pro_dateFin'])
+            ->where('pro_part_id', $validated['pro_part_id'])
+            ->where('pro_id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'Un projet identique existe déjà pour ce partenaire à ces dates.'], 409);
+        }
+
+        // Empêche la modification de projet déjà démarré
+        $now = Carbon::now();
+        $ancienDebut = Carbon::parse($projet->pro_dateDebut);
+
+>>>>>>> feature/frontend/activites
         if ($now->gte($ancienDebut)) {
             return response()->json(['message' => 'Impossible de modifier les dates d’un projet en cours ou terminé'], 403);
         }
@@ -78,7 +112,10 @@ class ProjetController extends Controller
         $nouveauDebut = Carbon::parse($validated['pro_dateDebut']);
         $nouveauFin = Carbon::parse($validated['pro_dateFin']);
 
+<<<<<<< HEAD
         // Empêcher de fixer des dates dans le passé
+=======
+>>>>>>> feature/frontend/activites
         if ($nouveauDebut->isPast() || $nouveauFin->isPast()) {
             return response()->json(['message' => 'Impossible de définir une date passée pour un projet futur'], 400);
         }
@@ -103,4 +140,8 @@ class ProjetController extends Controller
         $projet->delete();
         return response()->json(['message' => 'Projet supprimé']);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> feature/frontend/activites
