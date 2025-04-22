@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,12 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('partenaires', function (Blueprint $table) {
-            $table->id('part_id');
-            $table->string('part_nom');
-            $table->string('part_pays');
-            $table->string('part_region');
-            $table->timestamps();
+        Schema::create('thematique', function (Blueprint $table) {
+            $table->id('the_id');          // Clé primaire
+            $table->string('the_nom');     // Nom de la thématique
+            $table->timestamps();          // created_at et updated_at
         });
     }
 
@@ -25,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('partenaires');
+        Schema::dropIfExists('thematique');
     }
 };

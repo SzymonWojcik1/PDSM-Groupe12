@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('pro_nom');
             $table->date('pro_dateDebut');
             $table->date('pro_dateFin');
-            $table->unsignedBigInteger('pro_part_id');
-            $table->foreign('pro_part_id')->references('part_id')->on('partenaires');
+            $table->unsignedBigInteger('pro_par_id');
+            $table->foreign('pro_par_id')->references('par_id')->on('partenaires');
             $table->timestamps();
         });
     }
