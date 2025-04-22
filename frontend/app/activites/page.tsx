@@ -28,6 +28,52 @@ export default function ActivitesPage() {
     fetchActivites();
   };
 
+  const handleExport = () => {
+    // Si la liste des activités est vide, on affiche une alerte et on arrête la fonction
+    if (activites.length === 0) {
+      alert("Aucune activité à exporter.");
+      return;
+    }
+
+    // Définir les en-têtes de colonnes du fichier CSV
+    const headers = ['Nom', 'Début', 'Fin', 'Partenaire', 'Projet'];
+  
+    // Préparer les lignes de données à partir de la liste des activités
+    const rows = activites.map((a) => [
+      a.act_nom,                           
+      a.act_dateDebut,                    
+      a.act_dateFin,                      
+      a.partenaire?.part_nom || '',       
+      a.projet?.pro_nom || '',            
+    ]);
+  
+    // Générer le contenu CSV sous forme de texte
+    const csvContent = [
+      headers.join(','),  // ex: "Nom,Début,Fin,Partenaire,Projet"
+      ...rows.map((r) =>
+        r.map((cell) =>
+          `"${cell.replace(/"/g, '""')}"` // chaque cellule est entourée de guillemets, les guillemets internes sont doublés
+        ).join(',') // on joint les cellules avec des virgules
+      ),
+    ].join('\n'); // on joint toutes les lignes avec un saut de ligne
+  
+    // Création d’un objet Blob contenant le texte CSV, pour générer un fichier en mémoire
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  
+    // Création d'une URL temporaire pointant vers le Blob (fichier)
+    const url = URL.createObjectURL(blob);
+  
+    // Création d'un élément <a> HTML pour déclencher le téléchargement
+    const link = document.createElement('a');
+    link.href = url;                               // lien vers le fichier
+    link.setAttribute('download', 'activites.csv'); // nom du fichier à télécharger
+  
+    // Ajout du lien au document, clic automatique, puis suppression du lien
+    document.body.appendChild(link);
+    link.click(); // déclenche le téléchargement
+    document.body.removeChild(link); // nettoyage
+  };
+
   useEffect(() => {
     fetchActivites();
   }, []);
@@ -36,11 +82,19 @@ export default function ActivitesPage() {
     <div className="min-h-screen bg-white flex flex-col items-center p-8">
       <h1 className="text-2xl font-bold mb-4 text-black">Liste des activités</h1>
 
-      <Link href="/activites/creer">
-        <button className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Créer une activité
+      <div className="flex gap-4 mb-4">
+        <Link href="/activites/creer">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Créer une activité
+          </button>
+        </Link>
+        <button
+          onClick={handleExport}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Exporter
         </button>
-      </Link>
+      </div>
 
       <table className="w-full max-w-4xl border border-gray-200 text-black">
         <thead className="bg-gray-100">
