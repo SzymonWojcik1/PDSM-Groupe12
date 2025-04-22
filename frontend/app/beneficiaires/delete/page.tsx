@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation';
 import { enumsShow } from '@/lib/enumsShow';
 
 type Beneficiaire = {
-  id: string;
-  prenom: string;
-  nom: string;
-  date_naissance: string;
-  region: string;
-  pays: string;
-  type: string;
-  type_autre: string | null;
-  zone: string;
-  sexe: string;
-  sexe_autre: string | null;
-  genre: string | null;
-  genre_autre: string | null;
-  ethnicite: string;
+  ben_id: string;
+  ben_prenom: string;
+  ben_nom: string;
+  ben_date_naissance: string;
+  ben_region: string;
+  ben_pays: string;
+  ben_type: string;
+  ben_type_autre: string | null;
+  ben_zone: string;
+  ben_sexe: string;
+  ben_sexe_autre: string | null;
+  ben_genre: string | null;
+  ben_genre_autre: string | null;
+  ben_ethnicite: string;
 };
 
 type EnumMap = Record<string, { value: string; label: string }[]>;
@@ -59,7 +59,7 @@ export default function SupprimerBeneficiairesPage() {
       });
     }
 
-    setBeneficiaires((prev) => prev.filter((b) => !selectedIds.includes(b.id)));
+    setBeneficiaires((prev) => prev.filter((b) => !selectedIds.includes(b.ben_id)));
     setSelectedIds([]);
   };
 
@@ -109,30 +109,36 @@ export default function SupprimerBeneficiairesPage() {
             </thead>
             <tbody>
               {beneficiaires.map((b) => (
-                <tr key={b.id}>
+                <tr key={b.ben_id}>
                   <td className="border px-2 py-1 text-center">
                     <input
                       type="checkbox"
-                      checked={selectedIds.includes(b.id)}
-                      onChange={() => toggleSelection(b.id)}
+                      checked={selectedIds.includes(b.ben_id)}
+                      onChange={() => toggleSelection(b.ben_id)}
                     />
                   </td>
-                  <td className="border px-2 py-1">{b.prenom}</td>
-                  <td className="border px-2 py-1">{b.nom}</td>
-                  <td className="border px-2 py-1">{b.date_naissance}</td>
-                  <td className="border px-2 py-1">{b.region}</td>
-                  <td className="border px-2 py-1">{b.pays}</td>
+                  <td className="border px-2 py-1">{b.ben_prenom}</td>
+                  <td className="border px-2 py-1">{b.ben_nom}</td>
+                  <td className="border px-2 py-1">{b.ben_date_naissance}</td>
+                  <td className="border px-2 py-1">{b.ben_region}</td>
+                  <td className="border px-2 py-1">{b.ben_pays}</td>
                   <td className="border px-2 py-1">
-                    {b.type === 'other' ? b.type_autre || '-' : enumsShow(enums, 'type', b.type)}
+                    {b.ben_type === 'other'
+                      ? b.ben_type_autre || '-'
+                      : enumsShow(enums, 'type', b.ben_type)}
                   </td>
-                  <td className="border px-2 py-1">{enumsShow(enums, 'zone', b.zone)}</td>
+                  <td className="border px-2 py-1">{enumsShow(enums, 'zone', b.ben_zone)}</td>
                   <td className="border px-2 py-1">
-                    {b.sexe === 'other' ? b.sexe_autre || '-' : enumsShow(enums, 'sexe', b.sexe)}
+                    {b.ben_sexe === 'other'
+                      ? b.ben_sexe_autre || '-'
+                      : enumsShow(enums, 'sexe', b.ben_sexe)}
                   </td>
                   <td className="border px-2 py-1">
-                    {b.genre === 'other' ? b.genre_autre || '-' : enumsShow(enums, 'genre', b.genre || '')}
+                    {b.ben_genre === 'other'
+                      ? b.ben_genre_autre || '-'
+                      : enumsShow(enums, 'genre', b.ben_genre || '')}
                   </td>
-                  <td className="border px-2 py-1">{b.ethnicite}</td>
+                  <td className="border px-2 py-1">{b.ben_ethnicite}</td>
                 </tr>
               ))}
             </tbody>
