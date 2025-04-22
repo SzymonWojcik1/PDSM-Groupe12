@@ -7,8 +7,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EnumController;
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
+Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
+
 
 // Beneficiaire
 Route::post('/beneficiaires', [BeneficiaireController::class, 'store']);
