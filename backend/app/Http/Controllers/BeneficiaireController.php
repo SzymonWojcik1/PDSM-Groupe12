@@ -31,7 +31,7 @@ class BeneficiaireController extends Controller
                 });
             })
             ->get();
-        
+
         $beneficiaires = $beneficiaires->map(function ($b) {
             return [
                 'id' => $b->id,
@@ -56,8 +56,6 @@ class BeneficiaireController extends Controller
                 'updated_at' => $b->updated_at,
             ];
         });
-
-        // ✅ Ce return est maintenant à la bonne place
         return response()->json($beneficiaires);
     }
 

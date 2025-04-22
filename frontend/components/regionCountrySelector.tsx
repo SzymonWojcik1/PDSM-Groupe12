@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { countriesByRegion } from '@/lib/countriesByRegion';
 
 type Props = {
@@ -7,24 +7,38 @@ type Props = {
   onCountryChange: (country: string) => void;
   regionError?: boolean;
   countryError?: boolean;
+  initialRegion?: string;
+  initialCountry?: string;
 };
 
 export default function RegionCountrySelector({
   onRegionChange,
   onCountryChange,
   regionError,
-  countryError
+  countryError,
+  initialRegion = '',
+  initialCountry = '',
 }: Props) {
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState(initialRegion);
+  const [selectedCountry, setSelectedCountry] = useState(initialCountry);
+
+  useEffect(() => {
+    setSelectedRegion(initialRegion);
+    setSelectedCountry(initialCountry);
+  }, [initialRegion, initialCountry]);
 
   const handleRegion = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const region = e.target.value;
     setSelectedRegion(region);
+    setSelectedCountry('');
     onRegionChange(region);
+    onCountryChange('');
   };
 
   const handleCountry = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onCountryChange(e.target.value);
+    const country = e.target.value;
+    setSelectedCountry(country);
+    onCountryChange(country);
   };
 
   const regions = Object.keys(countriesByRegion);
@@ -33,6 +47,7 @@ export default function RegionCountrySelector({
   return (
     <div className="flex flex-col gap-4">
       <select
+        value={selectedRegion}
         onChange={handleRegion}
         className={`border p-2 rounded ${regionError ? 'border-red-500' : ''}`}
       >
@@ -45,6 +60,7 @@ export default function RegionCountrySelector({
       </select>
 
       <select
+        value={selectedCountry}
         onChange={handleCountry}
         disabled={!selectedRegion}
         className={`border p-2 rounded ${countryError ? 'border-red-500' : ''}`}
