@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\BeneficiaireController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PartenaireController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
@@ -28,3 +29,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/2fa/verify', [AuthController::class, 'verifyTwoFactorCode']);
 
 });
+
+
+Route::controller(PartenaireController::class)->group(function(){
+    Route::get('/partenaires', [PartenaireController::class, 'index']);
+    Route::post('/partenaires', [PartenaireController::class, 'store']);
+    Route::delete('/partenaires/{id}', [PartenaireController::class, 'destroy']);
+    Route::put('/partenaires/{id}', [PartenaireController::class, 'update']);
+    Route::get('/partenaires/{id}', [PartenaireController::class, 'show']);
+});
+
+
+
+
