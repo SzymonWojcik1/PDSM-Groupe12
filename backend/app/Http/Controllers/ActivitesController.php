@@ -8,19 +8,11 @@ use Carbon\Carbon;
 
 class ActivitesController extends Controller
 {
-<<<<<<< HEAD
-    // Lister toutes les activités
-=======
->>>>>>> feature/frontend/activites
     public function index()
     {
         return response()->json(Activites::with(['partenaire', 'projet'])->get());
     }
 
-<<<<<<< HEAD
-    // Créer une activité
-=======
->>>>>>> feature/frontend/activites
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -31,11 +23,6 @@ class ActivitesController extends Controller
             'act_pro_id' => 'required|exists:projet,pro_id',
         ]);
 
-<<<<<<< HEAD
-        $debut = Carbon::parse($validated['act_dateDebut']);
-        $fin = Carbon::parse($validated['act_dateFin']);
-        $now = Carbon::now();
-=======
         $exists = Activites::whereRaw('LOWER(act_nom) = ?', [strtolower($validated['act_nom'])])
             ->where('act_dateDebut', $validated['act_dateDebut'])
             ->where('act_dateFin', $validated['act_dateFin'])
@@ -49,7 +36,6 @@ class ActivitesController extends Controller
         $now = Carbon::now();
         $debut = Carbon::parse($validated['act_dateDebut']);
         $fin = Carbon::parse($validated['act_dateFin']);
->>>>>>> feature/frontend/activites
 
         if ($debut->lt($now) || $fin->lt($now)) {
             return response()->json(['message' => 'Les dates ne peuvent pas être dans le passé.'], 400);
@@ -63,10 +49,6 @@ class ActivitesController extends Controller
         return response()->json($activites, 201);
     }
 
-<<<<<<< HEAD
-    // Afficher une activité spécifique
-=======
->>>>>>> feature/frontend/activites
     public function show($id)
     {
         $activites = Activites::with(['partenaire', 'projet'])->find($id);
@@ -78,10 +60,6 @@ class ActivitesController extends Controller
         return response()->json($activites);
     }
 
-<<<<<<< HEAD
-    // Mettre à jour une activité
-=======
->>>>>>> feature/frontend/activites
     public function update(Request $request, $id)
     {
         $activites = Activites::find($id);
@@ -98,8 +76,6 @@ class ActivitesController extends Controller
             'act_pro_id' => 'required|exists:projet,pro_id',
         ]);
 
-<<<<<<< HEAD
-=======
 
         $exists = Activites::whereRaw('LOWER(act_nom) = ?', [strtolower($validated['act_nom'])])
             ->where('act_dateDebut', $validated['act_dateDebut'])
@@ -112,7 +88,6 @@ class ActivitesController extends Controller
             return response()->json(['message' => 'Une activité identique existe déjà pour ce projet à ces dates.'], 409);
         }
 
->>>>>>> feature/frontend/activites
         $now = Carbon::now();
         $ancienDebut = Carbon::parse($activites->act_dateDebut);
 
@@ -135,10 +110,6 @@ class ActivitesController extends Controller
         return response()->json($activites);
     }
 
-<<<<<<< HEAD
-    // Supprimer une activité
-=======
->>>>>>> feature/frontend/activites
     public function destroy($id)
     {
         $activites = Activites::find($id);
@@ -151,7 +122,3 @@ class ActivitesController extends Controller
         return response()->json(['message' => 'Activité supprimée']);
     }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> feature/frontend/activites
