@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('act_nom');
             $table->date('act_dateDebut');
             $table->date('act_dateFin');
-            $table->unsignedBigInteger('act_par_id');
-            $table->foreign('act_par_id')->references('par_id')->on('partenaires');
+            $table->unsignedBigInteger('act_part_id');
+            $table->foreign('act_part_id')->references('part_id')->on('partenaires');
             $table->unsignedBigInteger('act_pro_id');
             $table->foreign('act_pro_id')->references('pro_id')->on('projet');
             $table->timestamps();
