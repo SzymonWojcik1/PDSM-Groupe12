@@ -5,6 +5,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\BeneficiaireController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PartenaireController;
+use App\Http\Controllers\ProjetController;
+use App\Http\Controllers\ActivitesController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
@@ -37,6 +39,24 @@ Route::controller(PartenaireController::class)->group(function(){
     Route::delete('/partenaires/{id}', [PartenaireController::class, 'destroy']);
     Route::put('/partenaires/{id}', [PartenaireController::class, 'update']);
     Route::get('/partenaires/{id}', [PartenaireController::class, 'show']);
+});
+
+
+Route::controller(ProjetController::class)->group(function(){
+    Route::get('/projets', [ProjetController::class, 'index']);
+    Route::post('/projets', [ProjetController::class, 'store']);
+    Route::get('/projets/{id}', [ProjetController::class, 'show']);
+    Route::put('/projets/{id}', [ProjetController::class, 'update']);
+    Route::delete('/projets/{id}', [ProjetController::class, 'destroy']);   
+});
+
+
+Route::controller(ActivitesController::class)->group(function(){
+    Route::get('/activites', [ActivitesController::class, 'index']);
+    Route::post('/activites', [ActivitesController::class, 'store']);
+    Route::get('/activites/{id}', [ActivitesController::class, 'show']);
+    Route::put('/activites/{id}', [ActivitesController::class, 'update']);
+    Route::delete('/activites/{id}', [ActivitesController::class, 'destroy']);
 });
 
 
