@@ -5,9 +5,16 @@ import { countriesByRegion } from '@/lib/countriesByRegion';
 type Props = {
   onRegionChange: (region: string) => void;
   onCountryChange: (country: string) => void;
+  regionError?: boolean;
+  countryError?: boolean;
 };
 
-export default function RegionCountrySelector({ onRegionChange, onCountryChange }: Props) {
+export default function RegionCountrySelector({
+  onRegionChange,
+  onCountryChange,
+  regionError,
+  countryError
+}: Props) {
   const [selectedRegion, setSelectedRegion] = useState('');
 
   const handleRegion = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -25,7 +32,10 @@ export default function RegionCountrySelector({ onRegionChange, onCountryChange 
 
   return (
     <div className="flex flex-col gap-4">
-      <select onChange={handleRegion} className="border p-2 rounded">
+      <select
+        onChange={handleRegion}
+        className={`border p-2 rounded ${regionError ? 'border-red-500' : ''}`}
+      >
         <option value="">Select a region</option>
         {regions.map((r) => (
           <option key={r} value={r}>
@@ -34,7 +44,11 @@ export default function RegionCountrySelector({ onRegionChange, onCountryChange 
         ))}
       </select>
 
-      <select onChange={handleCountry} className="border p-2 rounded" disabled={!selectedRegion}>
+      <select
+        onChange={handleCountry}
+        disabled={!selectedRegion}
+        className={`border p-2 rounded ${countryError ? 'border-red-500' : ''}`}
+      >
         <option value="">Select a country</option>
         {countries.map((c) => (
           <option key={c} value={c}>
