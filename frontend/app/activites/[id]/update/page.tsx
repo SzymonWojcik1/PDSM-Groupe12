@@ -23,30 +23,30 @@ export default function UpdateActivitePage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       const [partRes, projRes, actRes] = await Promise.all([
         fetch('http://localhost:8000/api/partenaires'),
         fetch('http://localhost:8000/api/projets'),
-        fetch(`http://localhost:8000/api/activites/${id}`),
+        fetch(`http://localhost:8000/api/activites/${id}`)
+      ]);
+      const [parts, projs, act] = await Promise.all([
+        partRes.json(),
+        projRes.json(),
+        actRes.json()
       ]);
 
-      const partenairesData = await partRes.json();
-      const projetsData = await projRes.json();
-      const activiteData = await actRes.json();
-
-      setPartenaires(partenairesData);
-      setProjets(projetsData);
-
+      setPartenaires(parts);
+      setProjets(projs);
       setFormData({
-        act_nom: activiteData.act_nom,
-        act_dateDebut: activiteData.act_dateDebut,
-        act_dateFin: activiteData.act_dateFin,
-        act_part_id: activiteData.act_part_id,
-        act_pro_id: activiteData.act_pro_id,
+        act_nom: act.act_nom,
+        act_dateDebut: act.act_dateDebut,
+        act_dateFin: act.act_dateFin,
+        act_part_id: act.act_part_id,
+        act_pro_id: act.act_pro_id
       });
     };
 
-    fetchData();
+    fetchInitialData();
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -67,7 +67,7 @@ export default function UpdateActivitePage() {
     }
 
     if (debut < now || fin < now) {
-      setErrorMessage("Les dates ne peuvent pas être dans le passé.");
+      setErrorMessage("Les nouvelles dates ne peuvent pas être dans le passé.");
       return;
     }
 
@@ -80,7 +80,7 @@ export default function UpdateActivitePage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setErrorMessage(data.message || 'Erreur lors de la modification.');
+      setErrorMessage(data.message || 'Erreur lors de la mise à jour.');
       return;
     }
 
@@ -90,7 +90,7 @@ export default function UpdateActivitePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-8">
       <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-black mb-4">Modifier l’activité</h1>
+        <h1 className="text-2xl font-bold text-black mb-4">Modifier une activité</h1>
 
         {errorMessage && <div className="bg-red-100 text-red-700 p-2 rounded">{errorMessage}</div>}
 
@@ -103,7 +103,6 @@ export default function UpdateActivitePage() {
           className="w-full p-2 border rounded text-black"
           required
         />
-
         <input
           type="date"
           name="act_dateDebut"
@@ -112,7 +111,6 @@ export default function UpdateActivitePage() {
           className="w-full p-2 border rounded text-black"
           required
         />
-
         <input
           type="date"
           name="act_dateFin"
