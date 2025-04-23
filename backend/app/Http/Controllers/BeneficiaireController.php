@@ -52,17 +52,17 @@ class BeneficiaireController extends Controller
 
         $errors = [];
 
-        if ($validated['ben_type'] === Type::AUTRE && empty($validated['ben_type_autre'])) {
+        if ($validated['ben_type'] === Type::AUTRE->value && empty($validated['ben_type_autre'])) {
             $errors['ben_type_autre'] = 'Champ requis si type est "Autre"';
         }
 
-        if ($validated['ben_sexe'] === Sexe::AUTRE && empty($validated['ben_sexe_autre'])) {
+        if ($validated['ben_sexe'] === Sexe::AUTRE->value && empty($validated['ben_sexe_autre'])) {
             $errors['ben_sexe_autre'] = 'Champ requis si sexe est "Autre"';
         }
 
         if (
             isset($validated['ben_genre']) &&
-            $validated['ben_genre'] === Genre::AUTRE &&
+            $validated['ben_genre'] === Genre::AUTRE->value &&
             empty($validated['ben_genre_autre'])
         ) {
             $errors['ben_genre_autre'] = 'Champ requis si genre est "Autre"';
@@ -113,17 +113,17 @@ class BeneficiaireController extends Controller
 
         $errors = [];
 
-        if ($validated['ben_type'] === Type::AUTRE && empty($validated['ben_type_autre'])) {
+        if ($validated['ben_type'] === Type::AUTRE->value && empty($validated['ben_type_autre'])) {
             $errors['ben_type_autre'] = 'Champ requis si type est "Autre"';
         }
 
-        if ($validated['ben_sexe'] === Sexe::AUTRE && empty($validated['ben_sexe_autre'])) {
+        if ($validated['ben_sexe'] === Sexe::AUTRE->value && empty($validated['ben_sexe_autre'])) {
             $errors['ben_sexe_autre'] = 'Champ requis si sexe est "Autre"';
         }
 
         if (
             isset($validated['ben_genre']) &&
-            $validated['ben_genre'] === Genre::AUTRE &&
+            $validated['ben_genre'] === Genre::AUTRE->value &&
             empty($validated['ben_genre_autre'])
         ) {
             $errors['ben_genre_autre'] = 'Champ requis si genre est "Autre"';

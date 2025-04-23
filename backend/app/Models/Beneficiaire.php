@@ -7,9 +7,12 @@ use App\Enums\Type;
 use App\Enums\Zone;
 use App\Enums\Sexe;
 use App\Enums\Genre;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Beneficiaire extends Model
 {
+    use HasFactory;
+
     protected $table = 'beneficiaires';
 
     protected $primaryKey = 'ben_id';
@@ -38,4 +41,9 @@ class Beneficiaire extends Model
         'ben_genre_autre',
         'ben_ethnicite',
     ];
+
+    public function getRouteKeyName()
+    {
+        return 'ben_id';
+    }
 }
