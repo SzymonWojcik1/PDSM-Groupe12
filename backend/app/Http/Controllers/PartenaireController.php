@@ -82,4 +82,19 @@ class PartenaireController extends Controller
         $partenaire->delete();
         return response()->json(['message' => 'Partenaire supprimé']);
     }
+
+    public function users($id)
+    {
+        $partenaire = Partenaire::with('users')->find($id);
+
+        if (!$partenaire) {
+            return response()->json(['message' => 'Partenaire non trouvé'], 404);
+        }
+
+        return response()->json([
+            'partenaire' => $partenaire->part_nom,
+            'users' => $partenaire->users,
+        ]);
+    }
+
 }

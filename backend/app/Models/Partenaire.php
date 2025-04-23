@@ -12,4 +12,9 @@ class Partenaire extends Model
     protected $primaryKey = 'part_id';
     protected $fillable = ['part_id', 'part_nom', 'part_pays', 'part_region'];
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'partenaire_id', 'part_id');
+    }
+
 }

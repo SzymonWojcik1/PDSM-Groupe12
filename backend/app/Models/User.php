@@ -40,6 +40,7 @@ class User extends Authenticatable
         'password',
         'role',
         'telephone',
+        'partenaire_id',
     ];
 
     protected $hidden = [
@@ -57,7 +58,10 @@ class User extends Authenticatable
         return $this->role === $role->value;
     }
 
-
+    public function partenaire()
+    {
+        return $this->belongsTo(Partenaire::class, 'partenaire_id', 'part_id');
+    }
 }
 
 

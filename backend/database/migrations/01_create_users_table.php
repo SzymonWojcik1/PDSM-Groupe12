@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('telephone')->nullable();
             $table->string('two_factor_code')->nullable();
             $table->timestamp('two_factor_expires_at')->nullable();
+            $table->foreignId('partenaire_id')->nullable()->constrained('partenaires', 'part_id')->nullOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });

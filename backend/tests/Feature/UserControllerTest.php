@@ -287,4 +287,30 @@ class UserControllerTest extends TestCase
             'prenom' => "Jean-Luc",
         ]);
     }
+
+    /** @test */
+    public function siege_can_assign_partenaire_via_dedicated_route()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $user = User::factory()->create(['partenaire_id' => null]);
+        $partenaire = \App\Models\Partenaire::factory()->create();
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                        ->postJson("/api/users/{$user->id}/partenaire", [
+                            'partenaire_id' => $partenaire->part_id,
+                        ]);
+
+        $response->assertStatus(200)
+                ->assertJsonFragment([
+                    'partenaire_id' => $partenaire->part_id,
+                ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'partenaire_id' => $partenaire->part_id,
+        ]);
+    }
+
 }

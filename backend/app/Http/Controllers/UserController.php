@@ -26,6 +26,7 @@ class UserController extends Controller
             ],
             'role' => ['nullable', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
+            'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
         ]);
 
         $user = User::create([
@@ -35,6 +36,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'utilisateur',
             'telephone' => $request->telephone,
+            'partenaire_id' => $request->partenaire_id,
         ]);
 
         return response()->json(['user' => $user], 201);
@@ -58,6 +60,7 @@ class UserController extends Controller
             ],
             'role' => ['sometimes', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
+            'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
         ]);
 
         $user->update([
@@ -67,6 +70,7 @@ class UserController extends Controller
             'password' => $request->filled('password') ? Hash::make($request->password) : $user->password,
             'role' => $request->role ?? $user->role,
             'telephone' => $request->telephone ?? $user->telephone,
+            'partenaire_id' => $request->partenaire_id ?? $user->partenaire_id,
         ]);
 
         return response()->json(['message' => 'Utilisateur mis à jour avec succès', 'user' => $user]);
@@ -83,4 +87,22 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Utilisateur supprimé avec succès']);
     }
+
+    public function assignPartenaire(Request $request, $id)
+    {
+        if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
+
+        $request->validate([
+            'partenaire_id' => ['required', 'exists:partenaires,part_id'],
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->partenaire_id = $request->partenaire_id;
+        $user->save();
+
+        return response()->json(['message' => 'Partenaire assigné avec succès', 'user' => $user]);
+    }
+
 }

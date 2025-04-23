@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::post('/users/{id}/partenaire', [UserController::class, 'assignPartenaire']);
+
 
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -45,6 +47,7 @@ Route::controller(PartenaireController::class)->group(function(){
     Route::delete('/partenaires/{id}', [PartenaireController::class, 'destroy']);
     Route::put('/partenaires/{id}', [PartenaireController::class, 'update']);
     Route::get('/partenaires/{id}', [PartenaireController::class, 'show']);
+    Route::get('/partenaires/{id}/users', [PartenaireController::class, 'users']);
 });
 
 
