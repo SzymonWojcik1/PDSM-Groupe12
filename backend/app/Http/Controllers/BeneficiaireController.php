@@ -9,6 +9,8 @@ use App\Enums\Type;
 use App\Enums\Zone;
 use App\Enums\Sexe;
 use App\Enums\Genre;
+use Carbon\Carbon;
+
 
 class BeneficiaireController extends Controller
 {
@@ -66,6 +68,16 @@ class BeneficiaireController extends Controller
             empty($validated['ben_genre_autre'])
         ) {
             $errors['ben_genre_autre'] = 'Champ requis si genre est "Autre"';
+        }
+
+        $age = Carbon::parse($validated['ben_date_naissance'])->age;
+
+        if ($validated['ben_type'] === Type::ENFANT->value && !($age >= 5 && $age <= 17)) {
+            $errors['ben_date_naissance'] = 'Un enfant doit avoir entre 5 et 17 ans.';
+        }
+
+        if ($validated['ben_type'] === Type::JEUNE->value && !($age >= 18 && $age <= 30)) {
+            $errors['ben_date_naissance'] = 'Un jeune doit avoir entre 18 et 30 ans.';
         }
 
         if (!empty($errors)) {
@@ -127,6 +139,16 @@ class BeneficiaireController extends Controller
             empty($validated['ben_genre_autre'])
         ) {
             $errors['ben_genre_autre'] = 'Champ requis si genre est "Autre"';
+        }
+
+        $age = Carbon::parse($validated['ben_date_naissance'])->age;
+
+        if ($validated['ben_type'] === Type::ENFANT->value && !($age >= 5 && $age <= 17)) {
+            $errors['ben_date_naissance'] = 'Un enfant doit avoir entre 5 et 17 ans.';
+        }
+
+        if ($validated['ben_type'] === Type::JEUNE->value && !($age >= 18 && $age <= 30)) {
+            $errors['ben_date_naissance'] = 'Un jeune doit avoir entre 18 et 30 ans.';
         }
 
         if (!empty($errors)) {
