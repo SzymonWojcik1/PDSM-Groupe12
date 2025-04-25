@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { FaFileExport } from 'react-icons/fa';
 
 // Définition des types pour la gestion des données
 type Activite = {
@@ -115,16 +116,60 @@ export default function ActivitesPage() {
     });
   };
 
+  // Fonction pour gérer l'exportation des données
+  const handleExport = () => {
+    // Création d'un objet contenant les données à exporter
+    const dataToExport = filteredActivites.map(a => ({
+      Nom: a.act_nom,
+      'Date de début': a.act_dateDebut,
+      'Date de fin': a.act_dateFin,
+      Partenaire: a.partenaire?.part_nom || '',
+      Projet: a.projet?.pro_nom || ''
+    }));
+
+    type ExportRow = {
+      Nom: string;
+      'Date de début': string;
+      'Date de fin': string;
+      Partenaire: string;
+      Projet: string;
+    };
+
+    // Conversion en CSV
+    const headers = ['Nom', 'Date de début', 'Date de fin', 'Partenaire', 'Projet'] as const;
+    const csv = [
+      headers.join(','),
+      ...dataToExport.map(row => headers.map(header => (row as ExportRow)[header]).join(','))
+    ].join('\n');
+
+    // Création et téléchargement du fichier
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'activites.csv';
+    link.click();
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-8">
       <h1 className="text-2xl font-bold mb-4 text-black">Liste des activités</h1>
 
-      {/* Bouton pour créer une nouvelle activité */}
-      <Link href="/activites/creer">
-        <button className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Créer une activité
+      {/* Boutons d'action principaux */}
+      <div className="flex gap-4 mb-4">
+        <Link href="/activites/creer">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Créer une activité
+          </button>
+        </Link>
+
+        <button
+          onClick={handleExport}
+          className="bg-emerald-500 text-white px-6 py-2.5 rounded-lg hover:bg-emerald-600 inline-flex items-center shadow-sm font-medium text-sm"
+        >
+          <FaFileExport className="mr-2 text-lg" />
+          Exporter
         </button>
-      </Link>
+      </div>
 
       {/* Section des filtres */}
       <div className="w-full max-w-4xl mb-6">
