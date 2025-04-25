@@ -8,6 +8,7 @@ use App\Http\Controllers\EnumController;
 use App\Http\Controllers\PartenaireController;
 use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\ActivitesController;
+use App\Http\Controllers\ActiviteBeneficiaireController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -66,4 +67,11 @@ Route::controller(ActivitesController::class)->group(function(){
     Route::get('/activites/{id}', [ActivitesController::class, 'show']);
     Route::put('/activites/{id}', [ActivitesController::class, 'update']);
     Route::delete('/activites/{id}', [ActivitesController::class, 'destroy']);
+});
+
+// Routes pour la gestion des bénéficiaires d'une activité
+Route::controller(ActiviteBeneficiaireController::class)->group(function(){
+    Route::get('/activites/{id}/beneficiaires', 'index');
+    Route::post('/activites/{id}/beneficiaires', 'store');
+    Route::delete('/activites/{id}/beneficiaires/{beneficiaireId}', 'destroy');
 });

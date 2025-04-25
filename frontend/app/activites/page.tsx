@@ -62,6 +62,11 @@ export default function ActivitesPage() {
               <td className="p-2">{a.partenaire?.part_nom}</td>
               <td className="p-2">{a.projet?.pro_nom}</td>
               <td className="p-2 flex gap-2">
+                <Link href={`/activites/${a.act_id}/ajouter-beneficiaire`}>
+                  <button className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                    Ajouter Bénéficiaires
+                  </button>
+                </Link>
                 <Link href={`/activites/${a.act_id}/update`}>
                   <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
                     Modifier
