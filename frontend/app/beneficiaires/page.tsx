@@ -95,6 +95,12 @@ export default function BeneficiairesPage() {
         >
           Supprimer bénéficiaire(s)
         </button>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={() => router.push('/beneficiaires/dashboard')}
+        >
+          Accéder au dashboard
+        </button>
       </div>
 
       {/* Filtres */}
