@@ -9,6 +9,7 @@ use App\Http\Controllers\PartenaireController;
 use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\ActivitesController;
 use App\Http\Controllers\ActiviteBeneficiaireController;
+use App\Http\Controllers\CadreLogiqueController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -74,4 +75,13 @@ Route::controller(ActiviteBeneficiaireController::class)->group(function(){
     Route::get('/activites/{id}/beneficiaires', 'index');
     Route::post('/activites/{id}/beneficiaires', 'store');
     Route::delete('/activites/{id}/beneficiaires/{beneficiaireId}', 'destroy');
+});
+
+// Route pour le cadre logique
+Route::controller(CadreLogiqueController::class)->group(function(){
+    Route::get('/cadre-logique', [CadreLogiqueController::class, 'index']);
+    Route::post('/cadre-logique', [CadreLogiqueController::class, 'store']);
+    Route::get('/cadre-logique/{id}', [CadreLogiqueController::class, 'show']);
+    Route::put('/cadre-logique/{id}', [CadreLogiqueController::class, 'update']);
+    Route::delete('/cadre-logique/{id}', [CadreLogiqueController::class, 'destroy']);
 });
