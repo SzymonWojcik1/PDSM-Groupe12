@@ -12,7 +12,7 @@ class ProjetControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_lists_all_projects()
     {
         Projet::factory()->count(3)->create();
@@ -23,7 +23,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonCount(3);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_creates_a_valid_project()
     {
         $partenaire = Partenaire::factory()->create();
@@ -48,7 +48,7 @@ class ProjetControllerTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_project_creation_with_missing_fields()
     {
         $response = $this->postJson('/api/projets', []);
@@ -57,7 +57,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonValidationErrors(['pro_nom', 'pro_dateDebut', 'pro_dateFin', 'pro_part_id']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_project_creation_with_past_dates()
     {
         $partenaire = Partenaire::factory()->create();
@@ -77,7 +77,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'Les dates ne peuvent pas être dans le passé.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_project_creation_with_start_after_end()
     {
         $partenaire = Partenaire::factory()->create();
@@ -97,7 +97,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'La date de début ne peut pas être après la date de fin.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_duplicate_project_creation()
     {
         $partenaire = Partenaire::factory()->create();
@@ -124,7 +124,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'Un projet identique existe déjà pour ce partenaire à ces dates.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_shows_a_project()
     {
         $projet = Projet::factory()->create();
@@ -135,7 +135,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['pro_nom' => $projet->pro_nom]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_returns_404_for_non_existing_project()
     {
         $response = $this->getJson('/api/projets/999');
@@ -144,7 +144,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'Projet non trouvé']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_updates_a_valid_project()
     {
         $projet = Projet::factory()->create();
@@ -169,7 +169,7 @@ class ProjetControllerTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_update_of_started_project()
     {
         $projet = Projet::factory()->create([
@@ -190,7 +190,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'Impossible de modifier un projet en cours ou terminé.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_update_with_invalid_dates()
     {
         $projet = Projet::factory()->create();
@@ -210,7 +210,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'La date de début ne peut pas être après la date de fin.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_rejects_update_with_duplicate_project()
     {
         $partenaire = Partenaire::factory()->create();
@@ -239,7 +239,7 @@ class ProjetControllerTest extends TestCase
                  ->assertJsonFragment(['message' => 'Un projet identique existe déjà pour ce partenaire à ces dates.']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_deletes_a_project()
     {
         $projet = Projet::factory()->create();
@@ -254,7 +254,7 @@ class ProjetControllerTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    /** @test */
     public function it_returns_404_when_deleting_non_existing_project()
     {
         $response = $this->deleteJson('/api/projets/999');
