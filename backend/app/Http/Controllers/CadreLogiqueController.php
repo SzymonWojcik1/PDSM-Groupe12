@@ -9,7 +9,10 @@ class CadreLogiqueController extends Controller
 {
     public function index()
     {
-        return CadreLogique::all();
+        return CadreLogique::with([
+            'objectifsGeneraux.outcomes.indicateurs',
+            'objectifsGeneraux.outcomes.outputs.indicateurs'
+        ])->get();
     }
 
     public function store(Request $request)

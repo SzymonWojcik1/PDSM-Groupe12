@@ -156,11 +156,11 @@ export default function ActivitesPage() {
 
       {/* Boutons d'action principaux */}
       <div className="flex gap-4 mb-4">
-        <Link href="/activites/creer">
+      <Link href="/activites/creer">
           <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Créer une activité
-          </button>
-        </Link>
+          Créer une activité
+        </button>
+      </Link>
 
         <button
           onClick={handleExport}
