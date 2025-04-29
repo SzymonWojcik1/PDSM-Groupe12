@@ -33,6 +33,10 @@ class EnumController extends Controller
                 'value' => $e->value,
                 'label' => __("genre.{$e->value}"),
             ]),
+            'role' => collect(\App\Enums\Role::cases())->map(fn($e) => [
+                'value' => $e->value,
+                'label' => __("role.{$e->value}"),
+            ]),
         ]);
     }
 
