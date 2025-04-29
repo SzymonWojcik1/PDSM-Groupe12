@@ -10,6 +10,11 @@ use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\ActivitesController;
 use App\Http\Controllers\ActiviteBeneficiaireController;
 use App\Http\Controllers\CadreLogiqueController;
+use App\Http\Controllers\ObjectifGeneralController;
+use App\Http\Controllers\OutcomeController;
+use App\Http\Controllers\OutputController;
+use App\Http\Controllers\IndicateurController;
+
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -84,4 +89,40 @@ Route::controller(CadreLogiqueController::class)->group(function(){
     Route::get('/cadre-logique/{id}', [CadreLogiqueController::class, 'show']);
     Route::put('/cadre-logique/{id}', [CadreLogiqueController::class, 'update']);
     Route::delete('/cadre-logique/{id}', [CadreLogiqueController::class, 'destroy']);
+});
+
+// Routes pour les objectifs généraux
+Route::controller(ObjectifGeneralController::class)->group(function(){
+    Route::get('/objectifs-generaux', [ObjectifGeneralController::class, 'index']);
+    Route::post('/objectifs-generaux', [ObjectifGeneralController::class, 'store']);
+    Route::get('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'show']);
+    Route::put('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'update']);
+    Route::delete('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'destroy']);
+});
+
+// Routes pour les outcomes
+Route::controller(OutcomeController::class)->group(function(){
+    Route::get('/outcomes', [OutcomeController::class, 'index']);
+    Route::post('/outcomes', [OutcomeController::class, 'store']);
+    Route::get('/outcomes/{id}', [OutcomeController::class, 'show']);
+    Route::put('/outcomes/{id}', [OutcomeController::class, 'update']);
+    Route::delete('/outcomes/{id}', [OutcomeController::class, 'destroy']);
+});
+
+// Routes pour les outputs
+Route::controller(OutputController::class)->group(function(){
+    Route::get('/outputs', [OutputController::class, 'index']);
+    Route::post('/outputs', [OutputController::class, 'store']);
+    Route::get('/outputs/{id}', [OutputController::class, 'show']);
+    Route::put('/outputs/{id}', [OutputController::class, 'update']);
+    Route::delete('/outputs/{id}', [OutputController::class, 'destroy']);
+});
+
+// Routes pour les indicateurs
+Route::controller(IndicateurController::class)->group(function(){
+    Route::get('/indicateurs', [IndicateurController::class, 'index']);
+    Route::post('/indicateurs', [IndicateurController::class, 'store']);
+    Route::get('/indicateurs/{id}', [IndicateurController::class, 'show']);
+    Route::put('/indicateurs/{id}', [IndicateurController::class, 'update']);
+    Route::delete('/indicateurs/{id}', [IndicateurController::class, 'destroy']);
 });
