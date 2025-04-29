@@ -26,6 +26,10 @@ class BeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(201)
                 ->assertJsonFragment(['ben_nom' => $data['ben_nom']]);
+        
+        $this->assertDatabaseHas('beneficiaires', [
+            'ben_nom' => $data['ben_nom'],
+        ]);
     }
 
     /** @test */
@@ -184,6 +188,10 @@ class BeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonFragment(['ben_nom' => 'Modifié']);
+        
+        $this->assertDatabaseHas('beneficiaires', [
+            'ben_nom' => 'Modifié',
+        ]);
     }
 
     /** @test */
@@ -245,6 +253,10 @@ class BeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJson(['message' => 'Bénéficiaire supprimé avec succès']);
+
+        $this->assertDatabaseMissing('beneficiaires', [
+        'ben_id' => $b->getKey(),
+        ]);
     }
 
     /** @test */

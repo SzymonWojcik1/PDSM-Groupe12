@@ -43,6 +43,10 @@ class ActivitesControllerTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonFragment(['act_nom' => 'Nouvelle activité']);
+
+        $this->assertDatabaseHas('activites', [
+            'act_nom' => 'Nouvelle activité',
+        ]);
     }
 
     /** @test */
