@@ -18,4 +18,10 @@ class Partenaire extends Model
         return $this->hasMany(User::class, 'partenaire_id', 'part_id');
     }
 
+    public function partenaire()
+    {
+        return $this->belongsTo(Partenaire::class, 'partenaire_id', 'part_id');
+    }
+
+
 }
