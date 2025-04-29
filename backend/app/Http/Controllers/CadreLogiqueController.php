@@ -17,10 +17,25 @@ class CadreLogiqueController extends Controller
         $validated = $request->validate([
             'cad_nom' => 'required|string|max:255',
             'cad_dateDebut' => 'required|date',
-            'cad_dateFin' => 'required|date',
+            'cad_dateFin' => 'required|date|after_or_equal:cad_dateDebut',
         ]);
 
-        return CadreLogique::create($validated);
+        $exists = CadreLogique::where(function ($query) use ($validated) {
+            $query->whereBetween('cad_dateDebut', [$validated['cad_dateDebut'], $validated['cad_dateFin']])
+                ->orWhereBetween('cad_dateFin', [$validated['cad_dateDebut'], $validated['cad_dateFin']])
+                ->orWhere(function ($query) use ($validated) {
+                    $query->where('cad_dateDebut', '<=', $validated['cad_dateDebut'])
+                            ->where('cad_dateFin', '>=', $validated['cad_dateFin']);
+                });
+        })->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Un cadre logique existe déjà sur cette période.'
+            ], 409);
+        }
+
+        return response()->json(CadreLogique::create($validated), 201);
     }
 
     public function show($id)
@@ -31,9 +46,34 @@ class CadreLogiqueController extends Controller
     public function update(Request $request, $id)
     {
         $cadre = CadreLogique::findOrFail($id);
-        $cadre->update($request->all());
 
-        return $cadre;
+        $validated = $request->validate([
+            'cad_nom' => 'sometimes|string|max:255',
+            'cad_dateDebut' => 'sometimes|date',
+            'cad_dateFin' => 'sometimes|date|after_or_equal:cad_dateDebut',
+        ]);
+
+        $debut = $validated['cad_dateDebut'] ?? $cadre->cad_dateDebut;
+        $fin = $validated['cad_dateFin'] ?? $cadre->cad_dateFin;
+
+        $exists = CadreLogique::where('cad_id', '!=', $id)
+            ->where(function ($query) use ($debut, $fin) {
+                $query->whereBetween('cad_dateDebut', [$debut, $fin])
+                    ->orWhereBetween('cad_dateFin', [$debut, $fin])
+                    ->orWhere(function ($query) use ($debut, $fin) {
+                        $query->where('cad_dateDebut', '<=', $debut)
+                                ->where('cad_dateFin', '>=', $fin);
+                    });
+            })->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Un autre cadre logique existe déjà sur cette période.'
+            ], 409);
+        }
+
+        $cadre->update($validated);
+        return response()->json($cadre);
     }
 
     public function destroy($id)
