@@ -77,6 +77,13 @@ export default function CadreLogiquePage() {
                   <td className="border px-2 py-1">{formatDate(cadre.cad_dateFin)}</td>
                   <td className="border px-2 py-1 text-center space-x-2">
                     <button
+                      onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/objectif-general`)}
+                      className="text-green-600 hover:underline"
+                    >
+                      Objectif général
+                    </button>
+                    
+                    <button
                       onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/update`)}
                       className="text-blue-600 hover:underline"
                     >

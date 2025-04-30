@@ -18,7 +18,7 @@ class IndicateurController extends Controller
             'ind_type' => 'required|in:outcome,output',
             'ind_reference' => 'required|string|max:50',
             'ind_nom' => 'required|string',
-            'ind_valeurCible2028' => 'required|integer',
+            'ind_valeurCible' => 'required|integer',
             'out_id' => 'nullable|exists:outcome,out_id',
             'opu_id' => 'nullable|exists:output,opu_id',
         ]);
@@ -39,7 +39,7 @@ class IndicateurController extends Controller
             'ind_type' => 'sometimes|in:outcome,output',
             'ind_reference' => 'sometimes|string|max:50',
             'ind_nom' => 'sometimes|string',
-            'ind_valeurCible2028' => 'sometimes|integer',
+            'ind_valeurCible' => 'sometimes|integer',
             'out_id' => 'nullable|exists:outcome,out_id',
             'opu_id' => 'nullable|exists:output,opu_id',
         ]);

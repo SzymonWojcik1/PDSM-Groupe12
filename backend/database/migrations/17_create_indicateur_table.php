@@ -13,7 +13,7 @@ return new class extends Migration
             $table->enum('ind_type', ['outcome', 'output']);
             $table->string('ind_reference', 50);
             $table->text('ind_nom');
-            $table->integer('ind_valeurCible2028');
+            $table->integer('ind_valeurCible');
 
             $table->unsignedBigInteger('out_id')->nullable();
             $table->unsignedBigInteger('opu_id')->nullable();
