@@ -3,9 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\ObjectifGeneral;
+use App\Models\Output;
+use App\Models\Indicateur;
+use App\Models\CadreLogique;
 
 class Outcome extends Model
 {
+    use HasFactory;
+
     protected $table = 'outcome';
     protected $primaryKey = 'out_id';
 
