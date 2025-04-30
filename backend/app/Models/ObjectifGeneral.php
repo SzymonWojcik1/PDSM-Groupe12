@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\CadreLogique;
 
 class ObjectifGeneral extends Model
 {
+    use HasFactory;
+
     protected $table = 'objectif_general';
     protected $primaryKey = 'obj_id';
 

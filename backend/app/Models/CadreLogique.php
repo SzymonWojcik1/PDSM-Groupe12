@@ -2,9 +2,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\ObjectifGeneral;
 
 class CadreLogique extends Model
 {
+    use HasFactory;
+
     protected $table = 'cadre_logique';
     protected $primaryKey = 'cad_id';
 
