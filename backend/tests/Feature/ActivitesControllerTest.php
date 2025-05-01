@@ -6,6 +6,8 @@ use App\Models\Activites;
 use App\Models\Partenaire;
 use App\Models\Projet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Carbon\Carbon;
 
@@ -50,6 +52,42 @@ class ActivitesControllerTest extends TestCase
     }
 
     /** @test */
+    public function can_import_activities_from_csv()
+    {
+        Storage::fake('local');
+
+        $partenaire = Partenaire::factory()->create(['part_nom' => 'Partenaire Test']);
+        $projet = Projet::factory()->create(['pro_nom' => 'Projet Test']);
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                      "Atelier Nutrition;2025-06-10;2025-06-15;Partenaire Test;Projet Test\n" .
+                      "Activité invalide;;;;\n";
+
+        $file = UploadedFile::fake()->createWithContent('import.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+            ->assertJsonFragment(['message' => '1 lignes importées, 1 en erreur.'])
+            ->assertJsonStructure(['fichier_erreurs']);
+
+        $this->assertDatabaseHas('activites', [
+            'act_nom' => 'Atelier Nutrition',
+        ]);
+    }
+
+    /** @test */
+    public function cannot_import_without_file()
+    {
+        $response = $this->postJson('/api/activites/import');
+
+        $response->assertStatus(400)
+            ->assertJsonFragment(['message' => 'Fichier manquant.']);
+    }
+
+    /** @test */
     public function cannot_create_activity_with_missing_fields()
     {
         $response = $this->postJson('/api/activites', []);
@@ -88,8 +126,8 @@ class ActivitesControllerTest extends TestCase
 
         $payload = [
             'act_nom' => 'Mauvaise date',
-            'act_dateDebut' => $now->format('Y-m-d'),       // ex: 2025-05-01
-            'act_dateFin' => $now->subDays(2)->format('Y-m-d'), // ex: 2025-04-29
+            'act_dateDebut' => $now->format('Y-m-d'),
+            'act_dateFin' => $now->subDays(2)->format('Y-m-d'),
             'act_part_id' => $partenaire->part_id,
             'act_pro_id' => $projet->pro_id,
         ];
@@ -261,6 +299,161 @@ class ActivitesControllerTest extends TestCase
 
         $response->assertStatus(422)
                 ->assertJsonValidationErrors(['act_nom']);
+    }
+
+    /** @test */
+    public function cannot_import_activity_with_unknown_partenaire_or_projet()
+    {
+        Storage::fake('local');
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    "Activité Invalide;2025-08-10;2025-08-15;Inconnu;Inexistant\n";
+
+        $file = UploadedFile::fake()->createWithContent('invalid.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+                ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+    }
+
+    /** @test */
+    public function cannot_import_duplicate_activity()
+    {
+        Storage::fake('local');
+
+        $partenaire = Partenaire::factory()->create(['part_nom' => 'Doublon']);
+        $projet = Projet::factory()->create(['pro_nom' => 'Projet Doublon']);
+
+        // On insère déjà l'activité en BDD
+        Activites::create([
+            'act_nom' => 'Activité Déjà Là',
+            'act_dateDebut' => '2025-09-01',
+            'act_dateFin' => '2025-09-03',
+            'act_part_id' => $partenaire->part_id,
+            'act_pro_id' => $projet->pro_id,
+        ]);
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    "Activité Déjà Là;2025-09-01;2025-09-03;Doublon;Projet Doublon\n";
+
+        $file = UploadedFile::fake()->createWithContent('dupe.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+                ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+    }
+
+    /** @test */
+    public function import_detects_too_long_name()
+    {
+        Storage::fake('local');
+
+        $longName = str_repeat('A', 260);
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    "$longName;2025-10-01;2025-10-03;Invalide;Invalide\n";
+
+        $file = UploadedFile::fake()->createWithContent('long-name.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+            ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+
+        $json = $response->json();
+        $filePath = str_replace('/storage/', '', parse_url($json['fichier_erreurs'], PHP_URL_PATH));
+        $fullPath = storage_path('app/public/' . $filePath);
+
+        $this->assertFileExists($fullPath);
+
+        $content = file_get_contents($fullPath);
+        $this->assertStringContainsString('The nom field must not be greater than 255 characters.', $content);
+    }
+
+    /** @test */
+    public function import_detects_non_string_nom_field()
+    {
+        Storage::fake('local');
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    "12345;2025-11-01;2025-11-03;Invalide;Invalide\n";
+
+        $file = UploadedFile::fake()->createWithContent('nom-non-string.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+            ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+    }
+
+    /** @test */
+    public function import_detects_invalid_date_format()
+    {
+        Storage::fake('local');
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    "Activité X;invalid-date;also-invalid;Invalide;Invalide\n";
+
+        $file = UploadedFile::fake()->createWithContent('bad-date.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+            ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+
+        $json = $response->json();
+        $filePath = str_replace('/storage/', '', parse_url($json['fichier_erreurs'], PHP_URL_PATH));
+        $fullPath = storage_path('app/public/' . $filePath);
+
+        $this->assertFileExists($fullPath);
+
+        $content = file_get_contents($fullPath);
+        $this->assertStringContainsString('The début field must be a valid date.', $content);
+        $this->assertStringContainsString('The fin field must be a valid date.', $content);
+    }
+
+
+    /** @test */
+    public function import_detects_multiple_errors_in_one_row()
+    {
+        Storage::fake('local');
+
+        $csvContent = "Nom;Début;Fin;Partenaire;Projet\n" .
+                    ";date-invalide;;;" ;
+
+        $file = UploadedFile::fake()->createWithContent('multi-error.csv', $csvContent);
+
+        $response = $this->postJson('/api/activites/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(207)
+            ->assertJsonFragment(['message' => '0 lignes importées, 1 en erreur.']);
+
+        $json = $response->json();
+        $fileUrl = $json['fichier_erreurs'];
+        $filePath = str_replace('/storage/', '', parse_url($fileUrl, PHP_URL_PATH));
+        $fullPath = storage_path('app/public/' . $filePath);
+
+        $this->assertFileExists($fullPath);
+
+        $content = file_get_contents($fullPath);
+        $this->assertStringContainsString('The nom field is required.', $content);
+        $this->assertStringContainsString('The début field must be a valid date.', $content);
+        $this->assertStringContainsString('The fin field is required.', $content);
+        $this->assertStringContainsString('The partenaire field is required.', $content);
+        $this->assertStringContainsString('The projet field is required.', $content);
     }
 
 

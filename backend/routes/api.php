@@ -73,6 +73,15 @@ Route::controller(ActivitesController::class)->group(function(){
     Route::get('/activites/{id}', [ActivitesController::class, 'show']);
     Route::put('/activites/{id}', [ActivitesController::class, 'update']);
     Route::delete('/activites/{id}', [ActivitesController::class, 'destroy']);
+    Route::post('/activites/import', [ActivitesController::class, 'import']);
+    Route::get('/activites/template', function () {
+        $path = storage_path('app/public/modele_import_activites.csv');
+        if (!file_exists($path)) {
+            return response()->json(['message' => 'Fichier non trouvé'], 404);
+        }
+        return response()->download($path, 'modele_import_activites.csv');
+    });
+    
 });
 
 // Routes pour la gestion des bénéficiaires d'une activité
