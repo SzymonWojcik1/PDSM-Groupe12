@@ -195,6 +195,13 @@ export default function ActivitesPage() {
         >
           Importer un fichier CSV
         </button>
+
+        <Link href="/activites/dashboard">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Accéder au dashboard
+          </button>
+        </Link>
+        
       </div>
 
       <div className="w-full max-w-4xl mb-6">

@@ -67,7 +67,7 @@ export default function VerifyPage() {
               required
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300 text-black"
             />
           </div>
 
