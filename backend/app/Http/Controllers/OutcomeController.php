@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class OutcomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Outcome::all();
+        $query = Outcome::query();
+        if ($request->has('obj_id')) {
+            $query->where('obj_id', $request->input('obj_id'));
+        }
+        return $query->get();
     }
 
     public function store(Request $request)

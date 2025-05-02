@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class ObjectifGeneralController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return ObjectifGeneral::all();
+        $query = ObjectifGeneral::query();
+        if ($request->has('cad_id')) {
+            $query->where('cad_id', $request->input('cad_id'));
+        }
+        return $query->get();
     }
 
     public function store(Request $request)
