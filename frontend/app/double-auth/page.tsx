@@ -26,6 +26,7 @@ export default function VerifyPage() {
     if (!token) {
       setError('Aucun token trouvé. Veuillez vous reconnecter.')
       setLoading(false)
+      router.replace('/login')
       return
     }
 
@@ -45,8 +46,9 @@ export default function VerifyPage() {
         throw new Error(data.message || 'Code invalide.')
       }
 
+      // ✅ Marque la validation et redirige
       localStorage.setItem('2fa_validated', 'true')
-
+      console.log('2FA validé, redirection vers /home')
       router.push('/home')
     } catch (err: any) {
       setError(err.message)
