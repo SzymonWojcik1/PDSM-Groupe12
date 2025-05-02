@@ -121,7 +121,7 @@ export default function ActivitesPage() {
     const csv = [
       headers.join(','),
       ...dataToExport.map(row => headers.map(header => (row as ExportRow)[header]).join(','))
-    ].join('\\n');
+    ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
