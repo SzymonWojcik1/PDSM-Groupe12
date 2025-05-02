@@ -10,8 +10,7 @@ return new class extends Migration
     {
         Schema::create('indicateur', function (Blueprint $table) {
             $table->id('ind_id');
-            $table->enum('ind_type', ['outcome', 'output']);
-            $table->string('ind_reference', 50);
+            $table->text('ind_code');
             $table->text('ind_nom');
             $table->integer('ind_valeurCible');
 

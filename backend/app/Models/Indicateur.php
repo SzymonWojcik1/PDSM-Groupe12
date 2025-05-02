@@ -10,7 +10,7 @@ class Indicateur extends Model
     protected $primaryKey = 'ind_id';
 
     protected $fillable = [
-        'ind_type', 'ind_reference', 'ind_nom', 'ind_valeurCible',
+        'ind_code', 'ind_nom', 'ind_valeurCible',
         'out_id', 'opu_id'
     ];
 

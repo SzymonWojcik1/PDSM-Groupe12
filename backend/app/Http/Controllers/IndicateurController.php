@@ -15,8 +15,7 @@ class IndicateurController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'ind_type' => 'required|in:outcome,output',
-            'ind_reference' => 'required|string|max:50',
+            'ind_code' => 'required|string|max:20',
             'ind_nom' => 'required|string',
             'ind_valeurCible' => 'required|integer',
             'out_id' => 'nullable|exists:outcome,out_id',
@@ -36,8 +35,7 @@ class IndicateurController extends Controller
         $ind = Indicateur::findOrFail($id);
 
         $validated = $request->validate([
-            'ind_type' => 'sometimes|in:outcome,output',
-            'ind_reference' => 'sometimes|string|max:50',
+            'ind_code' => 'required|string|max:20',
             'ind_nom' => 'sometimes|string',
             'ind_valeurCible' => 'sometimes|integer',
             'out_id' => 'nullable|exists:outcome,out_id',
