@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class OutputController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Output::all();
+        $query = Output::query();
+        if ($request->has('out_id')) {
+            $query->where('out_id', $request->input('out_id'));
+        }
+        return $query->get();
     }
 
     public function store(Request $request)
