@@ -13,7 +13,7 @@ export default function HomePage() {
         <Card title="Activités" href="/activites" description="Consulter ou créer de nouvelles activités." />
         <Card title="Projets" href="/projets" description="Accéder à la liste des projets et leurs détails." />
         <Card title="Partenaires" href="/partenaires" description="Visualiser les partenaires associés aux projets." />
-        <Card title="Signalements" href="/signalements" description="Voir les signalements et leur statut." />
+        <Card title="Cadre logique" href="/cadre-logique" description="Voir les cadres logiques." />
       </section>
     </div>
   );
