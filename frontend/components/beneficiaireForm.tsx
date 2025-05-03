@@ -53,7 +53,11 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    const lowercaseFields = ['ben_nom', 'ben_prenom', 'ben_ethnicite'];
+    const newValue = lowercaseFields.includes(name) ? value.toLowerCase() : value;
+
+    setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const isFormValid = () => {
@@ -143,7 +147,12 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
         <DatePicker
           selected={form.ben_date_naissance ? new Date(form.ben_date_naissance) : null}
           onChange={(date: Date | null) =>
-            setForm((prev) => ({ ...prev, ben_date_naissance: date?.toISOString().split('T')[0] || '' }))
+            setForm((prev) => ({ ...prev,
+              ben_date_naissance: date
+                ? `${date.getFullYear()}-${(date.getMonth() + 1)
+                    .toString()
+                    .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+                : '' }))
           }
           dateFormat="yyyy-MM-dd"
           className={`border p-2 rounded w-full ${showErrors && !form.ben_date_naissance ? 'border-red-500' : ''}`}
