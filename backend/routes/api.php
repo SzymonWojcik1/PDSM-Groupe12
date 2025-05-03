@@ -28,6 +28,7 @@ Route::get('/beneficiaires', [BeneficiaireController::class, 'index']);
 Route::get('/beneficiaires/{id}', [BeneficiaireController::class, 'show']);
 Route::put('/beneficiaires/{id}', [BeneficiaireController::class, 'update']);
 Route::delete('/beneficiaires/{id}', [BeneficiaireController::class, 'destroy']);
+Route::post('/beneficiaires/check-duplicate', [BeneficiaireController::class, 'checkDuplicate']);
 
 // Enums
 Route::get('/enums', [EnumController::class, 'enums']);
@@ -81,7 +82,7 @@ Route::controller(ActivitesController::class)->group(function(){
         }
         return response()->download($path, 'modele_import_activites.csv');
     });
-    
+
 });
 
 // Routes pour la gestion des bénéficiaires d'une activité
