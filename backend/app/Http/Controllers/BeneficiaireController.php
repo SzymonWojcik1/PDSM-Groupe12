@@ -186,7 +186,7 @@ class BeneficiaireController extends Controller
         $duplicate = Beneficiaire::where('ben_nom', $validated['ben_nom'])
             ->where('ben_prenom', $validated['ben_prenom'])
             ->where('ben_date_naissance', $validated['ben_date_naissance'])
-            ->where('ben_sexe', $validated['ben_sexe']) // bien prendre l'enum brut
+            ->where('ben_sexe', $validated['ben_sexe'])
             ->first();
 
         if ($duplicate) {
