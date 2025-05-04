@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class IndicateurController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Indicateur::all();
+        $query = Indicateur::query();
+        if ($request->has('opu_id')) {
+            $query->where('opu_id', $request->input('opu_id'));
+        }
+        return $query->get();
     }
 
     public function store(Request $request)

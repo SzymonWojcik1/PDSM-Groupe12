@@ -174,4 +174,33 @@ class BeneficiaireController extends Controller
 
         return response()->json(['message' => 'Bénéficiaire supprimé avec succès']);
     }
+    public function checkDuplicate(Request $request)
+    {
+        $validated = $request->validate([
+            'ben_nom' => 'required|string|max:50',
+            'ben_prenom' => 'required|string|max:50',
+            'ben_date_naissance' => 'required|date',
+            'ben_sexe' => ['required', new Enum(Sexe::class)],
+        ]);
+
+        $duplicate = Beneficiaire::where('ben_nom', $validated['ben_nom'])
+            ->where('ben_prenom', $validated['ben_prenom'])
+            ->where('ben_date_naissance', $validated['ben_date_naissance'])
+            ->where('ben_sexe', $validated['ben_sexe'])
+            ->first();
+
+        if ($duplicate) {
+            return response()->json([
+                'exists' => true,
+                'beneficiaire' => [
+                    'id' => $duplicate->id,
+                    'nom' => $duplicate->ben_nom,
+                    'prenom' => $duplicate->ben_prenom,
+                    'created_at' => $duplicate->created_at->format('d/m/Y'),
+                ]
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
 }

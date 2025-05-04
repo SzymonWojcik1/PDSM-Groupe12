@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function VerifyPage() {
@@ -8,6 +8,14 @@ export default function VerifyPage() {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Vérifie s'il y a bien un token, sinon redirige vers /login
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.replace('/login')
+    }
+  }, [router])
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,6 +26,7 @@ export default function VerifyPage() {
     if (!token) {
       setError('Aucun token trouvé. Veuillez vous reconnecter.')
       setLoading(false)
+      router.replace('/login')
       return
     }
 
@@ -37,7 +46,10 @@ export default function VerifyPage() {
         throw new Error(data.message || 'Code invalide.')
       }
 
-      router.push('/')
+      // ✅ Marque la validation et redirige
+      localStorage.setItem('2fa_validated', 'true')
+      console.log('2FA validé, redirection vers /home')
+      router.push('/home')
     } catch (err: any) {
       setError(err.message)
     } finally {

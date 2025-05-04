@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaFileExport } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 type Activite = {
   act_id: number;
@@ -120,7 +121,7 @@ export default function ActivitesPage() {
     const csv = [
       headers.join(','),
       ...dataToExport.map(row => headers.map(header => (row as ExportRow)[header]).join(','))
-    ].join('\\n');
+    ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

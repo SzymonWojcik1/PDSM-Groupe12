@@ -17,6 +17,7 @@ use App\Http\Controllers\IndicateurController;
 
 
 
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
@@ -28,6 +29,8 @@ Route::get('/beneficiaires', [BeneficiaireController::class, 'index']);
 Route::get('/beneficiaires/{id}', [BeneficiaireController::class, 'show']);
 Route::put('/beneficiaires/{id}', [BeneficiaireController::class, 'update']);
 Route::delete('/beneficiaires/{id}', [BeneficiaireController::class, 'destroy']);
+Route::post('/beneficiaires/check-duplicate', [BeneficiaireController::class, 'checkDuplicate']);
+//Route::post('/beneficiaires/doublon/valider', [BeneficiaireImportController::class, 'storeConfirmedDuplicate']);
 
 // Enums
 Route::get('/enums', [EnumController::class, 'enums']);
@@ -39,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::post('/users/{id}/partenaire', [UserController::class, 'assignPartenaire']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show']);   
 
 
     Route::get('/profile', [AuthController::class, 'profile']);
@@ -81,7 +86,7 @@ Route::controller(ActivitesController::class)->group(function(){
         }
         return response()->download($path, 'modele_import_activites.csv');
     });
-    
+
 });
 
 // Routes pour la gestion des bénéficiaires d'une activité

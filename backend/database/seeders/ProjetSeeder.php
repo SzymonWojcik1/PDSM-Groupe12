@@ -5,25 +5,80 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Projet;
+use Carbon\Carbon;
 
 class ProjetSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        Projet::create(['pro_nom' => 'Éducation rurale', 'pro_dateDebut' => '2023-01-15', 'pro_dateFin' => '2023-12-30', 'pro_part_id' => 1]);
-        Projet::create(['pro_nom' => 'Santé pour tous', 'pro_dateDebut' => '2022-06-01', 'pro_dateFin' => '2023-06-01', 'pro_part_id' => 2]);
-        Projet::create(['pro_nom' => 'Accès à l’eau', 'pro_dateDebut' => '2023-03-10', 'pro_dateFin' => '2023-10-20', 'pro_part_id' => 3]);
-        Projet::create(['pro_nom' => 'Nutrition infantile', 'pro_dateDebut' => '2024-01-01', 'pro_dateFin' => '2024-11-30', 'pro_part_id' => 4]);
-        Projet::create(['pro_nom' => 'Insertion pro', 'pro_dateDebut' => '2023-05-01', 'pro_dateFin' => '2024-05-01', 'pro_part_id' => 5]);
-        Projet::create(['pro_nom' => 'Soutien psychosocial', 'pro_dateDebut' => '2023-02-20', 'pro_dateFin' => '2023-12-01', 'pro_part_id' => 6]);
-        Projet::create(['pro_nom' => 'Agriculture durable', 'pro_dateDebut' => '2023-04-15', 'pro_dateFin' => '2023-09-30', 'pro_part_id' => 7]);
-        Projet::create(['pro_nom' => 'Aide post-crise', 'pro_dateDebut' => '2023-07-01', 'pro_dateFin' => '2024-02-01', 'pro_part_id' => 8]);
-        Projet::create(['pro_nom' => 'Lutte contre le VIH', 'pro_dateDebut' => '2022-11-10', 'pro_dateFin' => '2023-11-10', 'pro_part_id' => 9]);
-        Projet::create(['pro_nom' => 'Formation numérique', 'pro_dateDebut' => '2023-06-15', 'pro_dateFin' => '2023-12-15', 'pro_part_id' => 10]);
-        Projet::create(['pro_nom' => 'Développement local', 'pro_dateDebut' => '2024-01-10', 'pro_dateFin' => '2024-12-10', 'pro_part_id' => 11]);
-        Projet::create(['pro_nom' => 'Microcrédit rural', 'pro_dateDebut' => '2023-09-01', 'pro_dateFin' => '2024-09-01', 'pro_part_id' => 12]);
-        Projet::create(['pro_nom' => 'Protection enfants', 'pro_dateDebut' => '2023-03-01', 'pro_dateFin' => '2023-12-01', 'pro_part_id' => 13]);
-        Projet::create(['pro_nom' => 'Centre communautaire', 'pro_dateDebut' => '2023-05-01', 'pro_dateFin' => '2024-03-01', 'pro_part_id' => 14]);
-        Projet::create(['pro_nom' => 'Aide juridique', 'pro_dateDebut' => '2022-12-01', 'pro_dateFin' => '2023-12-01', 'pro_part_id' => 15]);
+        $projets = [
+            [
+                'pro_nom' => 'Projet de développement communautaire',
+                'pro_dateDebut' => Carbon::now()->subMonths(12),
+                'pro_dateFin' => Carbon::now()->addMonths(24),
+                'pro_part_id' => 1 // ONG Développement Plus
+            ],
+            [
+                'pro_nom' => 'Programme de santé rurale',
+                'pro_dateDebut' => Carbon::now()->subMonths(6),
+                'pro_dateFin' => Carbon::now()->addMonths(18),
+                'pro_part_id' => 2 // Fondation Santé pour Tous
+            ],
+            [
+                'pro_nom' => 'Initiative éducative pour tous',
+                'pro_dateDebut' => Carbon::now()->subMonths(3),
+                'pro_dateFin' => Carbon::now()->addMonths(21),
+                'pro_part_id' => 3 // Association Education Sans Frontières
+            ],
+            [
+                'pro_nom' => 'Projet agricole durable',
+                'pro_dateDebut' => Carbon::now(),
+                'pro_dateFin' => Carbon::now()->addMonths(30),
+                'pro_part_id' => 4 // Coopérative Agricole du Sénégal
+            ],
+            [
+                'pro_nom' => 'Innovation sociale et technologique',
+                'pro_dateDebut' => Carbon::now()->addMonths(1),
+                'pro_dateFin' => Carbon::now()->addMonths(25),
+                'pro_part_id' => 5 // Entreprise Sociale Innovante
+            ],
+            [
+                'pro_nom' => 'Autonomisation des femmes',
+                'pro_dateDebut' => Carbon::now()->addMonths(2),
+                'pro_dateFin' => Carbon::now()->addMonths(26),
+                'pro_part_id' => 6 // Association des Femmes Entrepreneures
+            ],
+            [
+                'pro_nom' => 'Protection de l\'environnement',
+                'pro_dateDebut' => Carbon::now()->addMonths(3),
+                'pro_dateFin' => Carbon::now()->addMonths(27),
+                'pro_part_id' => 7 // Fondation pour l'Environnement
+            ],
+            [
+                'pro_nom' => 'Insertion professionnelle des jeunes',
+                'pro_dateDebut' => Carbon::now()->addMonths(4),
+                'pro_dateFin' => Carbon::now()->addMonths(28),
+                'pro_part_id' => 8 // ONG Jeunesse Active
+            ],
+            [
+                'pro_nom' => 'Développement de l\'artisanat local',
+                'pro_dateDebut' => Carbon::now()->addMonths(5),
+                'pro_dateFin' => Carbon::now()->addMonths(29),
+                'pro_part_id' => 9 // Coopérative Artisanale
+            ],
+            [
+                'pro_nom' => 'Formation professionnelle continue',
+                'pro_dateDebut' => Carbon::now()->addMonths(6),
+                'pro_dateFin' => Carbon::now()->addMonths(30),
+                'pro_part_id' => 10 // Entreprise de Formation Professionnelle
+            ]
+        ];
+
+        foreach ($projets as $projet) {
+            Projet::create($projet);
+        }
     }
 }

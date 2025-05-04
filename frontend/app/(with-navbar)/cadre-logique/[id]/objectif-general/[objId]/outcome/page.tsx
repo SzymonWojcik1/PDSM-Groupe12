@@ -14,9 +14,19 @@ type ObjectifGeneral = {
   obj_nom: string;
 };
 
+type Indicateur = {
+  ind_id: number;
+  out_id: number;
+  opu_id: number | null;
+  ind_code: string;
+  ind_nom: string;
+  ind_valeurCible: string;
+};
+
 export default function OutcomePage() {
   const [outcomes, setOutcomes] = useState<Outcome[]>([]);
   const [objectifGeneral, setObjectifGeneral] = useState<ObjectifGeneral | null>(null);
+  const [indicateurs, setIndicateurs] = useState<{ [key: number]: Indicateur[] }>({});
   const router = useRouter();
   const params = useParams();
   const cadId = params?.id;
@@ -25,7 +35,21 @@ export default function OutcomePage() {
   const fetchOutcomes = () => {
     fetch(`http://localhost:8000/api/outcomes?obj_id=${objId}`)
       .then(res => res.json())
-      .then(setOutcomes)
+      .then(data => {
+        setOutcomes(data);
+        // Récupérer les indicateurs pour chaque outcome
+        data.forEach((outcome: Outcome) => {
+          fetch(`http://localhost:8000/api/indicateurs?out_id=${outcome.out_id}`)
+            .then(res => res.json())
+            .then(indData => {
+              setIndicateurs(prev => ({
+                ...prev,
+                [outcome.out_id]: indData
+              }));
+            })
+            .catch(err => console.error('Erreur fetch indicateurs:', err));
+        });
+      })
       .catch(err => console.error('Erreur fetch outcomes:', err));
   };
 
@@ -64,6 +88,15 @@ export default function OutcomePage() {
     }
   };
 
+  const handleDeleteIndicateur = async (indId: number) => {
+    if (confirm("Voulez-vous vraiment supprimer cet indicateur ?")) {
+      await fetch(`http://localhost:8000/api/indicateurs/${indId}`, {
+        method: 'DELETE',
+      });
+      fetchOutcomes(); // Recharge la liste après suppression
+    }
+  };
+
   return (
     <main className="p-6">
       <div className="flex gap-4 mb-6">
@@ -93,6 +126,7 @@ export default function OutcomePage() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="border px-2 py-1">Nom</th>
+                <th className="border px-2 py-1">Indicateur</th>
                 <th className="border px-2 py-1">Actions</th>
               </tr>
             </thead>
@@ -100,6 +134,33 @@ export default function OutcomePage() {
               {outcomes.map((outcome) => (
                 <tr key={outcome.out_id}>
                   <td className="border px-2 py-1">{outcome.out_nom}</td>
+                  <td className="border px-2 py-1">
+                    {indicateurs[outcome.out_id]?.filter((indicateur) => indicateur.opu_id === null && indicateur.out_id === outcome.out_id).map((indicateur) => (
+                      <div key={indicateur.ind_id} className="mb-2">
+                        <div className="font-semibold">{indicateur.ind_code}</div>
+                        <div>{indicateur.ind_nom}</div>
+                        <div className="text-sm text-gray-600">Valeur cible: {indicateur.ind_valeurCible}</div>
+                        <button
+                          onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/indicateur/${indicateur.ind_id}/update`)}
+                          className="text-blue-600 hover:underline text-sm mt-1"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDeleteIndicateur(indicateur.ind_id)}
+                          className="text-red-600 hover:underline text-sm mt-1 ml-2"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/indicateur/creer`)}
+                      className="text-green-600 hover:underline mt-2"
+                    >
+                      Créer un indicateur
+                    </button>
+                  </td>
                   <td className="border px-2 py-1 text-center space-x-2">
                     <button
                       onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/output`)}

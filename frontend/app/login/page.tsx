@@ -30,13 +30,11 @@ export default function LoginPage() {
         throw new Error(data.message || data.errors?.email?.[0] || 'Erreur inconnue')
       }
 
+      // Enregistrer le token, mais pas encore de 2fa_validated
       localStorage.setItem('token', data.token)
 
-      if (data.two_factor_required) {
-        router.push('/double-auth')
-      } else {
-        router.push('/')
-      }
+      // Redirection forcée vers double-auth (même si 2FA désactivé côté backend)
+      router.push('/double-auth')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -78,11 +76,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <button
             type="submit"

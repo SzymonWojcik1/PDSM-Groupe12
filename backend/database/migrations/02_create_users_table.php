@@ -22,9 +22,11 @@ return new class extends Migration
             $table->string('two_factor_code')->nullable();
             $table->timestamp('two_factor_expires_at')->nullable();
             $table->foreignId('partenaire_id')->nullable()->constrained('partenaires', 'part_id')->nullOnDelete();
+            $table->foreignId('superieur_id')->nullable()->constrained('users')->nullOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });
+        
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
