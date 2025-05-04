@@ -34,8 +34,6 @@ export default function CreateUserPage() {
     prenom: '',
     email: '',
     telephone: '',
-    password: '',
-    password_confirmation: '',
     role: '',
     partenaire_id: '',
     superieur_id: ''
@@ -135,13 +133,6 @@ export default function CreateUserPage() {
 
         <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone"
           className="w-full p-2 border rounded text-black" />
-
-        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Mot de passe"
-          className="w-full p-2 border rounded text-black" required />
-
-        <input type="password" name="password_confirmation" value={formData.password_confirmation} onChange={handleChange}
-          placeholder="Confirmation du mot de passe"
-          className="w-full p-2 border rounded text-black" required />
 
         <select name="role" value={formData.role} onChange={handleChange}
           className="w-full p-2 border rounded text-black" required>

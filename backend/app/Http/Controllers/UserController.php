@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use App\Enums\Role;
+use Illuminate\Support\Str;
+use App\Notifications\UserCreatedNotification;
 
 class UserController extends Controller
 {
@@ -20,10 +22,6 @@ class UserController extends Controller
             'nom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
             'prenom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
             'email' => ['required', 'string', 'email', 'unique:users,email'],
-            'password' => [
-                'required', 'string', 'confirmed', 'min:8',
-                'regex:/[A-Z]/', 'regex:/[!@#$%^&*(),.?":{}|<>]/'
-            ],
             'role' => ['nullable', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
             'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
@@ -39,20 +37,25 @@ class UserController extends Controller
                         'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
                     ]
                 ], 422);
-                
             }
         }
+
+        // Génère un mot de passe aléatoire sécurisé
+        $plainPassword = Str::random(12);
 
         $user = User::create([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($plainPassword),
             'role' => $request->role ?? 'utilisateur',
             'telephone' => $request->telephone,
             'partenaire_id' => $request->partenaire_id,
             'superieur_id' => $request->superieur_id,
         ]);
+
+        // Envoie un e-mail multilingue avec les identifiants
+        $user->notify(new UserCreatedNotification($user->email, $plainPassword));
 
         return response()->json(['user' => $user], 201);
     }
