@@ -17,6 +17,7 @@ use App\Http\Controllers\IndicateurController;
 
 
 
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
@@ -29,6 +30,7 @@ Route::get('/beneficiaires/{id}', [BeneficiaireController::class, 'show']);
 Route::put('/beneficiaires/{id}', [BeneficiaireController::class, 'update']);
 Route::delete('/beneficiaires/{id}', [BeneficiaireController::class, 'destroy']);
 Route::post('/beneficiaires/check-duplicate', [BeneficiaireController::class, 'checkDuplicate']);
+//Route::post('/beneficiaires/doublon/valider', [BeneficiaireImportController::class, 'storeConfirmedDuplicate']);
 
 // Enums
 Route::get('/enums', [EnumController::class, 'enums']);

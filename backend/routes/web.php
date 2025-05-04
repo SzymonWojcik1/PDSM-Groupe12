@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BeneficiaireExportTemplateController;
 
 
 Route::get('/modele-import-activites', function () {
@@ -12,3 +13,6 @@ Route::get('/modele-import-activites', function () {
 
     return response()->download($path, 'modele_import_activites.csv');
 });
+
+Route::get('/beneficiaires/template', [BeneficiaireExportTemplateController::class, 'downloadTemplate']);
+//Route::post('/beneficiaires/import', [\App\Http\Controllers\BeneficiaireImportController::class, 'import']);

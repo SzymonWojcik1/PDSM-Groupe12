@@ -43,6 +43,7 @@ export default function BeneficiairesPage() {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
+
   const handleDelete = async (id: string) => {
     const confirmed = confirm("Êtes-vous sûr de vouloir supprimer ce bénéficiaire ?");
     if (!confirmed) return;
@@ -79,9 +80,43 @@ export default function BeneficiairesPage() {
     router.push(`/beneficiaires/${id}/update`);
   };
 
+  const handleImport = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('http://localhost:8000/api/beneficiaires/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.doublons?.length > 0) {
+          alert(`Import partiel : ${json.lignes_importées} ligne(s) importée(s), ${json.doublons.length} doublon(s) détecté(s).`);
+          console.log("Doublons détectés :", json.doublons);
+          // TODO : affichage/traitement des doublons un par un
+        } else {
+          alert('Import terminé avec succès.');
+        }
+      } else {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'erreurs_import_beneficiaires.xlsx';
+        a.click();
+        alert('Certaines lignes contiennent des erreurs. Le fichier d’erreurs a été téléchargé.');
+      }
+    } catch (error) {
+      console.error('Erreur importation fichier :', error);
+      alert('Une erreur est survenue lors de l’importation.');
+    }
+  };
+
   return (
     <main className="p-6">
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6">
         <button
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
           onClick={() => router.push('/beneficiaires/add')}
@@ -106,9 +141,15 @@ export default function BeneficiairesPage() {
         >
           Exporter les bénéficiaires
         </button>
+        <a
+          href="http://localhost:8000/beneficiaires/template"
+          download
+          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-700 inline-block"
+        >
+          Télécharger le modèle Excel
+        </a>
       </div>
 
-      {/* Filtres */}
       <BeneficiaireFilters
         filters={filters}
         onChange={handleChange}
@@ -119,7 +160,6 @@ export default function BeneficiairesPage() {
 
       <h1 className="text-2xl font-semibold mb-4">Liste des bénéficiaires</h1>
 
-      {/* Afficher les bénéficiaires */}
       {beneficiaires.length === 0 ? (
         <p>Aucun bénéficiaire trouvé.</p>
       ) : (
