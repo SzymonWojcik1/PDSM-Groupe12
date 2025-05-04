@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\Role;
+use App\Models\Partenaire;
+
 
 class UserControllerTest extends TestCase
 {
@@ -312,5 +314,214 @@ class UserControllerTest extends TestCase
             'partenaire_id' => $partenaire->part_id,
         ]);
     }
+
+    /** @test */
+    public function siege_can_create_user_with_superieur_id()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/users', [
+                'nom' => 'Jean',
+                'prenom' => 'CN',
+                'email' => 'jean.cn@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'role' => Role::CN->value,
+                'superieur_id' => $cr->id
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('users', ['email' => 'jean.cn@example.com', 'superieur_id' => $cr->id]);
+    }
+
+    /** @test */
+    public function siege_can_update_user_superieur_id()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value, 'superieur_id' => null]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/users/{$cn->id}", [
+                'superieur_id' => $cr->id,
+            ]);
+
+        $res->assertStatus(200);
+        $this->assertDatabaseHas('users', ['id' => $cn->id, 'superieur_id' => $cr->id]);
+    }
+
+    /** @test */
+    public function siege_cannot_set_invalid_superieur_id()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/users/{$cn->id}", [
+                'superieur_id' => 99999, // inexistant
+            ]);
+
+        $res->assertStatus(422)->assertJsonValidationErrors(['superieur_id']);
+    }
+
+    /** @test */
+    public function siege_can_filter_users_by_superieur_id()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $cn1 = User::factory()->create(['role' => Role::CN->value, 'superieur_id' => $cr->id]);
+        $cn2 = User::factory()->create(['role' => Role::CN->value, 'superieur_id' => null]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson("/api/users?superieur_id={$cr->id}");
+
+        $res->assertStatus(200)
+            ->assertJsonFragment(['id' => $cn1->id])
+            ->assertJsonMissing(['id' => $cn2->id]);
+    }
+
+    /** @test */
+    public function siege_can_filter_users_by_role()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson("/api/users?role=cn");
+
+        $res->assertStatus(200)
+            ->assertJsonFragment(['id' => $cn->id])
+            ->assertJsonMissing(['id' => $cr->id]);
+    }
+
+    /** @test */
+    public function siege_can_filter_users_by_partenaire_id()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $partenaire = Partenaire::factory()->create();
+        $u1 = User::factory()->create(['partenaire_id' => $partenaire->part_id]);
+        $u2 = User::factory()->create(['partenaire_id' => null]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson("/api/users?partenaire_id={$partenaire->part_id}");
+
+        $res->assertStatus(200)
+            ->assertJsonFragment(['id' => $u1->id])
+            ->assertJsonMissing(['id' => $u2->id]);
+    }
+
+    /** @test */
+    public function it_rejects_superieur_with_equal_or_lower_role_on_create()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        // Superieur avec rôle égal
+        $res1 = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/users', [
+                'nom' => 'Jean',
+                'prenom' => 'Test',
+                'email' => 'equal@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'role' => Role::CN->value,
+                'superieur_id' => $cn->id
+            ]);
+
+        $res1->assertStatus(422)->assertJsonValidationErrors(['superieur_id']);
+
+        // Superieur avec rôle inférieur
+        $utilisateur = User::factory()->create(['role' => Role::UTILISATEUR->value]);
+
+        $res2 = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/users', [
+                'nom' => 'Jean',
+                'prenom' => 'Test',
+                'email' => 'lower@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'role' => Role::CN->value,
+                'superieur_id' => $utilisateur->id
+            ]);
+
+        $res2->assertStatus(422)->assertJsonValidationErrors(['superieur_id']);
+    }
+
+    /** @test */
+    public function it_allows_valid_superior_on_create()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/users', [
+                'nom' => 'Jean',
+                'prenom' => 'Test',
+                'email' => 'valid.superior@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'role' => Role::CN->value,
+                'superieur_id' => $cr->id
+            ]);
+
+        $res->assertStatus(201)
+            ->assertJsonFragment([
+                'email' => 'valid.superior@example.com',
+                'superieur_id' => $cr->id,
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'valid.superior@example.com',
+            'superieur_id' => $cr->id,
+        ]);
+    }
+
+    /** @test */
+    public function it_rejects_invalid_superior_on_update()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value]);
+        $utilisateur = User::factory()->create(['role' => Role::UTILISATEUR->value]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/users/{$cn->id}", [
+                'superieur_id' => $utilisateur->id,
+            ]);
+
+        $res->assertStatus(422)->assertJsonValidationErrors(['superieur_id']);
+    }
+
+    /** @test */
+    public function it_allows_valid_superior_on_update()
+    {
+        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
+        $cr = User::factory()->create(['role' => Role::CR->value]);
+        $cn = User::factory()->create(['role' => Role::CN->value, 'superieur_id' => null]);
+        $token = $siege->createToken('apitoken')->plainTextToken;
+
+        $res = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/users/{$cn->id}", [
+                'superieur_id' => $cr->id,
+            ]);
+
+        $res->assertStatus(200);
+        $this->assertDatabaseHas('users', [
+            'id' => $cn->id,
+            'superieur_id' => $cr->id,
+        ]);
+    }
+
 
 }

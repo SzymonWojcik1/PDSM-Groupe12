@@ -27,7 +27,21 @@ class UserController extends Controller
             'role' => ['nullable', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
             'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
+            'superieur_id' => ['nullable', 'exists:users,id'],
         ]);
+
+        if ($request->filled('superieur_id') && $request->filled('role')) {
+            $superieur = User::find($request->superieur_id);
+            if (!$superieur || !Role::isSuperior($superieur->role, $request->role)) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors' => [
+                        'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
+                    ]
+                ], 422);
+                
+            }
+        }
 
         $user = User::create([
             'nom' => $request->nom,
@@ -37,6 +51,7 @@ class UserController extends Controller
             'role' => $request->role ?? 'utilisateur',
             'telephone' => $request->telephone,
             'partenaire_id' => $request->partenaire_id,
+            'superieur_id' => $request->superieur_id,
         ]);
 
         return response()->json(['user' => $user], 201);
@@ -61,16 +76,34 @@ class UserController extends Controller
             'role' => ['sometimes', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
             'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
+            'superieur_id' => ['nullable', 'exists:users,id'],
         ]);
+
+        $newRole = $request->role ?? $user->role;
+        $newSuperieurId = $request->superieur_id ?? $user->superieur_id;
+
+        if ($newSuperieurId && $newRole) {
+            $superieur = User::find($newSuperieurId);
+            if (!$superieur || !Role::isSuperior($superieur->role, $newRole)) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors' => [
+                        'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
+                    ]
+                ], 422);
+                
+            }
+        }
 
         $user->update([
             'nom' => $request->nom ?? $user->nom,
             'prenom' => $request->prenom ?? $user->prenom,
             'email' => $request->email ?? $user->email,
             'password' => $request->filled('password') ? Hash::make($request->password) : $user->password,
-            'role' => $request->role ?? $user->role,
+            'role' => $newRole,
             'telephone' => $request->telephone ?? $user->telephone,
             'partenaire_id' => $request->partenaire_id ?? $user->partenaire_id,
+            'superieur_id' => $newSuperieurId,
         ]);
 
         return response()->json(['message' => 'Utilisateur mis à jour avec succès', 'user' => $user]);
@@ -111,8 +144,21 @@ class UserController extends Controller
             return response()->json(['message' => 'Accès interdit'], 403);
         }
 
-        $users = User::with('partenaire')->get(); // Charge aussi les données du partenaire
-        return response()->json($users);
+        $query = User::with(['partenaire', 'superieur']);
+
+        if ($request->has('role')) {
+            $query->where('role', $request->role);
+        }
+
+        if ($request->has('partenaire_id')) {
+            $query->where('partenaire_id', $request->partenaire_id);
+        }
+
+        if ($request->has('superieur_id')) {
+            $query->where('superieur_id', $request->superieur_id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function show(Request $request, $id)
@@ -121,8 +167,8 @@ class UserController extends Controller
             return response()->json(['message' => 'Accès interdit'], 403);
         }
 
-        $user = User::with('partenaire')->findOrFail($id);
-        return response()->json($user);
+        return response()->json(
+            User::with(['partenaire', 'superieur'])->findOrFail($id)
+        );
     }
-
 }
