@@ -23,6 +23,7 @@ const navItems = [
   { name: 'Projets', href: '/projets', icon: Folder },
   { name: 'Partenaires', href: '/partenaires', icon: Building },
   { name: 'Cadre logique', href: '/cadre-logique', icon: ChartLine },
+  { name: 'Utilisateurs', href: '/users', icon: Users },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
