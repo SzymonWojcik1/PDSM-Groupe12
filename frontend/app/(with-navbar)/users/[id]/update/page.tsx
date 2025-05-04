@@ -13,6 +13,13 @@ type EnumItem = {
   label: string
 }
 
+type User = {
+  id: number
+  nom: string
+  prenom: string
+  role: string
+}
+
 export default function EditUserPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -20,7 +27,9 @@ export default function EditUserPage() {
 
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
+  const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState('')
+  const [currentRole, setCurrentRole] = useState('')
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -30,13 +39,13 @@ export default function EditUserPage() {
     role: '',
     partenaire_id: '',
     password: '',
-    password_confirmation: ''
+    password_confirmation: '',
+    superieur_id: ''
   })
 
   useEffect(() => {
     if (!token || !id || Array.isArray(id)) return
 
-    // Récupération de l'utilisateur
     fetch(`http://localhost:8000/api/users/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -50,12 +59,13 @@ export default function EditUserPage() {
           role: data.role || '',
           partenaire_id: data.partenaire?.part_id?.toString() || '',
           password: '',
-          password_confirmation: ''
+          password_confirmation: '',
+          superieur_id: data.superieur?.id?.toString() || ''
         })
+        setCurrentRole(data.role)
       })
       .catch(() => setError('Erreur lors du chargement de l’utilisateur'))
 
-    // Récupération des partenaires
     fetch('http://localhost:8000/api/partenaires', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -63,7 +73,6 @@ export default function EditUserPage() {
       .then(setPartenaires)
       .catch(() => setError('Erreur lors du chargement des partenaires'))
 
-    // Récupération des rôles
     fetch('http://localhost:8000/api/enums', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -85,11 +94,19 @@ export default function EditUserPage() {
         setRoles(rolesWithLabels)
       })
       .catch(() => setError('Erreur lors du chargement des rôles'))
+
+    fetch('http://localhost:8000/api/users', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(setSuperieurs)
+      .catch(() => setError('Erreur lors du chargement des utilisateurs'))
   }, [token, id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    if (name === 'role') setCurrentRole(value)
     setError('')
   }
 
@@ -115,6 +132,13 @@ export default function EditUserPage() {
       setError(err.message)
     }
   }
+
+  const superieursFiltres = superieurs.filter((sup) => {
+    const hierarchie = ['utilisateur', 'cn', 'cr', 'siege']
+    const roleIndex = hierarchie.indexOf(currentRole)
+    const supIndex = hierarchie.indexOf(sup.role)
+    return supIndex > roleIndex
+  })
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-8">
@@ -148,6 +172,16 @@ export default function EditUserPage() {
           {roles.map(role => (
             <option key={role.value} value={role.value}>
               {role.label}
+            </option>
+          ))}
+        </select>
+
+        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange}
+          className="w-full p-2 border rounded text-black">
+          <option value="">Aucun supérieur</option>
+          {superieursFiltres.map(sup => (
+            <option key={sup.id} value={sup.id}>
+              {sup.prenom} {sup.nom} ({sup.role})
             </option>
           ))}
         </select>

@@ -13,12 +13,20 @@ type EnumItem = {
   label: string
 }
 
+type User = {
+  id: number
+  nom: string
+  prenom: string
+  role: string
+}
+
 export default function CreateUserPage() {
   const router = useRouter()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
+  const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
@@ -30,10 +38,12 @@ export default function CreateUserPage() {
     password_confirmation: '',
     role: '',
     partenaire_id: '',
+    superieur_id: ''
   })
 
   useEffect(() => {
-    // Récupère les partenaires
+    if (!token) return
+
     fetch('http://localhost:8000/api/partenaires', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -41,29 +51,35 @@ export default function CreateUserPage() {
       .then(data => setPartenaires(data))
       .catch(() => setError('Erreur lors du chargement des partenaires'))
 
-    // Récupère les rôles depuis l’enum Laravel
     fetch('http://localhost:8000/api/enums', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(data => {
-            const rolesFromApi = data.role || []
-            const rolesWithLabels = rolesFromApi.map((role: any) => ({
-            value: role.value,
-            label:
-                role.value === 'cn'
-                ? 'Coordination nationale'
-                : role.value === 'cr'
-                ? 'Coordination régionale'
-                : role.value === 'siege'
-                ? 'Siège'
-                : role.value === 'utilisateur'
-                ? 'Utilisateur'
-                : role.label
-            }))
-            setRoles(rolesWithLabels)
-        })
-            .catch(() => setError('Erreur lors du chargement des rôles'))
+        const rolesFromApi = data.role || []
+        const rolesWithLabels = rolesFromApi.map((role: any) => ({
+          value: role.value,
+          label:
+            role.value === 'cn'
+              ? 'Coordination nationale'
+              : role.value === 'cr'
+              ? 'Coordination régionale'
+              : role.value === 'siege'
+              ? 'Siège'
+              : role.value === 'utilisateur'
+              ? 'Utilisateur'
+              : role.label
+        }))
+        setRoles(rolesWithLabels)
+      })
+      .catch(() => setError('Erreur lors du chargement des rôles'))
+
+    fetch('http://localhost:8000/api/users', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setSuperieurs(data))
+      .catch(() => setError('Erreur lors du chargement des utilisateurs'))
   }, [token])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -93,6 +109,13 @@ export default function CreateUserPage() {
       setError(err.message)
     }
   }
+
+  const superieursFiltres = superieurs.filter((sup) => {
+    const hierarchie = ['utilisateur', 'cn', 'cr', 'siege']
+    const roleIndex = hierarchie.indexOf(formData.role)
+    const supIndex = hierarchie.indexOf(sup.role)
+    return supIndex > roleIndex
+  })
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-8">
@@ -126,6 +149,16 @@ export default function CreateUserPage() {
           {roles.map(role => (
             <option key={role.value} value={role.value}>
               {role.label}
+            </option>
+          ))}
+        </select>
+
+        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange}
+          className="w-full p-2 border rounded text-black">
+          <option value="">Aucun supérieur</option>
+          {superieursFiltres.map(sup => (
+            <option key={sup.id} value={sup.id}>
+              {sup.prenom} {sup.nom} ({sup.role})
             </option>
           ))}
         </select>
