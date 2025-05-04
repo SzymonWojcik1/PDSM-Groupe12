@@ -105,4 +105,24 @@ class UserController extends Controller
         return response()->json(['message' => 'Partenaire assigné avec succès', 'user' => $user]);
     }
 
+    public function index(Request $request)
+    {
+        if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
+
+        $users = User::with('partenaire')->get(); // Charge aussi les données du partenaire
+        return response()->json($users);
+    }
+
+    public function show(Request $request, $id)
+    {
+        if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
+
+        $user = User::with('partenaire')->findOrFail($id);
+        return response()->json($user);
+    }
+
 }
