@@ -13,7 +13,8 @@ import {
   ChartLine,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  UserCircle
 } from 'lucide-react'
 
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -91,13 +92,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </nav>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-2 py-2 mt-4 text-red-600 hover:bg-red-50 rounded transition"
-          >
-            <LogOut size={20} />
-            {open && <span>Déconnexion</span>}
-          </button>
+          <div className="space-y-2 mt-4">
+            <Link href="/profil">
+              <div
+                className={`flex items-center gap-3 px-2 py-2 rounded cursor-pointer transition 
+                  ${pathname === '/profil' ? 'bg-blue-500 text-white' : 'hover:bg-gray-200 text-gray-800'}`}
+              >
+                <UserCircle size={20} />
+                {open && <span>Mon profil</span>}
+              </div>
+            </Link>
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-2 py-2 text-red-600 hover:bg-red-50 rounded transition w-full"
+            >
+              <LogOut size={20} />
+              {open && <span>Déconnexion</span>}
+            </button>
+          </div>
         </aside>
 
         <main className="flex-1 p-6">{children}</main>

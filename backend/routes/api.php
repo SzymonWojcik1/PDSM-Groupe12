@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{id}/partenaire', [UserController::class, 'assignPartenaire']);
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{id}', [UserController::class, 'show']);   
+    Route::get('/me', [UserController::class, 'me']);
 
 
     Route::get('/profile', [AuthController::class, 'profile']);

@@ -62,7 +62,10 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
+        $authUser = $request->user();
+
+        // Autorise l'utilisateur à modifier lui-même OU un admin SIEGE à tout modifier
+        if (!$authUser || ($authUser->role !== Role::SIEGE->value && $authUser->id != $id)) {
             return response()->json(['message' => 'Accès interdit'], 403);
         }
 
@@ -82,10 +85,11 @@ class UserController extends Controller
             'superieur_id' => ['nullable', 'exists:users,id'],
         ]);
 
+        // Vérification hiérarchique uniquement si le champ 'role' ou 'superieur_id' est modifié
         $newRole = $request->role ?? $user->role;
         $newSuperieurId = $request->superieur_id ?? $user->superieur_id;
 
-        if ($newSuperieurId && $newRole) {
+        if (($request->has('role') || $request->has('superieur_id')) && $newSuperieurId) {
             $superieur = User::find($newSuperieurId);
             if (!$superieur || !Role::isSuperior($superieur->role, $newRole)) {
                 return response()->json([
@@ -94,7 +98,6 @@ class UserController extends Controller
                         'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
                     ]
                 ], 422);
-                
             }
         }
 
@@ -111,6 +114,7 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Utilisateur mis à jour avec succès', 'user' => $user]);
     }
+
 
     public function destroy(Request $request, $id)
     {
@@ -173,5 +177,10 @@ class UserController extends Controller
         return response()->json(
             User::with(['partenaire', 'superieur'])->findOrFail($id)
         );
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json($request->user()->load(['partenaire', 'superieur']));
     }
 }

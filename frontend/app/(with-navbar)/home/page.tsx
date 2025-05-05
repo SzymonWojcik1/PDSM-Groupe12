@@ -15,6 +15,7 @@ export default function HomePage() {
         <Card title="Partenaires" href="/partenaires" description="Visualiser les partenaires associés aux projets." />
         <Card title="Cadre logique" href="/cadre-logique" description="Voir les cadres logiques." />
         <Card title="Utilisateurs" href="/users" description="Gérer les comptes utilisateurs et leurs rôles." />
+        <Card title="Mon profil" href="/profil" description="Consulter ou modifier les informations de votre compte." />
       </section>
     </div>
   )
