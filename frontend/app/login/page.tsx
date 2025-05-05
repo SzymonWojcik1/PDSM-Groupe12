@@ -31,6 +31,18 @@ export default function LoginPage() {
       }
 
       localStorage.setItem('token', data.token)
+
+      const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      })
+
+      const profile = await profileRes.json()
+      if (profileRes.ok && profile.role) {
+        localStorage.setItem('role', profile.role)
+      }
+
       router.push('/double-auth')
     } catch (err: any) {
       setError(err.message)
