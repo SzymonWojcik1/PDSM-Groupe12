@@ -32,8 +32,18 @@ export default function UsersPage() {
   const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState({ role: '', partenaire_id: '', superieur_id: '' })
+  const [userRole, setUserRole] = useState('')
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const router = useRouter()
+
+  useEffect(() => {
+    const role = localStorage.getItem('role')
+    if (role !== 'siege') {
+      router.push('/')
+      return
+    }
+    setUserRole(role || '')
+  }, [])
 
   const fetchUsers = async () => {
     if (!token) return
@@ -110,6 +120,10 @@ export default function UsersPage() {
       .then(res => res.json())
       .then(setSuperieurs)
   }, [token])
+
+  if (userRole !== 'siege') {
+    return null
+  }
 
   return (
     <div className="p-8">

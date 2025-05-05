@@ -42,7 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      await fetch('${process.env.NEXT_PUBLIC_API_URL}/logout', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -75,7 +75,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </button>
 
             <nav className="space-y-2 mt-10">
-              {navItems.map(({ name, href, icon: Icon }) => {
+            {navItems
+              .filter(({ href }) => {
+                if (href === '/users') {
+                  const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null
+                  return role === 'siege'
+                }
+                return true
+              })
+              .map(({ name, href, icon: Icon }) => {
+
                 const isActive = pathname.startsWith(href)
                 return (
                   <Link key={href} href={href}>

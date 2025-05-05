@@ -30,6 +30,7 @@ export default function EditUserPage() {
   const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState('')
   const [currentRole, setCurrentRole] = useState('')
+  const [userRole, setUserRole] = useState('')
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -42,6 +43,15 @@ export default function EditUserPage() {
     password_confirmation: '',
     superieur_id: ''
   })
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem('role')
+    if (storedRole !== 'siege') {
+      router.push('/')
+      return
+    }
+    setUserRole(storedRole || '')
+  }, [])
 
   useEffect(() => {
     if (!token || !id || Array.isArray(id)) return
@@ -66,14 +76,14 @@ export default function EditUserPage() {
       })
       .catch(() => setError('Erreur lors du chargement de l’utilisateur'))
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(setPartenaires)
       .catch(() => setError('Erreur lors du chargement des partenaires'))
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/enums', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -95,7 +105,7 @@ export default function EditUserPage() {
       })
       .catch(() => setError('Erreur lors du chargement des rôles'))
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/users', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -140,6 +150,10 @@ export default function EditUserPage() {
     return supIndex > roleIndex
   })
 
+  if (userRole !== 'siege') {
+    return null
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-8">
       <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
@@ -147,58 +161,36 @@ export default function EditUserPage() {
 
         {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
 
-        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom"
-          className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded text-black" required />
+        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone" className="w-full p-2 border rounded text-black" />
 
-        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom"
-          className="w-full p-2 border rounded text-black" required />
+        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Nouveau mot de passe" className="w-full p-2 border rounded text-black" />
+        <input type="password" name="password_confirmation" value={formData.password_confirmation} onChange={handleChange} placeholder="Confirmation du mot de passe" className="w-full p-2 border rounded text-black" />
 
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email"
-          className="w-full p-2 border rounded text-black" required />
-
-        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone"
-          className="w-full p-2 border rounded text-black" />
-
-        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Nouveau mot de passe"
-          className="w-full p-2 border rounded text-black" />
-
-        <input type="password" name="password_confirmation" value={formData.password_confirmation} onChange={handleChange}
-          placeholder="Confirmation du mot de passe"
-          className="w-full p-2 border rounded text-black" />
-
-        <select name="role" value={formData.role} onChange={handleChange}
-          className="w-full p-2 border rounded text-black" required>
+        <select name="role" value={formData.role} onChange={handleChange} className="w-full p-2 border rounded text-black" required>
           <option value="">Sélectionner un rôle</option>
           {roles.map(role => (
-            <option key={role.value} value={role.value}>
-              {role.label}
-            </option>
+            <option key={role.value} value={role.value}>{role.label}</option>
           ))}
         </select>
 
-        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange}
-          className="w-full p-2 border rounded text-black">
+        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
           <option value="">Aucun supérieur</option>
           {superieursFiltres.map(sup => (
-            <option key={sup.id} value={sup.id}>
-              {sup.prenom} {sup.nom} ({sup.role})
-            </option>
+            <option key={sup.id} value={sup.id}>{sup.prenom} {sup.nom} ({sup.role})</option>
           ))}
         </select>
 
-        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange}
-          className="w-full p-2 border rounded text-black">
+        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
           <option value="">Aucun partenaire</option>
           {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>
-              {p.part_nom}
-            </option>
+            <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
           ))}
         </select>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Enregistrer
-        </button>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Enregistrer</button>
       </form>
     </div>
   )
