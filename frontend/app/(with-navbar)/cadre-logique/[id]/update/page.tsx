@@ -14,7 +14,7 @@ export default function UpdateCadreLogique() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:8000/api/cadre-logique/${id}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`)
         .then((response) => response.json())
         .then((data) => {
           setCadNom(data.cad_nom);
@@ -33,7 +33,7 @@ export default function UpdateCadreLogique() {
       return; // bloque l'envoi
     }
   
-    await fetch(`http://localhost:8000/api/cadre-logique/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

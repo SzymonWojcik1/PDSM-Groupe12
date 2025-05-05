@@ -22,7 +22,7 @@ export default function ObjectifGeneralPage() {
   const cadId = params?.id;
 
   const fetchObjectifsGeneraux = () => {
-    fetch(`http://localhost:8000/api/objectifs-generaux?cad_id=${cadId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux?cad_id=${cadId}`)
       .then(res => res.json())
       .then(setObjectifs)
       .catch(err => console.error('Erreur fetch objectifs généraux:', err));
@@ -32,7 +32,7 @@ export default function ObjectifGeneralPage() {
     fetchObjectifsGeneraux();
     
     // Récupérer les informations du cadre logique
-    fetch(`http://localhost:8000/api/cadre-logique/${cadId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadId}`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Erreur HTTP: ${res.status}`);
@@ -53,7 +53,7 @@ export default function ObjectifGeneralPage() {
       });
 
     // Améliorer aussi la récupération des objectifs
-    fetch(`http://localhost:8000/api/objectifs-generaux?cad_id=${cadId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux?cad_id=${cadId}`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Erreur HTTP: ${res.status}`);
@@ -77,7 +77,7 @@ export default function ObjectifGeneralPage() {
 
   const handleDelete = async (id: number, nom: string) => {
     if (confirm(`Voulez-vous vraiment supprimer l'objectif général "${nom}" ?`)) {
-      await fetch(`http://localhost:8000/api/objectifs-generaux/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux/${id}`, {
         method: 'DELETE',
       });
 

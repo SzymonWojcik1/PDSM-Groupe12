@@ -15,7 +15,7 @@ export default function UpdateOutput() {
 
   useEffect(() => {
     if (outpId) {
-      fetch(`http://localhost:8000/api/outputs/${outpId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs/${outpId}`)
         .then((response) => response.json())
         .then((data) => {
           setOpuCode(data.opu_code);
@@ -27,7 +27,7 @@ export default function UpdateOutput() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    await fetch(`http://localhost:8000/api/outputs/${outpId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs/${outpId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

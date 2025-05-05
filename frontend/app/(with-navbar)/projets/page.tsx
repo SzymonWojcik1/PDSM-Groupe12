@@ -17,13 +17,13 @@ export default function ProjetsPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
 
   const fetchProjets = async () => {
-    const res = await fetch('http://localhost:8000/api/projets');
+    const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/projets');
     const data = await res.json();
     setProjets(data);
   };
 
   const deleteProjet = async (id: number) => {
-    await fetch(`http://localhost:8000/api/projets/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, {
       method: 'DELETE',
     });
     fetchProjets();

@@ -42,7 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      await fetch('http://localhost:8000/api/logout', {
+      await fetch('${process.env.NEXT_PUBLIC_API_URL}/logout', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

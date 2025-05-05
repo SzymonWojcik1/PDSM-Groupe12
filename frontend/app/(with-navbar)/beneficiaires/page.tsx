@@ -21,7 +21,7 @@ export default function BeneficiairesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/enums?locale=en')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
       .then(res => res.json())
       .then(setEnums)
       .catch(err => console.error('Erreur fetch enums:', err));
@@ -33,7 +33,7 @@ export default function BeneficiairesPage() {
       if (value) query.append(key, value);
     });
 
-    fetch(`http://localhost:8000/api/beneficiaires?${query.toString()}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
       .then(res => res.json())
       .then(setBeneficiaires)
       .catch(err => console.error('Erreur fetch bénéficiaires:', err));
@@ -49,7 +49,7 @@ export default function BeneficiairesPage() {
     if (!confirmed) return;
 
     try {
-      await fetch(`http://localhost:8000/api/beneficiaires/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
         method: 'DELETE',
       });
 
@@ -85,7 +85,7 @@ export default function BeneficiairesPage() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:8000/api/beneficiaires/import', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/import`, {
         method: 'POST',
         body: formData,
       });

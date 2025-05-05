@@ -20,7 +20,7 @@ export default function UpdateIndicateurOutputPage() {
 
   useEffect(() => {
     if (indId) {
-      fetch(`http://localhost:8000/api/indicateurs/${indId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs/${indId}`)
         .then((response) => response.json())
         .then((data) => {
           setIndCode(data.ind_code);
@@ -40,7 +40,7 @@ export default function UpdateIndicateurOutputPage() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:8000/api/indicateurs/${indId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs/${indId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

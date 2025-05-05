@@ -22,7 +22,7 @@ export default function ExportBeneficiairesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/enums?locale=en')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
       .then(res => res.json())
       .then(setEnums);
   }, []);
@@ -33,7 +33,7 @@ export default function ExportBeneficiairesPage() {
       if (value) query.append(key, value);
     });
 
-    fetch(`http://localhost:8000/api/beneficiaires?${query.toString()}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
       .then(res => res.json())
       .then(setBeneficiaires);
   }, [filters]);

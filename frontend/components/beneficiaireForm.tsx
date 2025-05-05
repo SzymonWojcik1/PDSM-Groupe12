@@ -45,7 +45,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
   const [ethniciteFocused, setEthniciteFocused] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/enums')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
       .then((res) => res.json())
       .then(setEnums)
       .catch((err) => console.error('Erreur enums:', err));

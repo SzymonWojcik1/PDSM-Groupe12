@@ -15,7 +15,7 @@ export default function CadreLogiquePage() {
   const router = useRouter();
 
   const fetchCadresLogiques = () => {
-    fetch('http://localhost:8000/api/cadre-logique')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`)
       .then(res => res.json())
       .then(setCadres)
       .catch(err => console.error('Erreur fetch cadre logique:', err));
@@ -27,7 +27,7 @@ export default function CadreLogiquePage() {
 
   const handleDelete = async (id: number, nom: string) => {
     if (confirm(`Veux-tu vraiment supprimer le cadre logique "${nom}" ?`)) {
-      await fetch(`http://localhost:8000/api/cadre-logique/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
         method: 'DELETE',
       });
 

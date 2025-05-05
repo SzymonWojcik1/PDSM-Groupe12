@@ -36,26 +36,26 @@ export default function ActivitesPage() {
   });
 
   const fetchPartenaires = async () => {
-    const res = await fetch('http://localhost:8000/api/partenaires');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
     const data = await res.json();
     setPartenaires(data);
   };
 
   const fetchProjets = async () => {
-    const res = await fetch('http://localhost:8000/api/projets');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`);
     const data = await res.json();
     setProjets(data);
   };
 
   const fetchActivites = async () => {
-    const res = await fetch('http://localhost:8000/api/activites');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`);
     const data = await res.json();
     setActivites(data);
     setFilteredActivites(data);
   };
 
   const deleteActivite = async (id: number) => {
-    await fetch(`http://localhost:8000/api/activites/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
       method: 'DELETE',
     });
     fetchActivites();
@@ -137,7 +137,7 @@ export default function ActivitesPage() {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('http://localhost:8000/api/activites/import', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/import`, {
       method: 'POST',
       body: formData,
     });

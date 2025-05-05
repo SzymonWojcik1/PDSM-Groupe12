@@ -17,7 +17,7 @@ export default function UpdatePartenaire() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(`http://localhost:8000/api/partenaires/${id}`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`)
       const data = await res.json()
       setPartenaire(data)
     }
@@ -33,7 +33,7 @@ export default function UpdatePartenaire() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const res = await fetch(`http://localhost:8000/api/partenaires/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partenaire),

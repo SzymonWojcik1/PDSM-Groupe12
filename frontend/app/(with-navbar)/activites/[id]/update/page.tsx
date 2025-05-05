@@ -25,9 +25,9 @@ export default function UpdateActivitePage() {
   useEffect(() => {
     const fetchInitialData = async () => {
       const [partRes, projRes, actRes] = await Promise.all([
-        fetch('http://localhost:8000/api/partenaires'),
-        fetch('http://localhost:8000/api/projets'),
-        fetch(`http://localhost:8000/api/activites/${id}`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`)
       ]);
       const [parts, projs, act] = await Promise.all([
         partRes.json(),
@@ -71,7 +71,7 @@ export default function UpdateActivitePage() {
       return;
     }
 
-    const res = await fetch(`http://localhost:8000/api/activites/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

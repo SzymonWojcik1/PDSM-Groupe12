@@ -38,7 +38,7 @@ export default function CreerIndicateurOutcomePage() {
       opu_id: null,
     };
     try {
-      const res = await fetch("http://localhost:8000/api/indicateurs", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

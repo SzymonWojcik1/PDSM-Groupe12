@@ -18,7 +18,7 @@ export default function CreateCadreLogique() {
       return; // bloque l'envoi
     }
   
-    await fetch('http://localhost:8000/api/cadre-logique', {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

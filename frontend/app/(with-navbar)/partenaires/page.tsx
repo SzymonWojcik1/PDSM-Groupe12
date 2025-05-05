@@ -15,14 +15,14 @@ export default function PartenairesPage() {
 
   //Récupérer les partenaires depuis le backend
   const fetchPartenaires = async () => {
-    const res = await fetch('http://localhost:8000/api/partenaires');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
     const data = await res.json();
     setPartenaires(data);
   };
 
   //Supprimer un partenaire
   const deletePartenaire = async (id: number) => {
-    await fetch(`http://localhost:8000/api/partenaires/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
       method: 'DELETE',
     });
     fetchPartenaires(); //Recharger la liste

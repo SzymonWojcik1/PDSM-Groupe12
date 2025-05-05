@@ -32,14 +32,14 @@ export default function DashboardActivitesPage() {
   }, []);
 
   const fetchActivites = async () => {
-    const res = await fetch('http://localhost:8000/api/activites');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`);
     const data = await res.json();
     setActivites(data);
     setFilteredActivites(data);
   };
 
   const fetchPartenaires = async () => {
-    const res = await fetch('http://localhost:8000/api/partenaires');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
     const data = await res.json();
     setPartenaires(data);
   };

@@ -36,13 +36,13 @@ export default function OutputPage() {
   const outId = params?.outId;
 
   const fetchOutputs = () => {
-    fetch(`http://localhost:8000/api/outputs?out_id=${outId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs?out_id=${outId}`)
       .then(res => res.json())
       .then(data => {
         setOutputs(data);
         // Récupérer les indicateurs pour chaque output
         data.forEach((output: Output) => {
-          fetch(`http://localhost:8000/api/indicateurs?opu_id=${output.opu_id}`)
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`)
             .then(res => res.json())
             .then(indData => {
               setIndicateurs(prev => ({
@@ -60,7 +60,7 @@ export default function OutputPage() {
     fetchOutputs();
 
     // Récupérer les informations de l'outcome
-    fetch(`http://localhost:8000/api/outcomes/${outId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes/${outId}`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Erreur HTTP: ${res.status}`);
@@ -83,7 +83,7 @@ export default function OutputPage() {
 
   const handleDelete = async (id: number, nom: string) => {
     if (confirm(`Voulez-vous vraiment supprimer l'output "${nom}" ?`)) {
-      await fetch(`http://localhost:8000/api/outputs/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs/${id}`, {
         method: 'DELETE',
       });
 
@@ -93,7 +93,7 @@ export default function OutputPage() {
 
   const handleDeleteIndicateur = async (indId: number) => {
     if (confirm("Voulez-vous vraiment supprimer cet indicateur ?")) {
-      await fetch(`http://localhost:8000/api/indicateurs/${indId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs/${indId}`, {
         method: 'DELETE',
       });
       fetchOutputs(); // Recharge la liste après suppression

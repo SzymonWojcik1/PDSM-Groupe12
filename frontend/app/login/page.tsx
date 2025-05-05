@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const res = await fetch('http://localhost:8000/api/login', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,10 +30,7 @@ export default function LoginPage() {
         throw new Error(data.message || data.errors?.email?.[0] || 'Erreur inconnue')
       }
 
-      // Enregistrer le token, mais pas encore de 2fa_validated
       localStorage.setItem('token', data.token)
-
-      // Redirection forcée vers double-auth (même si 2FA désactivé côté backend)
       router.push('/double-auth')
     } catch (err: any) {
       setError(err.message)

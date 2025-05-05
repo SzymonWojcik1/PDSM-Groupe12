@@ -32,7 +32,7 @@ export default function ModifierProfilPage() {
       }
 
       try {
-        const res = await fetch('http://localhost:8000/api/me', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -79,7 +79,7 @@ export default function ModifierProfilPage() {
     }
   
     try {
-      const res = await fetch(`http://localhost:8000/api/users/${user.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

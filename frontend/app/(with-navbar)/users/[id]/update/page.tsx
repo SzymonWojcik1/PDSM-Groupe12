@@ -46,7 +46,7 @@ export default function EditUserPage() {
   useEffect(() => {
     if (!token || !id || Array.isArray(id)) return
 
-    fetch(`http://localhost:8000/api/users/${id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -66,14 +66,14 @@ export default function EditUserPage() {
       })
       .catch(() => setError('Erreur lors du chargement de l’utilisateur'))
 
-    fetch('http://localhost:8000/api/partenaires', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(setPartenaires)
       .catch(() => setError('Erreur lors du chargement des partenaires'))
 
-    fetch('http://localhost:8000/api/enums', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/enums', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -95,7 +95,7 @@ export default function EditUserPage() {
       })
       .catch(() => setError('Erreur lors du chargement des rôles'))
 
-    fetch('http://localhost:8000/api/users', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -115,7 +115,7 @@ export default function EditUserPage() {
     if (!token || !id || Array.isArray(id)) return
 
     try {
-      const res = await fetch(`http://localhost:8000/api/users/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

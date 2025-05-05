@@ -12,7 +12,7 @@ export default function UpdateObjectifGeneral() {
 
   useEffect(() => {
     if (objId) {
-      fetch(`http://localhost:8000/api/objectifs-generaux/${objId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux/${objId}`)
         .then((response) => response.json())
         .then((data) => {
           setObjNom(data.obj_nom);
@@ -23,7 +23,7 @@ export default function UpdateObjectifGeneral() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    await fetch(`http://localhost:8000/api/objectifs-generaux/${objId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux/${objId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

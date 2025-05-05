@@ -13,7 +13,7 @@ export default function UpdateOutcome() {
 
   useEffect(() => {
     if (outId) {
-      fetch(`http://localhost:8000/api/outcomes/${outId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes/${outId}`)
         .then((response) => response.json())
         .then((data) => {
           setOutNom(data.out_nom);
@@ -24,7 +24,7 @@ export default function UpdateOutcome() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    await fetch(`http://localhost:8000/api/outcomes/${outId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes/${outId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

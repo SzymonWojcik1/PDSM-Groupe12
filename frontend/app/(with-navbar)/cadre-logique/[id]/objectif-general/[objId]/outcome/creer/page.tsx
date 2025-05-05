@@ -13,7 +13,7 @@ export default function CreateOutcome() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    await fetch('http://localhost:8000/api/outcomes', {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

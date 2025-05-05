@@ -22,7 +22,7 @@ export default function SupprimerBeneficiairesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/enums?locale=en')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
       .then(res => res.json())
       .then(setEnums)
       .catch(err => console.error('Erreur fetch enums:', err));

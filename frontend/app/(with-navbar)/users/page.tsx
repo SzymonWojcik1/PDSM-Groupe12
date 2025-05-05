@@ -44,7 +44,7 @@ export default function UsersPage() {
     if (filters.superieur_id) params.append('superieur_id', filters.superieur_id)
 
     try {
-      const res = await fetch(`http://localhost:8000/api/users?${params.toString()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Erreur lors du chargement des utilisateurs')
@@ -58,7 +58,7 @@ export default function UsersPage() {
   const deleteUser = async (id: number) => {
     if (!confirm('Supprimer cet utilisateur ?')) return
     try {
-      const res = await fetch(`http://localhost:8000/api/users/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -76,7 +76,7 @@ export default function UsersPage() {
   useEffect(() => {
     if (!token) return
 
-    fetch('http://localhost:8000/api/enums', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/enums', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -98,13 +98,13 @@ export default function UsersPage() {
         setRoles(rolesWithLabels)
       })
 
-    fetch('http://localhost:8000/api/partenaires', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(setPartenaires)
 
-    fetch('http://localhost:8000/api/users', {
+    fetch('${process.env.NEXT_PUBLIC_API_URL}/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())

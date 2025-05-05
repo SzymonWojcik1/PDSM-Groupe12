@@ -9,7 +9,6 @@ export default function VerifyPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Vérifie s'il y a bien un token, sinon redirige vers /login
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -31,7 +30,7 @@ export default function VerifyPage() {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/2fa/verify', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/2fa/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,9 +45,7 @@ export default function VerifyPage() {
         throw new Error(data.message || 'Code invalide.')
       }
 
-      // ✅ Marque la validation et redirige
       localStorage.setItem('2fa_validated', 'true')
-      console.log('2FA validé, redirection vers /home')
       router.push('/home')
     } catch (err: any) {
       setError(err.message)

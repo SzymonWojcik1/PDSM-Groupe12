@@ -14,7 +14,7 @@ export default function UpdateBeneficiairePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/beneficiaires/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`)
       .then((res) => res.json())
       .then(setInitialData)
       .catch((err) => {
@@ -25,7 +25,7 @@ export default function UpdateBeneficiairePage() {
   }, [id]);
 
   const handleSubmit = async (formData: BeneficiaireFormData) => {
-    const response = await fetch(`http://localhost:8000/api/beneficiaires/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

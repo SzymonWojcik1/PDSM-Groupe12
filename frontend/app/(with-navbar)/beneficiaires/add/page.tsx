@@ -14,7 +14,7 @@ export default function AddBeneficiaire() {
   }
 
   const checkDuplicate = async (data: BeneficiaireData) => {
-    const res = await fetch('http://localhost:8000/api/beneficiaires/check-duplicate', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -54,7 +54,7 @@ export default function AddBeneficiaire() {
             if (!confirm) return;
           }
 
-          const response = await fetch('http://localhost:8000/api/beneficiaires', {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
