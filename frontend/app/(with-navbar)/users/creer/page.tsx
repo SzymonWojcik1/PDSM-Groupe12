@@ -55,7 +55,7 @@ export default function CreateUserPage() {
       .then(res => res.json())
       .then(data => {
         const rolesFromApi = data.role || []
-        const rolesWithLabels = rolesFromApi.map((role: any) => ({
+        const rolesWithLabels = rolesFromApi.map((role: { value: string; label?: string }) => ({
           value: role.value,
           label:
             role.value === 'cn'
@@ -103,8 +103,12 @@ export default function CreateUserPage() {
       if (!res.ok) throw new Error(data.message || 'Erreur lors de la création.')
 
       router.push('/users')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Une erreur inconnue est survenue.')
+      }
     }
   }
 
