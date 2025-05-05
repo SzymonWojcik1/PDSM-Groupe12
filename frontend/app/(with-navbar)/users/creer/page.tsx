@@ -42,14 +42,14 @@ export default function CreateUserPage() {
   useEffect(() => {
     if (!token) return
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(data => setPartenaires(data))
       .catch(() => setError('Erreur lors du chargement des partenaires'))
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/enums', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -72,7 +72,7 @@ export default function CreateUserPage() {
       })
       .catch(() => setError('Erreur lors du chargement des rôles'))
 
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/users', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -89,7 +89,7 @@ export default function CreateUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/users', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,51 +126,33 @@ export default function CreateUserPage() {
 
         {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
 
-        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom"
-          className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded text-black" required />
+        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded text-black" required />
+        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone" className="w-full p-2 border rounded text-black" />
 
-        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom"
-          className="w-full p-2 border rounded text-black" required />
-
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email"
-          className="w-full p-2 border rounded text-black" required />
-
-        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone"
-          className="w-full p-2 border rounded text-black" />
-
-        <select name="role" value={formData.role} onChange={handleChange}
-          className="w-full p-2 border rounded text-black" required>
+        <select name="role" value={formData.role} onChange={handleChange} className="w-full p-2 border rounded text-black" required>
           <option value="">Sélectionner un rôle</option>
           {roles.map(role => (
-            <option key={role.value} value={role.value}>
-              {role.label}
-            </option>
+            <option key={role.value} value={role.value}>{role.label}</option>
           ))}
         </select>
 
-        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange}
-          className="w-full p-2 border rounded text-black">
+        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
           <option value="">Aucun supérieur</option>
           {superieursFiltres.map(sup => (
-            <option key={sup.id} value={sup.id}>
-              {sup.prenom} {sup.nom} ({sup.role})
-            </option>
+            <option key={sup.id} value={sup.id}>{sup.prenom} {sup.nom} ({sup.role})</option>
           ))}
         </select>
 
-        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange}
-          className="w-full p-2 border rounded text-black">
+        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
           <option value="">Aucun partenaire</option>
           {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>
-              {p.part_nom}
-            </option>
+            <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
           ))}
         </select>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Créer
-        </button>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Créer</button>
       </form>
     </div>
   )
