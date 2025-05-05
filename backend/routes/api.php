@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\BeneficiaireController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ObjectifGeneralController;
 use App\Http\Controllers\OutcomeController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\IndicateurController;
+use App\Http\Controllers\IndicateurActiviteController;
 
 
 
@@ -140,4 +142,20 @@ Route::controller(IndicateurController::class)->group(function(){
     Route::get('/indicateurs/{id}', [IndicateurController::class, 'show']);
     Route::put('/indicateurs/{id}', [IndicateurController::class, 'update']);
     Route::delete('/indicateurs/{id}', [IndicateurController::class, 'destroy']);
+});
+
+// Route pour les activités liées aux indicateurs
+Route::controller(IndicateurActiviteController::class)->group(function(){
+    Route::post('/activite-indicateurs', 'store');
+});
+
+// Route pour compter le nombre de bénéficiaires dans une activiteé
+Route::get('/indicateur/{id}/beneficiaires-count', function ($id) {
+    $count = DB::table('activite_indicateur')
+        ->join('activite_beneficiaire', 'activite_indicateur.act_id', '=', 'activite_beneficiaire.acb_act_id')
+        ->where('activite_indicateur.ind_id', $id)
+        ->distinct('activite_beneficiaire.acb_ben_id')
+        ->count('activite_beneficiaire.acb_ben_id');
+
+    return response()->json(['count' => $count]);
 });

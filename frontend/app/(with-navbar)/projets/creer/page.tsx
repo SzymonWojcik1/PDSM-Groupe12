@@ -23,7 +23,7 @@ export default function CreateProjetPage() {
 
   useEffect(() => {
     const fetchPartenaires = async () => {
-      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
       const data = await res.json();
       setPartenaires(data);
     };
@@ -53,7 +53,7 @@ export default function CreateProjetPage() {
       return;
     }
 
-    const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/projets', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

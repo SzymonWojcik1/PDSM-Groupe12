@@ -52,6 +52,13 @@ export default function CadreLogiquePage() {
         >
           Ajouter un cadre logique
         </button>
+
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800"
+          onClick={() => router.push('/activite-indicateur/lier')}
+        >
+          Lier activité à indicateur
+        </button>
       </div>
 
       <h1 className="text-2xl font-semibold mb-4">Liste des cadres logiques</h1>

@@ -11,13 +11,13 @@ export default function CreateCadreLogique() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     // Vérification des dates
     if (new Date(cadDateDebut) >= new Date(cadDateFin)) {
       alert("La date de début doit être strictement inférieure à la date de fin.");
       return; // bloque l'envoi
     }
-  
+
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,8 +27,20 @@ export default function CreateCadreLogique() {
         cad_dateFin: cadDateFin,
       }),
     });
-  
+
     router.push('/cadre-logique');
+  };
+
+  const handleDateDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const debut = e.target.value;
+    setCadDateDebut(debut);
+
+    if (debut) {
+      const date = new Date(debut);
+      date.setFullYear(date.getFullYear() + 4);
+      const dateFinAuto = date.toISOString().split('T')[0];
+      setCadDateFin(dateFinAuto);
+    }
   };
 
   return (
@@ -46,7 +58,7 @@ export default function CreateCadreLogique() {
         <input
           type="date"
           value={cadDateDebut}
-          onChange={(e) => setCadDateDebut(e.target.value)}
+          onChange={handleDateDebutChange}
           required
           className="border p-2 rounded"
         />

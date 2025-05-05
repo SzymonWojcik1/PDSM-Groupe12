@@ -23,6 +23,7 @@ type Indicateur = {
   ind_code: string;
   ind_nom: string;
   ind_valeurCible: string;
+  beneficiaireCount?: number;
 };
 
 export default function OutputPage() {
@@ -40,14 +41,25 @@ export default function OutputPage() {
       .then(res => res.json())
       .then(data => {
         setOutputs(data);
-        // Récupérer les indicateurs pour chaque output
         data.forEach((output: Output) => {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`)
             .then(res => res.json())
-            .then(indData => {
+            .then(async (indData) => {
+              const indicateursWithCounts = await Promise.all(
+                indData.map(async (ind: Indicateur) => {
+                  try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
+                    const json = await res.json();
+                    return { ...ind, beneficiaireCount: json.count };
+                  } catch (err) {
+                    console.error("Erreur fetch count bénéficiaires :", err);
+                    return { ...ind, beneficiaireCount: 0 };
+                  }
+                })
+              );
               setIndicateurs(prev => ({
                 ...prev,
-                [output.opu_id]: indData
+                [output.opu_id]: indicateursWithCounts
               }));
             })
             .catch(err => console.error('Erreur fetch indicateurs:', err));
@@ -59,20 +71,16 @@ export default function OutputPage() {
   useEffect(() => {
     fetchOutputs();
 
-    // Récupérer les informations de l'outcome
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes/${outId}`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`Erreur HTTP: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
         return res.json();
       })
       .then(data => {
-        console.log('Réponse API outcome:', data);
         if (data && typeof data === 'object') {
           setOutcome(data);
         } else {
-          console.error('Format de données invalide pour l\'outcome:', data);
+          console.error("Format de données invalide pour l'outcome:", data);
         }
       })
       .catch(err => {
@@ -86,8 +94,7 @@ export default function OutputPage() {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs/${id}`, {
         method: 'DELETE',
       });
-
-      fetchOutputs(); // Recharge la liste après suppression
+      fetchOutputs();
     }
   };
 
@@ -96,7 +103,7 @@ export default function OutputPage() {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs/${indId}`, {
         method: 'DELETE',
       });
-      fetchOutputs(); // Recharge la liste après suppression
+      fetchOutputs();
     }
   };
 
@@ -144,7 +151,14 @@ export default function OutputPage() {
                       <div key={indicateur.ind_id} className="mb-2">
                         <div className="font-semibold">{indicateur.ind_code}</div>
                         <div>{indicateur.ind_nom}</div>
-                        <div className="text-sm text-gray-600">Valeur cible: {indicateur.ind_valeurCible}</div>
+                        <div className="text-sm text-gray-600">
+                          Valeur cible: {indicateur.ind_valeurCible}
+                          {typeof indicateur.beneficiaireCount === 'number' && (
+                            <span className="ml-4">
+                              Bénéficiaires liés : <strong>{indicateur.beneficiaireCount}</strong>
+                            </span>
+                          )}
+                        </div>
                         <button
                           onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outId}/output/${output.opu_id}/indicateur/${indicateur.ind_id}/update`)}
                           className="text-blue-600 hover:underline text-sm mt-1"
@@ -190,4 +204,4 @@ export default function OutputPage() {
       )}
     </main>
   );
-} 
+}
