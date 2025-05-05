@@ -208,9 +208,12 @@ class ActivitesController extends Controller
             return response()->json([
                 'message' => "$inserted lignes importées, " . count($errors) . " en erreur.",
                 'fichier_erreurs' => asset("storage/$errorFileName"),
-            ], 207); // 207 = Multi-Status
+            ], 207); 
         }
 
         return response()->json(['message' => "$inserted lignes importées avec succès."]);
     }
+
+
+    
 }
