@@ -17,7 +17,7 @@ export default function ProjetsPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
 
   const fetchProjets = async () => {
-    const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/projets');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`);
     const data = await res.json();
     setProjets(data);
   };
