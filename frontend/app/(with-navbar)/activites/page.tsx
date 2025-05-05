@@ -177,7 +177,7 @@ export default function ActivitesPage() {
         </button>
 
         <button
-          onClick={() => window.open('http://localhost:8000/modele-import-activites', '_blank')}
+          onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}/modele-import-activites`, '_blank')}
           className="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 inline-flex items-center shadow-sm font-medium text-sm"
         >
           Télécharger modèle de base

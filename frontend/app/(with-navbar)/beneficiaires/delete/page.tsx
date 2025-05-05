@@ -34,7 +34,7 @@ export default function SupprimerBeneficiairesPage() {
       if (value) query.append(key, value);
     });
 
-    fetch(`http://localhost:8000/api/beneficiaires?${query.toString()}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
       .then(res => res.json())
       .then(setBeneficiaires)
       .catch(err => console.error('Erreur fetch bénéficiaires:', err));
@@ -86,7 +86,7 @@ export default function SupprimerBeneficiairesPage() {
     if (!confirmed) return;
 
     try {
-      await fetch(`http://localhost:8000/api/beneficiaires/${id}`, { method: 'DELETE' });
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
       setBeneficiaires(prev => prev.filter(b => b.ben_id !== id));
       setSelectedIds(prev => prev.filter(x => x !== id));
     } catch (err) {
@@ -100,7 +100,7 @@ export default function SupprimerBeneficiairesPage() {
     if (!confirmed) return;
 
     for (const id of selectedIds) {
-      await fetch(`http://localhost:8000/api/beneficiaires/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
         method: 'DELETE',
       });
     }

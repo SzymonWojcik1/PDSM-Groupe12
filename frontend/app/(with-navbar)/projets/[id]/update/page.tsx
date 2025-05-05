@@ -24,7 +24,7 @@ export default function UpdateProjetPage() {
 
   useEffect(() => {
     const fetchPartenaires = async () => {
-      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/partenaires');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
       const data = await res.json();
       setPartenaires(data);
     };
@@ -66,7 +66,7 @@ export default function UpdateProjetPage() {
       return;
     }
 
-    const res = await fetch(`http://localhost:8000/api/projets/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

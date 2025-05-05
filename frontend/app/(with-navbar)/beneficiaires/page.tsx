@@ -142,7 +142,7 @@ export default function BeneficiairesPage() {
           Exporter les bénéficiaires
         </button>
         <a
-          href="http://localhost:8000/beneficiaires/template"
+          href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}/beneficiaires/template`}
           download
           className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-700 inline-block"
         >
