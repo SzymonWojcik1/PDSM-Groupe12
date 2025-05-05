@@ -36,12 +36,31 @@ class ResetPasswordNotification extends Notification
         $url = config('app.frontend_url') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
 
         return (new MailMessage)
-            ->subject('Réinitialisation de votre mot de passe')
-            ->greeting('Bonjour ' . $notifiable->first_name . ',')
+            ->subject('Réinitialisation du mot de passe / Password Reset / Restablecimiento de contraseña')
+            ->greeting('Bonjour, Hello, Hola,')
+            // Français
+            ->line('**FRANÇAIS**')
+            ->line('Bonjour ' . $notifiable->first_name . ',')
             ->line('Vous avez demandé la réinitialisation de votre mot de passe pour votre compte MerlApp.')
             ->action('Réinitialiser mon mot de passe', $url)
             ->line('Si vous n’avez pas fait cette demande, vous pouvez ignorer ce message.')
-            ->salutation('À bientôt, L’équipe MerlApp');
+            ->line('Merci, à bientôt.')
+            ->line('-----------------------------')
+            // English
+            ->line('**ENGLISH**')
+            ->line('Hello ' . $notifiable->first_name . ',')
+            ->line('You requested a password reset for your MerlApp account.')
+            ->action('Reset my password', $url)
+            ->line('If you did not make this request, you can ignore this message.')
+            ->line('Thank you, see you soon.')
+            ->line('-----------------------------')
+            // Español
+            ->line('**ESPAÑOL**')
+            ->line('Hola ' . $notifiable->first_name . ',')
+            ->line('Ha solicitado restablecer la contraseña de su cuenta MerlApp.')
+            ->action('Restablecer mi contraseña', $url)
+            ->line('Si no ha hecho esta solicitud, puede ignorar este mensaje.')
+            ->line('Gracias, hasta pronto.');
     }
 
     /**
