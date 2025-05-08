@@ -95,7 +95,7 @@ class ActivitesSeeder extends Seeder
                 'act_pro_id' => 4
             ],
             [
-                'act_nom' => 'Distribution de semences',
+                'act_nom' => 'Distribution de graines',
                 'act_dateDebut' => Carbon::now()->addMonths(9),
                 'act_dateFin' => Carbon::now()->addMonths(10),
                 'act_part_id' => 4,

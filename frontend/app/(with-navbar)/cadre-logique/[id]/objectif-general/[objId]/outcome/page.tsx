@@ -21,6 +21,7 @@ type Indicateur = {
   ind_code: string;
   ind_nom: string;
   ind_valeurCible: string;
+  beneficiaireCount?: number;
 };
 
 export default function OutcomePage() {
@@ -37,14 +38,26 @@ export default function OutcomePage() {
       .then(res => res.json())
       .then(data => {
         setOutcomes(data);
-        // Récupérer les indicateurs pour chaque outcome
         data.forEach((outcome: Outcome) => {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?out_id=${outcome.out_id}`)
             .then(res => res.json())
-            .then(indData => {
+            .then(async (indData) => {
+              const indicateursWithCounts = await Promise.all(
+                indData.map(async (ind: Indicateur) => {
+                  try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
+                    const json = await res.json();
+                    return { ...ind, beneficiaireCount: json.count };
+                  } catch (err) {
+                    console.error("Erreur fetch count bénéficiaires :", err);
+                    return { ...ind, beneficiaireCount: 0 };
+                  }
+                })
+              );
+
               setIndicateurs(prev => ({
                 ...prev,
-                [outcome.out_id]: indData
+                [outcome.out_id]: indicateursWithCounts
               }));
             })
             .catch(err => console.error('Erreur fetch indicateurs:', err));
@@ -56,20 +69,16 @@ export default function OutcomePage() {
   useEffect(() => {
     fetchOutcomes();
 
-    // Récupérer les informations de l'objectif général
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux/${objId}`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`Erreur HTTP: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
         return res.json();
       })
       .then(data => {
-        console.log('Réponse API objectif général:', data);
         if (data && typeof data === 'object') {
           setObjectifGeneral(data);
         } else {
-          console.error('Format de données invalide pour l\'objectif général:', data);
+          console.error("Format de données invalide pour l'objectif général:", data);
         }
       })
       .catch(err => {
@@ -83,8 +92,7 @@ export default function OutcomePage() {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes/${id}`, {
         method: 'DELETE',
       });
-
-      fetchOutcomes(); // Recharge la liste après suppression
+      fetchOutcomes();
     }
   };
 
@@ -93,7 +101,7 @@ export default function OutcomePage() {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs/${indId}`, {
         method: 'DELETE',
       });
-      fetchOutcomes(); // Recharge la liste après suppression
+      fetchOutcomes();
     }
   };
 
@@ -135,41 +143,56 @@ export default function OutcomePage() {
                 <tr key={outcome.out_id}>
                   <td className="border px-2 py-1">{outcome.out_nom}</td>
                   <td className="border px-2 py-1">
-                    {indicateurs[outcome.out_id]?.filter((indicateur) => indicateur.opu_id === null && indicateur.out_id === outcome.out_id).map((indicateur) => (
-                      <div key={indicateur.ind_id} className="mb-2">
-                        <div className="font-semibold">{indicateur.ind_code}</div>
-                        <div>{indicateur.ind_nom}</div>
-                        <div className="text-sm text-gray-600">Valeur cible: {indicateur.ind_valeurCible}</div>
-                        <button
-                          onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/indicateur/${indicateur.ind_id}/update`)}
-                          className="text-blue-600 hover:underline text-sm mt-1"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDeleteIndicateur(indicateur.ind_id)}
-                          className="text-red-600 hover:underline text-sm mt-1 ml-2"
-                        >
-                          Supprimer
-                        </button>
-                      </div>
-                    ))}
+                    {indicateurs[outcome.out_id]
+                      ?.filter(ind => ind.opu_id === null)
+                      .map((indicateur) => (
+                        <div key={indicateur.ind_id} className="mb-2">
+                          <div className="font-semibold">{indicateur.ind_code}</div>
+                          <div>{indicateur.ind_nom}</div>
+                          <div className="text-sm text-gray-600">
+                            Valeur cible : {indicateur.ind_valeurCible}
+                            {typeof indicateur.beneficiaireCount === 'number' && (
+                              <span className="ml-4">
+                                Bénéficiaires liés : <strong>{indicateur.beneficiaireCount}</strong>
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() =>
+                              router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/indicateur/${indicateur.ind_id}/update`)
+                            }
+                            className="text-blue-600 hover:underline text-sm mt-1"
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteIndicateur(indicateur.ind_id)}
+                            className="text-red-600 hover:underline text-sm mt-1 ml-2"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      ))}
                     <button
                       onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/indicateur/creer`)}
-                      className="text-green-600 hover:underline mt-2"
+                      className="text-green-600 hover:underline mt-2 block"
                     >
                       Créer un indicateur
                     </button>
                   </td>
                   <td className="border px-2 py-1 text-center space-x-2">
                     <button
-                      onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/output`)}
+                      onClick={() =>
+                        router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/output`)
+                      }
                       className="text-purple-600 hover:underline"
                     >
                       Output
                     </button>
                     <button
-                      onClick={() => router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/update`)}
+                      onClick={() =>
+                        router.push(`/cadre-logique/${cadId}/objectif-general/${objId}/outcome/${outcome.out_id}/update`)
+                      }
                       className="text-blue-600 hover:underline"
                     >
                       Modifier
@@ -189,4 +212,4 @@ export default function OutcomePage() {
       )}
     </main>
   );
-} 
+}
