@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function CreateCadreLogique() {
   const router = useRouter();
@@ -12,65 +13,108 @@ export default function CreateCadreLogique() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Vérification des dates
-    if (new Date(cadDateDebut) >= new Date(cadDateFin)) {
-      alert("La date de début doit être strictement inférieure à la date de fin.");
-      return; // bloque l'envoi
+    if (!cadNom || !cadDateDebut || !cadDateFin) {
+      alert("Tous les champs sont requis.");
+      return;
     }
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cad_nom: cadNom,
-        cad_dateDebut: cadDateDebut,
-        cad_dateFin: cadDateFin,
-      }),
-    });
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cad_nom: cadNom,
+          cad_dateDebut: cadDateDebut,
+          cad_dateFin: cadDateFin,
+        }),
+      });
 
-    router.push('/cadre-logique');
+      router.push('/cadre-logique');
+    } catch (err) {
+      console.error('Erreur lors de la création du cadre logique:', err);
+      alert("Échec de la création.");
+    }
   };
 
-  const handleDateDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const debut = e.target.value;
-    setCadDateDebut(debut);
-
-    if (debut) {
-      const date = new Date(debut);
-      date.setFullYear(date.getFullYear() + 4);
-      const dateFinAuto = date.toISOString().split('T')[0];
-      setCadDateFin(dateFinAuto);
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const year = parseInt(e.target.value);
+    if (!isNaN(year)) {
+      const debut = `${year}-01-01`;
+      const fin = `${year + 3}-12-31`;
+      setCadDateDebut(debut);
+      setCadDateFin(fin);
     }
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Créer un Cadre Logique</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-        <input
-          type="text"
-          placeholder="Nom"
-          value={cadNom}
-          onChange={(e) => setCadNom(e.target.value)}
-          required
-          className="border p-2 rounded"
-        />
-        <input
-          type="date"
-          value={cadDateDebut}
-          onChange={handleDateDebutChange}
-          required
-          className="border p-2 rounded"
-        />
-        <input
-          type="date"
-          value={cadDateFin}
-          onChange={(e) => setCadDateFin(e.target.value)}
-          required
-          className="border p-2 rounded"
-        />
-        <button type="submit" className="bg-blue-500 text-white py-2 rounded">Créer</button>
-      </form>
-    </div>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Créer un cadre logique</h1>
+            <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
+          </div>
+          <Link
+            href="/cadre-logique"
+            className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+          >
+            Retour à la liste
+          </Link>
+        </header>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 w-full">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block font-semibold mb-1">Nom du cadre</label>
+              <input
+                type="text"
+                value={cadNom}
+                onChange={(e) => setCadNom(e.target.value)}
+                required
+                className="w-full border border-gray-300 rounded p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">Année de début</label>
+              <input
+                type="number"
+                placeholder="Ex: 2025"
+                onChange={handleYearChange}
+                required
+                className="w-full border border-gray-300 rounded p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">Date de début automatique</label>
+              <input
+                type="date"
+                value={cadDateDebut}
+                readOnly
+                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">Date de fin automatique</label>
+              <input
+                type="date"
+                value={cadDateFin}
+                readOnly
+                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
+            >
+              Créer
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
   );
 }

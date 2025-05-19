@@ -126,6 +126,7 @@ export default function SupprimerBeneficiairesPage() {
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les bénéficiaires</h2>
           <BeneficiaireFilters
             filters={filters}
             onChange={handleChange}
@@ -136,6 +137,8 @@ export default function SupprimerBeneficiairesPage() {
         </div>
 
         <section className="bg-white border rounded-2xl shadow-sm p-6">
+        <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des bénéficiaires</h2>
+
           {beneficiaires.length === 0 ? (
             <p className="text-gray-600">Aucun bénéficiaire trouvé.</p>
           ) : (

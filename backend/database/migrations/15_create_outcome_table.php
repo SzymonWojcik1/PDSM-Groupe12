@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('outcome', function (Blueprint $table) {
             $table->id('out_id');
             $table->unsignedBigInteger('obj_id');
+            $table->string('out_code', 20);
             $table->text('out_nom');
             $table->timestamps();
 

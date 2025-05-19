@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-type CadreLogique = {
+type Cadre = {
   cad_id: number;
   cad_nom: string;
   cad_dateDebut: string;
@@ -11,105 +12,92 @@ type CadreLogique = {
 };
 
 export default function CadreLogiquePage() {
-  const [cadres, setCadres] = useState<CadreLogique[]>([]);
+  const [cadres, setCadres] = useState<Cadre[]>([]);
   const router = useRouter();
 
-  const fetchCadresLogiques = () => {
+  useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`)
       .then(res => res.json())
       .then(setCadres)
-      .catch(err => console.error('Erreur fetch cadre logique:', err));
-  };
-
-  useEffect(() => {
-    fetchCadresLogiques();
+      .catch(err => console.error('Erreur fetch cadres logiques:', err));
   }, []);
 
-  const handleDelete = async (id: number, nom: string) => {
-    if (confirm(`Veux-tu vraiment supprimer le cadre logique "${nom}" ?`)) {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
-        method: 'DELETE',
-      });
-
-      fetchCadresLogiques(); // Recharge la liste après suppression
-    }
-  };
-
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Attention : janvier = 0
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+    const d = new Date(dateString);
+    return d.toLocaleDateString('fr-CH');
   };
 
   return (
-    <main className="p-6">
-      <div className="flex gap-4 mb-6">
-        <button
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
-          onClick={() => router.push('/cadre-logique/creer')}
-        >
-          Ajouter un cadre logique
-        </button>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Cadres logiques</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">Liste des cadres logiques enregistrés dans la base.</p>
+            </div>
+            <Link
+              href="/cadre-logique/creer"
+              className="text-sm text-white bg-[#9F0F3A] px-4 py-2 rounded hover:bg-[#800d30] transition"
+            >
+              + Nouveau cadre logique
+            </Link>
+          </div>
+        </header>
 
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800"
-          onClick={() => router.push('/activite-indicateur/lier')}
-        >
-          Lier activité à indicateur
-        </button>
-      </div>
-
-      <h1 className="text-2xl font-semibold mb-4">Liste des cadres logiques</h1>
-
-      {cadres.length === 0 ? (
-        <p>Aucun cadre logique trouvé.</p>
-      ) : (
-        <div className="overflow-auto">
-          <table className="min-w-full border border-gray-300 text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-2 py-1">Nom</th>
-                <th className="border px-2 py-1">Date de début</th>
-                <th className="border px-2 py-1">Date de fin</th>
-                <th className="border px-2 py-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cadres.map((cadre) => (
-                <tr key={cadre.cad_id}>
-                  <td className="border px-2 py-1">{cadre.cad_nom}</td>
-                  <td className="border px-2 py-1">{formatDate(cadre.cad_dateDebut)}</td>
-                  <td className="border px-2 py-1">{formatDate(cadre.cad_dateFin)}</td>
-                  <td className="border px-2 py-1 text-center space-x-2">
-                    <button
-                      onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/objectif-general`)}
-                      className="text-green-600 hover:underline"
-                    >
-                      Objectif général
-                    </button>
-                    
-                    <button
-                      onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/update`)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Modifier
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(cadre.cad_id, cadre.cad_nom)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Supprimer
-                    </button>
-                  </td>
+        <section className="bg-white border rounded-2xl shadow-sm p-6">
+          {cadres.length === 0 ? (
+            <p className="text-gray-600">Aucun cadre logique trouvé.</p>
+          ) : (
+            <table className="w-full table-auto text-sm text-left border-separate border-spacing-y-2">
+              <thead>
+                <tr className="text-gray-500">
+                  <th className="px-2 py-1">Nom</th>
+                  <th className="px-2 py-1">Date début</th>
+                  <th className="px-2 py-1">Date fin</th>
+                  <th className="px-2 py-1">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {cadres.map(cadre => (
+                  <tr key={cadre.cad_id} className="bg-gray-50 rounded">
+                    <td className="px-2 py-2">{cadre.cad_nom}</td>
+                    <td className="px-2 py-2">{formatDate(cadre.cad_dateDebut)}</td>
+                    <td className="px-2 py-2">{formatDate(cadre.cad_dateFin)}</td>
+                    <td className="px-2 py-2 space-x-2">
+                      <button
+                        onClick={() => router.push(`/cadre-logique/${cadre.cad_id}`)}
+                        className="text-sm text-[#9F0F3A] hover:underline"
+                      >
+                        Remplir le cadre logique
+                      </button>
+                      <button
+                        onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/update`)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Supprimer le cadre logique "${cadre.cad_nom}" ?`)) {
+                            fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {
+                              method: 'DELETE'
+                            }).then(() => setCadres(prev => prev.filter(c => c.cad_id !== cadre.cad_id)));
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

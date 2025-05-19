@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\ObjectifGeneral;
 use App\Models\Output;
 use App\Models\Indicateur;
-use App\Models\CadreLogique;
 
 class Outcome extends Model
 {
@@ -16,7 +15,7 @@ class Outcome extends Model
     protected $table = 'outcome';
     protected $primaryKey = 'out_id';
 
-    protected $fillable = ['out_nom', 'obj_id'];
+    protected $fillable = ['out_nom', 'out_code', 'obj_id'];
 
     public function objectifGeneral()
     {

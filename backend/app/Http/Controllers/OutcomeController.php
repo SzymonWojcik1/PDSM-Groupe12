@@ -20,7 +20,8 @@ class OutcomeController extends Controller
     {
         $validated = $request->validate([
             'out_nom' => 'required|string',
-            'obj_id' => 'required|exists:objectif_general,obj_id',
+            'out_code' => 'required|string|max:20',
+            'obj_id'   => 'required|exists:objectif_general,obj_id',
         ]);
 
         return response()->json(Outcome::create($validated), 201);
@@ -36,8 +37,9 @@ class OutcomeController extends Controller
         $outcome = Outcome::findOrFail($id);
 
         $validated = $request->validate([
-            'out_nom' => 'sometimes|string',
-            'obj_id' => 'sometimes|exists:objectif_general,obj_id',
+            'out_nom'  => 'sometimes|string',
+            'out_code' => 'sometimes|string|max:20',
+            'obj_id'   => 'sometimes|exists:objectif_general,obj_id',
         ]);
 
         $outcome->update($validated);
