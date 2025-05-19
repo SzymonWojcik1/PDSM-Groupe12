@@ -1,36 +1,52 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import {
+  PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend
+} from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function DashboardBeneficiaires() {
-  // Données fictives, à remplacer par des données dynamiques si besoin
-  const stats = {
-    total: 150,
-    actifs: 120,
-    nouveaux: 15,
-    participants: 85,
-  };
+  const [stats, setStats] = useState({ total: 0, actifs: 0, nouveaux: 0, participants: 0 });
+  const [dataRegion, setDataRegion] = useState([]);
+  const [dataMois, setDataMois] = useState([]);
 
-  // Exemple de données pour la répartition par région
-  const dataRegion = [
-    { name: 'Europe', value: 60 },
-    { name: 'Afrique', value: 40 },
-    { name: 'Asie', value: 30 },
-    { name: 'Amérique', value: 20 },
-  ];
+  useEffect(() => {
+    fetch('/api/beneficiaires')
+      .then(res => res.json())
+      .then((data) => {
+        const now = new Date();
+        const monthNow = now.getMonth();
+        const total = data.length;
 
-  // Exemple de données pour l’évolution mensuelle
-  const dataMois = [
-    { mois: 'Jan', inscrits: 10 },
-    { mois: 'Fév', inscrits: 15 },
-    { mois: 'Mar', inscrits: 20 },
-    { mois: 'Avr', inscrits: 25 },
-    { mois: 'Mai', inscrits: 15 },
-    { mois: 'Juin', inscrits: 5 },
-  ];
+        const nouveaux = data.filter((b: any) => new Date(b.created_at).getMonth() === monthNow).length;
+
+        const regionMap = new Map<string, number>();
+        data.forEach((b: any) => {
+          if (!regionMap.has(b.ben_region)) {
+            regionMap.set(b.ben_region, 0);
+          }
+          regionMap.set(b.ben_region, regionMap.get(b.ben_region)! + 1);
+        });
+        const dataRegion = Array.from(regionMap, ([name, value]) => ({ name, value }));
+
+        const moisMap = new Array(12).fill(0);
+        data.forEach((b: any) => {
+          const m = new Date(b.created_at).getMonth();
+          moisMap[m]++;
+        });
+        const dataMois = moisMap.map((val, i) => ({
+          mois: new Date(0, i).toLocaleString('fr-FR', { month: 'short' }),
+          inscrits: val
+        }));
+
+        setStats({ total, actifs: total, nouveaux, participants: 0 }); // Participants à calculer si tu as la table d'association
+        setDataRegion(dataRegion);
+        setDataMois(dataMois);
+      });
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -40,28 +56,14 @@ export default function DashboardBeneficiaires() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-gray-100 rounded p-4 text-center">
-          <div className="text-sm text-gray-500">Total bénéficiaires</div>
-          <div className="text-2xl font-bold">{stats.total}</div>
-        </div>
-        <div className="bg-gray-100 rounded p-4 text-center">
-          <div className="text-sm text-gray-500">Actifs</div>
-          <div className="text-2xl font-bold">{stats.actifs}</div>
-        </div>
-        <div className="bg-gray-100 rounded p-4 text-center">
-          <div className="text-sm text-gray-500">Nouveaux ce mois</div>
-          <div className="text-2xl font-bold">{stats.nouveaux}</div>
-        </div>
-        <div className="bg-gray-100 rounded p-4 text-center">
-          <div className="text-sm text-gray-500">Participants aux activités</div>
-          <div className="text-2xl font-bold">{stats.participants}</div>
-        </div>
+        <StatCard label="Total bénéficiaires" value={stats.total} />
+        <StatCard label="Actifs" value={stats.actifs} />
+        <StatCard label="Nouveaux ce mois" value={stats.nouveaux} />
+        <StatCard label="Participants aux activités" value={stats.participants} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Graphique camembert */}
-        <div className="bg-white rounded shadow p-4">
-          <h2 className="text-lg font-semibold mb-4">Répartition par région</h2>
+        <ChartCard title="Répartition par région">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -81,11 +83,9 @@ export default function DashboardBeneficiaires() {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Graphique barres */}
-        <div className="bg-white rounded shadow p-4">
-          <h2 className="text-lg font-semibold mb-4">Évolution mensuelle des inscriptions</h2>
+        <ChartCard title="Évolution mensuelle des inscriptions">
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={dataMois}>
               <XAxis dataKey="mois" />
@@ -95,8 +95,26 @@ export default function DashboardBeneficiaires() {
               <Bar dataKey="inscrits" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string, value: number }) {
+  return (
+    <div className="bg-gray-100 rounded p-4 text-center">
+      <div className="text-sm text-gray-500">{label}</div>
+      <div className="text-2xl font-bold">{value}</div>
+    </div>
+  );
+}
+
+function ChartCard({ title, children }: { title: string, children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded shadow p-4">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      {children}
     </div>
   );
 }
