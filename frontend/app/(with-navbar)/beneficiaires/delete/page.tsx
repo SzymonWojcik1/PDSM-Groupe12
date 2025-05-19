@@ -111,7 +111,7 @@ export default function SupprimerBeneficiairesPage() {
             className={`px-5 py-2 rounded-lg font-medium transition ${
               selectedIds.length === 0
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-[#9F0F3A] text-white hover:bg-[#800d30]'
             }`}
           >
             Supprimer la sélection
