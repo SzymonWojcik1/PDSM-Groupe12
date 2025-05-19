@@ -46,71 +46,74 @@ export default function BeneficiaireTable({
   const hasActions = onUpdate || onDelete || renderExtraColumn;
 
   return (
-    <div className="overflow-auto">
-      {/* Compteur */}
+    <div className="overflow-x-auto">
       {selectable && selectedIds.length > 0 && (
-        <div className="mb-2 text-sm text-gray-700">
-          {selectedIds.length} bénéficiaire sélectionné
+        <div className="mb-3 text-sm text-gray-600">
+          {selectedIds.length} bénéficiaire{selectedIds.length > 1 && 's'} sélectionné
         </div>
       )}
 
-      <table className="min-w-full border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
+      <table className="min-w-full text-sm bg-white border border-gray-200 rounded-lg shadow-sm">
+        <thead className="bg-[#F3F4F6] text-gray-700">
           <tr>
-            {selectable && <th className="border px-2 py-1 text-center">X</th>}
-            <th className="border px-2 py-1">Prénom</th>
-            <th className="border px-2 py-1">Nom</th>
-            <th className="border px-2 py-1">Naissance</th>
-            <th className="border px-2 py-1">Région</th>
-            <th className="border px-2 py-1">Pays</th>
-            <th className="border px-2 py-1">Type</th>
-            <th className="border px-2 py-1">Zone</th>
-            <th className="border px-2 py-1">Sexe</th>
-            <th className="border px-2 py-1">Genre</th>
-            <th className="border px-2 py-1">Ethnicité</th>
-            {hasActions && <th className="border px-2 py-1 text-center">Actions</th>}
+            {selectable && <th className="px-3 py-2 text-left">Sélection</th>}
+            <th className="px-3 py-2 text-left">Prénom</th>
+            <th className="px-3 py-2 text-left">Nom</th>
+            <th className="px-3 py-2 text-left min-w-[140px]">Naissance</th>
+            <th className="px-3 py-2 text-left">Région</th>
+            <th className="px-3 py-2 text-left">Pays</th>
+            <th className="px-3 py-2 text-left">Type</th>
+            <th className="px-3 py-2 text-left">Zone</th>
+            <th className="px-3 py-2 text-left">Sexe</th>
+            <th className="px-3 py-2 text-left">Genre</th>
+            <th className="px-3 py-2 text-left">Ethnicité</th>
+            {hasActions && <th className="px-3 py-2 text-center">Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {beneficiaires.map((b) => (
-            <tr key={b.ben_id}>
+          {beneficiaires.map((b, idx) => (
+            <tr
+              key={b.ben_id}
+              className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100 transition'}
+            >
               {selectable && (
-                <td className="border px-2 py-1 text-center">
+                <td className="px-3 py-2">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(b.ben_id)}
                     onChange={() => toggleSelection?.(b.ben_id)}
+                    className="h-4 w-4"
                   />
                 </td>
               )}
-              <td className="border px-2 py-1">{b.ben_prenom}</td>
-              <td className="border px-2 py-1">{b.ben_nom}</td>
-              <td className="border px-2 py-1">{b.ben_date_naissance}</td>
-              <td className="border px-2 py-1">{b.ben_region}</td>
-              <td className="border px-2 py-1">{b.ben_pays}</td>
-              <td className="border px-2 py-1">
+              <td className="px-3 py-2 text-gray-800">{b.ben_prenom}</td>
+              <td className="px-3 py-2 text-gray-800">{b.ben_nom}</td>
+              <td className="px-3 py-2 text-gray-800 min-w-[140px]">{b.ben_date_naissance}</td>
+              <td className="px-3 py-2 text-gray-800">{b.ben_region}</td>
+              <td className="px-3 py-2 text-gray-800">{b.ben_pays}</td>
+              <td className="px-3 py-2 text-gray-800">
                 {b.ben_type === 'other'
                   ? b.ben_type_autre || '-'
                   : enumsShow(enums, 'type', b.ben_type)}
               </td>
-              <td className="border px-2 py-1">{enumsShow(enums, 'zone', b.ben_zone)}</td>
-              <td className="border px-2 py-1">
+              <td className="px-3 py-2 text-gray-800">{enumsShow(enums, 'zone', b.ben_zone)}</td>
+              <td className="px-3 py-2 text-gray-800">
                 {b.ben_sexe === 'other'
                   ? b.ben_sexe_autre || '-'
                   : enumsShow(enums, 'sexe', b.ben_sexe)}
               </td>
-              <td className="border px-2 py-1">
+              <td className="px-3 py-2 text-gray-800">
                 {b.ben_genre === 'other'
                   ? b.ben_genre_autre || '-'
                   : enumsShow(enums, 'genre', b.ben_genre || '')}
               </td>
-              <td className="border px-2 py-1">{b.ben_ethnicite}</td>
+              <td className="px-3 py-2 text-gray-800">{b.ben_ethnicite}</td>
               {hasActions && (
-                <td className="border px-2 py-1 text-center space-x-2">
+                <td className="px-3 py-2 text-center space-x-2 whitespace-nowrap">
                   {onUpdate && (
                     <button
                       onClick={() => onUpdate(b.ben_id)}
-                      className="text-blue-600 hover:underline"
+                      className="text-[#9F0F3A] hover:underline"
                     >
                       Modifier
                     </button>
@@ -118,10 +121,10 @@ export default function BeneficiaireTable({
                   {onDelete && (
                     <button
                       onClick={() => {
-                        const confirmed = confirm(`Êtes-vous sûr de vouloir supprimer ${b.ben_prenom} ${b.ben_nom} ?`);
+                        const confirmed = confirm(`Supprimer ${b.ben_prenom} ${b.ben_nom} ?`);
                         if (confirmed) onDelete(b.ben_id);
                       }}
-                      className="text-red-600 hover:underline"
+                      className="text-gray-500 hover:text-red-600 hover:underline"
                     >
                       Supprimer
                     </button>

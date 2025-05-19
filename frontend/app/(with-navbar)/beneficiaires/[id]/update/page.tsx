@@ -1,7 +1,8 @@
 'use client';
 
-import BeneficiaireForm from '@/components/beneficiaireForm';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeneficiaireForm from '@/components/beneficiaireForm';
 import type { BeneficiaireFormData } from '@/components/beneficiaireForm';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -43,10 +44,33 @@ export default function UpdateBeneficiairePage() {
   if (loading) return <p className="text-center mt-10">Chargement...</p>;
 
   return (
-    <BeneficiaireForm
-      mode="edit"
-      initialData={initialData}
-      onSubmit={handleSubmit}
-    />
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier un bénéficiaire</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">Mettez à jour les informations du bénéficiaire sélectionné.</p>
+            </div>
+            <Link
+              href="/beneficiaires"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
+          </div>
+        </header>
+
+        <div className="bg-white border rounded-2xl shadow-sm p-6">
+          <BeneficiaireForm
+            mode="edit"
+            initialData={initialData}
+            onSubmit={handleSubmit}
+            submitLabel="Mettre à jour le bénéficiaire"
+          />
+        </div>
+      </div>
+    </main>
   );
 }

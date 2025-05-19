@@ -198,7 +198,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
       <button
         type="submit"
         className={`w-full font-semibold py-2 rounded
-          ${!isFormValid() ? 'bg-gray-400 text-white' : 'bg-green-600 text-white hover:bg-green-800'}
+          ${!isFormValid() ? 'bg-gray-400 text-white' : 'bg-[#9F0F3A] text-white hover:bg-[#800d30]'}
         `}
         title={!isFormValid() ? 'Veuillez remplir tous les champs obligatoires.' : ''}
       >

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import BeneficiaireForm from '@/components/beneficiaireForm';
 import { useRouter } from 'next/navigation';
 
@@ -29,47 +30,57 @@ export default function AddBeneficiaire() {
   };
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <button
-        type="button"
-        onClick={() => router.back()}
-        className="w-full font-semibold py-2 rounded bg-blue-600 text-white hover:bg-blue-800"
-      >
-        Retour
-      </button>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Ajouter un bénéficiaire</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">Complétez le formulaire ci-dessous pour enregistrer un nouveau bénéficiaire.</p>
+            </div>
+            <Link
+              href="/beneficiaires"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
+          </div>
+        </header>
 
-      <h1 className="text-3xl font-bold mb-8 text-center">Ajouter un bénéficiaire</h1>
+        <div className="bg-white border rounded-2xl shadow-sm p-6">
+          <BeneficiaireForm
+            onSubmit={async (data) => {
+              const result = await checkDuplicate(data);
 
-      <BeneficiaireForm
-        onSubmit={async (data) => {
-          const result = await checkDuplicate(data);
+              if (result.exists) {
+                const confirm = window.confirm(
+                  `Le bénéficiaire ${result.beneficiaire.prenom} ${result.beneficiaire.nom} existe déjà.\n` +
+                  `Il a été ajouté le ${result.beneficiaire.created_at}.\n\n` +
+                  `Voulez-vous l’ajouter quand même ?`
+                );
 
-          if (result.exists) {
-            const confirm = window.confirm(
-              `Le bénéficiaire ${result.beneficiaire.prenom} ${result.beneficiaire.nom} existe déjà.\n` +
-              `Il a été ajouté le ${result.beneficiaire.created_at}.\n\n` +
-              `Voulez-vous l’ajouter quand même ?`
-            );
+                if (!confirm) return;
+              }
 
-            if (!confirm) return;
-          }
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+              });
 
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          });
-
-          if (response.ok) {
-            router.push('/beneficiaires');
-          } else {
-            const errorData = await response.json();
-            console.error('Erreur lors de la création', errorData);
-            alert('Erreur lors de la création du bénéficiaire.');
-          }
-        }}
-        submitLabel="Créer le bénéficiaire"
-      />
+              if (response.ok) {
+                router.push('/beneficiaires');
+              } else {
+                const errorData = await response.json();
+                console.error('Erreur lors de la création', errorData);
+                alert('Erreur lors de la création du bénéficiaire.');
+              }
+            }}
+            submitLabel="Créer le bénéficiaire"
+          />
+        </div>
+      </div>
     </main>
   );
 }
