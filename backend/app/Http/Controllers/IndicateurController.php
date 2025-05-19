@@ -19,7 +19,7 @@ class IndicateurController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'ind_code' => 'required|string|max:20',
+            'ind_code' => 'sometimes|string|max:20',
             'ind_nom' => 'required|string',
             'ind_valeurCible' => 'required|integer',
             'out_id' => 'nullable|exists:outcome,out_id',

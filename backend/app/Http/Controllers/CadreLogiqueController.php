@@ -72,7 +72,12 @@ class CadreLogiqueController extends Controller
             ], 409);
         }
 
-        $cadre->update($validated);
+        $cadre->update([
+            'cad_nom' => $validated['cad_nom'] ?? $cadre->cad_nom,
+            'cad_dateDebut' => $validated['cad_dateDebut'] ?? $cadre->cad_dateDebut,
+            'cad_dateFin' => $validated['cad_dateFin'] ?? $cadre->cad_dateFin,
+        ]);
+
         return response()->json($cadre);
     }
 

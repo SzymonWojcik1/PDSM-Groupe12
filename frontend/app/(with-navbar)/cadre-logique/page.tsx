@@ -65,31 +65,35 @@ export default function CadreLogiquePage() {
                     <td className="px-2 py-2">{cadre.cad_nom}</td>
                     <td className="px-2 py-2">{formatDate(cadre.cad_dateDebut)}</td>
                     <td className="px-2 py-2">{formatDate(cadre.cad_dateFin)}</td>
-                    <td className="px-2 py-2 space-x-2">
-                      <button
-                        onClick={() => router.push(`/cadre-logique/${cadre.cad_id}`)}
-                        className="text-sm text-[#9F0F3A] hover:underline"
-                      >
-                        Remplir le cadre logique
-                      </button>
-                      <button
-                        onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/update`)}
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Supprimer le cadre logique "${cadre.cad_nom}" ?`)) {
-                            fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {
-                              method: 'DELETE'
-                            }).then(() => setCadres(prev => prev.filter(c => c.cad_id !== cadre.cad_id)));
-                          }
-                        }}
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Supprimer
-                      </button>
+                    <td className="px-2 py-2">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/creer`)}
+                          className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-3 py-1 rounded hover:bg-[#f4e6ea] transition"
+                        >
+                          Remplir
+                        </button>
+                        <button
+                          onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/update`)}
+                          className="text-sm text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Supprimer le cadre logique "${cadre.cad_nom}" ?`)) {
+                              fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {
+                                method: 'DELETE'
+                              }).then(() =>
+                                setCadres(prev => prev.filter(c => c.cad_id !== cadre.cad_id))
+                              );
+                            }
+                          }}
+                          className="text-sm text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-50 transition"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
