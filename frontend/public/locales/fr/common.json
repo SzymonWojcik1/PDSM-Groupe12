@@ -1,0 +1,29 @@
+{
+    "home": "Accueil",
+    "beneficiaries": "Bénéficiaires",
+    "activities": "Activités",
+    "projects": "Projets",
+    "partners": "Partenaires",
+    "logframe": "Cadre logique",
+    "users": "Utilisateurs",
+    "profile": "Mon profil",
+    "logout": "Déconnexion",
+    
+
+    "dashboard_title": "Bienvenue sur votre tableau de bord",
+    "dashboard_intro": "Sélectionnez une section dans le menu de gauche ou dans les choix ci-dessous pour commencer.",
+    "card_beneficiaries_title": "Bénéficiaires",
+    "card_beneficiaries_desc": "Gérer les bénéficiaires enregistrés dans le système.",
+    "card_activities_title": "Activités",
+    "card_activities_desc": "Consulter ou créer de nouvelles activités.",
+    "card_projects_title": "Projets",
+    "card_projects_desc": "Accéder à la liste des projets et leurs détails.",
+    "card_partners_title": "Partenaires",
+    "card_partners_desc": "Visualiser les partenaires associés aux projets.",
+    "card_logframe_title": "Cadre logique",
+    "card_logframe_desc": "Voir les cadres logiques.",
+    "card_users_title": "Utilisateurs",
+    "card_users_desc": "Gérer les comptes utilisateurs et leurs rôles.",
+    "card_profile_title": "Mon profil",
+    "card_profile_desc": "Consulter ou modifier les informations de votre compte."
+  }

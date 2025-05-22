@@ -1,0 +1,28 @@
+{
+    "home": "Home",
+    "beneficiaries": "Beneficiaries",
+    "activities": "Activities",
+    "projects": "Projects",
+    "partners": "Partners",
+    "logframe": "Logical framework",
+    "users": "Users",
+    "profile": "My profile",
+    "logout": "Logout",
+
+    "dashboard_title": "Welcome to your dashboard",
+    "dashboard_intro": "Select a section from the menu on the left or from the options below to get started.",
+    "card_beneficiaries_title": "Beneficiaries",
+    "card_beneficiaries_desc": "Manage the beneficiaries registered in the system.",
+    "card_activities_title": "Activities",
+    "card_activities_desc": "View or create new activities.",
+    "card_projects_title": "Projects",
+    "card_projects_desc": "Access the list of projects and their details.",
+    "card_partners_title": "Partners",
+    "card_partners_desc": "View partners associated with projects.",
+    "card_logframe_title": "Logical framework",
+    "card_logframe_desc": "View the logical frameworks.",
+    "card_users_title": "Users",
+    "card_users_desc": "Manage user accounts and their roles.",
+    "card_profile_title": "My profile",
+    "card_profile_desc": "View or edit your account information."
+  }

@@ -1,0 +1,28 @@
+{
+    "home": "Inicio",
+    "beneficiaries": "Beneficiarios",
+    "activities": "Actividades",
+    "projects": "Proyectos",
+    "partners": "Socios",
+    "logframe": "Marco lógico",
+    "users": "Usuarios",
+    "profile": "Mi perfil",
+    "logout": "Cerrar sesión",
+
+    "dashboard_title": "Bienvenido a tu panel de control",
+    "dashboard_intro": "Selecciona una sección del menú de la izquierda o de las opciones a continuación para comenzar.",
+    "card_beneficiaries_title": "Beneficiarios",
+    "card_beneficiaries_desc": "Gestionar los beneficiarios registrados en el sistema.",
+    "card_activities_title": "Actividades",
+    "card_activities_desc": "Consultar o crear nuevas actividades.",
+    "card_projects_title": "Proyectos",
+    "card_projects_desc": "Acceder a la lista de proyectos y sus detalles.",
+    "card_partners_title": "Socios",
+    "card_partners_desc": "Ver los socios asociados a los proyectos.",
+    "card_logframe_title": "Marco lógico",
+    "card_logframe_desc": "Ver los marcos lógicos.",
+    "card_users_title": "Usuarios",
+    "card_users_desc": "Gestionar las cuentas de usuario y sus roles.",
+    "card_profile_title": "Mi perfil",
+    "card_profile_desc": "Consultar o modificar la información de tu cuenta."
+  }
