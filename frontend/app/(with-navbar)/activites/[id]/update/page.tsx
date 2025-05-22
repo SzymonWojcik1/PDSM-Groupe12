@@ -2,158 +2,79 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-
-type Partenaire = { part_id: number; part_nom: string };
-type Projet = { pro_id: number; pro_nom: string };
+import Link from 'next/link';
+import ActiviteForm from '@/components/ActiviteForm';
 
 export default function UpdateActivitePage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    act_nom: '',
-    act_dateDebut: '',
-    act_dateFin: '',
-    act_part_id: '',
-    act_pro_id: '',
-  });
-
-  const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
-  const [projets, setProjets] = useState<Projet[]>([]);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [initialData, setInitialData] = useState<null | {
+    act_nom: string;
+    act_dateDebut: string;
+    act_dateFin: string;
+    act_part_id: string;
+    act_pro_id: string;
+  }>(null);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      const [partRes, projRes, actRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`)
-      ]);
-      const [parts, projs, act] = await Promise.all([
-        partRes.json(),
-        projRes.json(),
-        actRes.json()
-      ]);
-
-      setPartenaires(parts);
-      setProjets(projs);
-      setFormData({
-        act_nom: act.act_nom,
-        act_dateDebut: act.act_dateDebut,
-        act_dateFin: act.act_dateFin,
-        act_part_id: act.act_part_id,
-        act_pro_id: act.act_pro_id
+    const fetchData = async () => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`);
+      const data = await res.json();
+      setInitialData({
+        act_nom: data.act_nom,
+        act_dateDebut: data.act_dateDebut,
+        act_dateFin: data.act_dateFin,
+        act_part_id: data.act_part_id,
+        act_pro_id: data.act_pro_id,
       });
     };
 
-    fetchInitialData();
+    fetchData();
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrorMessage('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const now = new Date();
-    const debut = new Date(formData.act_dateDebut);
-    const fin = new Date(formData.act_dateFin);
-
-    if (debut > fin) {
-      setErrorMessage("La date de début ne peut pas être après la date de fin.");
-      return;
-    }
-
-    if (debut < now || fin < now) {
-      setErrorMessage("Les nouvelles dates ne peuvent pas être dans le passé.");
-      return;
-    }
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setErrorMessage(data.message || 'Erreur lors de la mise à jour.');
-      return;
-    }
-
-    router.push('/activites');
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-8">
-      <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-black mb-4">Modifier une activité</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier une activité</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">Ajustez les champs ci-dessous pour mettre à jour l’activité.</p>
+            </div>
+            <Link
+              href="/activites"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
+          </div>
+        </header>
 
-        {errorMessage && <div className="bg-red-100 text-red-700 p-2 rounded">{errorMessage}</div>}
+        <div className="bg-white border rounded-2xl shadow-sm p-6">
+          {initialData && (
+            <ActiviteForm
+              initialData={initialData}
+              submitLabel="Enregistrer les modifications"
+              onSubmit={async (data) => {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data),
+                });
 
-        <input
-          type="text"
-          name="act_nom"
-          value={formData.act_nom}
-          onChange={handleChange}
-          placeholder="Nom"
-          className="w-full p-2 border rounded text-black"
-          required
-        />
-        <input
-          type="date"
-          name="act_dateDebut"
-          value={formData.act_dateDebut}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        />
-        <input
-          type="date"
-          name="act_dateFin"
-          value={formData.act_dateFin}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        />
-
-        <select
-          name="act_part_id"
-          value={formData.act_part_id}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        >
-          <option value="">Sélectionner un partenaire</option>
-          {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>
-              {p.part_nom}
-            </option>
-          ))}
-        </select>
-
-        <select
-          name="act_pro_id"
-          value={formData.act_pro_id}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        >
-          <option value="">Sélectionner un projet</option>
-          {projets.map(p => (
-            <option key={p.pro_id} value={p.pro_id}>
-              {p.pro_nom}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Enregistrer les modifications
-        </button>
-      </form>
-    </div>
+                if (res.ok) {
+                  router.push('/activites');
+                } else {
+                  const err = await res.json();
+                  alert(err.message || 'Erreur lors de la mise à jour');
+                }
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
