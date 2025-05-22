@@ -30,11 +30,17 @@ type Partenaire = {
 export default function UsersPage() {
   const { t } = useTranslation()
   const [users, setUsers] = useState<User[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [filters, setFilters] = useState({ role: '', partenaire_id: '', superieur_id: '' })
+  const [filters, setFilters] = useState({
+    role: '',
+    partenaire_id: '',
+    superieur_id: '',
+    search: '',
+  })
   const [userRole, setUserRole] = useState('')
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const router = useRouter()
@@ -61,11 +67,20 @@ export default function UsersPage() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) throw new Error(t('error_loading_users'))
-      const data = await res.json()
+      const data: User[] = await res.json()
       setUsers(data)
     } catch (err: any) {
       setError(err.message)
     }
+  }
+
+  const filterUsersLocally = () => {
+    const term = filters.search.toLowerCase().trim()
+    const result = users.filter(user =>
+      user.nom.toLowerCase().includes(term) ||
+      user.prenom.toLowerCase().includes(term)
+    )
+    setFilteredUsers(result)
   }
 
   const deleteUser = async (id: number) => {
@@ -82,9 +97,17 @@ export default function UsersPage() {
     }
   }
 
+  const resetFilters = () => {
+    setFilters({ role: '', partenaire_id: '', superieur_id: '', search: '' })
+  }
+
   useEffect(() => {
     fetchUsers()
-  }, [filters])
+  }, [filters.role, filters.partenaire_id, filters.superieur_id])
+
+  useEffect(() => {
+    filterUsersLocally()
+  }, [users, filters.search])
 
   useEffect(() => {
     if (!token) return
@@ -124,89 +147,134 @@ export default function UsersPage() {
       .then(setSuperieurs)
   }, [token])
 
-  if (userRole !== 'siege') {
-    return null
-  }
+  if (userRole !== 'siege') return null
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">{t('user_management')}</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('user_management')}</h1>
+          <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4" />
+          <p className="text-gray-600">{t('user_management_description')}</p>
+        </header>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        <select className="border p-2 rounded text-black" value={filters.role} onChange={(e) => setFilters({ ...filters, role: e.target.value })}>
-          <option value="">{t('filter_by_role')}</option>
-          {roles.map(role => (
-            <option key={role.value} value={role.value}>{role.label}</option>
-          ))}
-        </select>
+        <div className="bg-white border rounded-2xl shadow-sm p-6 mb-6">
+          <Link href="/users/creer">
+            <button className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium">
+              {t('create_user')}
+            </button>
+          </Link>
+        </div>
 
-        <select className="border p-2 rounded text-black" value={filters.partenaire_id} onChange={(e) => setFilters({ ...filters, partenaire_id: e.target.value })}>
-          <option value="">{t('filter_by_partner')}</option>
-          {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
-          ))}
-        </select>
+        <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">Filtres</h2>
+          <div className="flex flex-wrap gap-3 items-end">
+            <input
+              type="text"
+              name="search"
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              placeholder="Rechercher par nom ou prénom..."
+              className="px-4 py-2 rounded text-sm bg-white border border-gray-300 text-black"
+            />
 
-        <select className="border p-2 rounded text-black" value={filters.superieur_id} onChange={(e) => setFilters({ ...filters, superieur_id: e.target.value })}>
-          <option value="">{t('filter_by_superior')}</option>
-          {superieurs.map(s => (
-            <option key={s.id} value={s.id}>{s.prenom} {s.nom}</option>
-          ))}
-        </select>
+            <select
+              className="px-4 py-2 rounded text-sm bg-white border border-gray-300 text-black"
+              value={filters.role}
+              onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+            >
+              <option value="">{t('filter_by_role')}</option>
+              {roles.map(role => (
+                <option key={role.value} value={role.value}>{role.label}</option>
+              ))}
+            </select>
 
-        <Link href="/users/creer">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            {t('create_user')}
-          </button>
-        </Link>
+            <select
+              className="px-4 py-2 rounded text-sm bg-white border border-gray-300 text-black"
+              value={filters.partenaire_id}
+              onChange={(e) => setFilters({ ...filters, partenaire_id: e.target.value })}
+            >
+              <option value="">{t('filter_by_partner')}</option>
+              {partenaires.map(p => (
+                <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
+              ))}
+            </select>
+
+            <select
+              className="px-4 py-2 rounded text-sm bg-white border border-gray-300 text-black"
+              value={filters.superieur_id}
+              onChange={(e) => setFilters({ ...filters, superieur_id: e.target.value })}
+            >
+              <option value="">{t('filter_by_superior')}</option>
+              {superieurs.map(s => (
+                <option key={s.id} value={s.id}>{s.prenom} {s.nom}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={resetFilters}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 text-sm"
+            >
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        <section className="bg-white border rounded-2xl shadow-sm p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border border-gray-200 text-sm text-black">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2">{t('column_lastname')}</th>
+                  <th className="p-2">{t('column_firstname')}</th>
+                  <th className="p-2">{t('column_email')}</th>
+                  <th className="p-2">{t('column_phone')}</th>
+                  <th className="p-2">{t('column_role')}</th>
+                  <th className="p-2">{t('column_partner')}</th>
+                  <th className="p-2">{t('column_superior')}</th>
+                  <th className="p-2">{t('column_actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map(user => (
+                  <tr key={user.id} className="border-t border-gray-200">
+                    <td className="p-2">{user.nom}</td>
+                    <td className="p-2">{user.prenom}</td>
+                    <td className="p-2">{user.email}</td>
+                    <td className="p-2">{user.telephone || '-'}</td>
+                    <td className="p-2">{user.role}</td>
+                    <td className="p-2">{user.partenaire?.part_nom || '-'}</td>
+                    <td className="p-2">{user.superieur ? `${user.superieur.prenom} ${user.superieur.nom}` : '-'}</td>
+                    <td className="px-4 py-2 space-x-2 whitespace-nowrap">
+                      <Link
+                        href={`/users/${user.id}/update`}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {t('edit')}
+                      </Link>
+                      <button
+                        onClick={() => deleteUser(user.id)}
+                        className="text-sm text-gray-500 hover:text-red-600 hover:underline"
+                      >
+                        {t('delete')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="text-center p-4 text-gray-500">
+                      {t('no_users_found')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-
-      <table className="w-full table-auto border border-gray-200 text-black">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">{t('column_lastname')}</th>
-            <th className="p-2">{t('column_firstname')}</th>
-            <th className="p-2">{t('column_email')}</th>
-            <th className="p-2">{t('column_phone')}</th>
-            <th className="p-2">{t('column_role')}</th>
-            <th className="p-2">{t('column_partner')}</th>
-            <th className="p-2">{t('column_superior')}</th>
-            <th className="p-2">{t('column_actions')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.id} className="border-t">
-              <td className="p-2">{user.nom}</td>
-              <td className="p-2">{user.prenom}</td>
-              <td className="p-2">{user.email}</td>
-              <td className="p-2">{user.telephone || '-'}</td>
-              <td className="p-2">{user.role}</td>
-              <td className="p-2">{user.partenaire?.part_nom || '-'}</td>
-              <td className="p-2">{user.superieur ? `${user.superieur.prenom} ${user.superieur.nom}` : '-'}</td>
-              <td className="p-2 flex gap-2">
-                <Link href={`/users/${user.id}/update`}>
-                  <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                    {t('edit')}
-                  </button>
-                </Link>
-                <button onClick={() => deleteUser(user.id)} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-                  {t('delete')}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {users.length === 0 && (
-            <tr>
-              <td colSpan={8} className="text-center p-4 text-gray-500">
-                {t('no_users_found')}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+    </main>
   )
 }
