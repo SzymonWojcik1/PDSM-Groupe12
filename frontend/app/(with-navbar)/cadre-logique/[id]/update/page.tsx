@@ -10,6 +10,7 @@ type Indicateur = {
   ind_nom: string;
   ind_code: string;
   ind_valeurCible: number;
+  valeurReelle?: number;
 };
 
 type Output = {
@@ -102,6 +103,16 @@ export default function UpdateCadreLogiquePage() {
           for (const output of outputs) {
             const indRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`);
             const indicateurs: Indicateur[] = await indRes.json();
+            for (const ind of indicateurs) {
+              try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
+                const countData = await res.json();
+                ind.valeurReelle = countData.count || 0;
+              } catch (err) {
+                ind.valeurReelle = 0;
+              }
+            }
+
             output.indicateurs = indicateurs;
           }
           outcome.outputs = outputs;
@@ -146,7 +157,7 @@ export default function UpdateCadreLogiquePage() {
     await modifierNom(`indicateurs/${ind.ind_id}`, {
         ind_nom: nom,
         ind_valeurCible: parseInt(val),
-        ind_code: ind.ind_code, // ← ajoute bien ça !
+        ind_code: ind.ind_code,
     });
     };
 
@@ -236,6 +247,7 @@ export default function UpdateCadreLogiquePage() {
                   <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
                   <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
                   <th className="border px-4 py-2 w-1/6 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">Valeur réelle</th>
                 </tr>
               </thead>
               <tbody>
@@ -296,6 +308,7 @@ export default function UpdateCadreLogiquePage() {
                         </div>
                         </td>
                         <td className="border px-4 py-2">{ind.ind_valeurCible}</td>
+                        <td className="border px-4 py-2 text-center">{ind.valeurReelle ?? '–'}</td>
                       </tr>
                     ))
                   )

@@ -9,6 +9,7 @@ type Indicateur = {
   ind_nom: string;
   ind_code: string;
   ind_valeurCible: number;
+  valeurReelle?: number;
 };
 
 type Output = {
@@ -53,6 +54,17 @@ export default function CadreLogiqueDetailPage() {
           for (const output of outputs) {
             const indRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`);
             const indicateurs: Indicateur[] = await indRes.json();
+
+            for (const ind of indicateurs) {
+              try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
+                const countData = await res.json();
+                ind.valeurReelle = countData.count || 0;
+              } catch (err) {
+                ind.valeurReelle = 0;
+              }
+            }
+
             output.indicateurs = indicateurs;
           }
 
@@ -190,7 +202,8 @@ export default function CadreLogiqueDetailPage() {
                   <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
                   <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
                   <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/10 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/8 text-left">Valeur réelle</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,6 +303,21 @@ export default function CadreLogiqueDetailPage() {
                               {ind.ind_nom}
                             </td>
                             <td className="border px-4 py-2">{ind.ind_valeurCible}</td>
+                            <td className="border px-4 py-2 text-center">
+                              {ind.valeurReelle !== undefined ? (
+                                <span>{ind.valeurReelle}</span>
+                              ) : (
+                                <span className="text-gray-400">–</span>
+                              )}
+                              <br />
+                              <Link
+                                href={`/cadre-logique/${id}/lier-activites?ind=${ind.ind_id}`}
+                                className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]"
+                              >
+                                + Lier activités
+                              </Link>
+                            </td>
+
                           </tr>
                         ))
                       )

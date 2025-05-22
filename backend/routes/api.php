@@ -146,7 +146,11 @@ Route::controller(IndicateurController::class)->group(function(){
 
 // Route pour les activités liées aux indicateurs
 Route::controller(IndicateurActiviteController::class)->group(function(){
-    Route::post('/activite-indicateurs', 'store');
+    Route::get('/indicateur-activite', 'index');
+    Route::post('/indicateur-activite', 'store');
+    Route::get('/indicateur-activite/{id}', 'show');
+    Route::delete('/indicateur-activite/{id}', 'destroy');
+
 });
 
 // Route pour compter le nombre de bénéficiaires dans une activiteé
