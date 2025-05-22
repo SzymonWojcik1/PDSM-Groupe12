@@ -90,6 +90,8 @@
 
 
     "partners_list_title": "Lista de socios",
+    "partners_list_desc": "Gestiona los socios.",
+    "partners_table_title": "Socios",
     "create_partner": "Crear un socio",
     "column_name": "Nombre",
     "column_country": "País",
