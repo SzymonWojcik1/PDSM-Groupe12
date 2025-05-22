@@ -94,6 +94,15 @@
     "column_country": "Country",
     "column_region": "Region",
     "column_action": "Action",
-    "no_partners_found": "No partner found."
+    "no_partners_found": "No partner found.",
+
+    "logframes_title": "Logical frameworks",
+    "logframes_description": "List of logical frameworks registered in the database.",
+    "logframes_create": "+ New logical framework",
+    "logframes_none": "No logical framework found.",
+    "column_start_date": "Start date",
+    "column_end_date": "End date",
+    "fill": "Fill",
+    "confirm_delete_logframe": "Delete logical framework \"{{name}}\"?"
 
   }

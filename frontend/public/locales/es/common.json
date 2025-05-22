@@ -95,9 +95,17 @@
     "column_country": "País",
     "column_region": "Región",
     "column_action": "Acción",
-    "edit": "Modificar",
-    "delete": "Eliminar",
-    "no_partners_found": "No se encontró ningún socio."
+    "no_partners_found": "No se encontró ningún socio.",
+
+
+    "logframes_title": "Marcos lógicos",
+    "logframes_description": "Lista de marcos lógicos registrados en la base de datos.",
+    "logframes_create": "+ Nuevo marco lógico",
+    "logframes_none": "No se encontró ningún marco lógico.",
+    "column_start_date": "Fecha de inicio",
+    "column_end_date": "Fecha de fin",
+    "fill": "Rellenar",
+    "confirm_delete_logframe": "¿Eliminar el marco lógico \"{{name}}\"?"
 
 
 
