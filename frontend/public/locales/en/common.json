@@ -9,7 +9,7 @@
     "profile": "My profile",
     "logout": "Logout",
 
-    "dashboard_title": "Welcome to your dashboard",
+    "dashboard_title": "Welcome to your homepage",
     "dashboard_intro": "Select a section from the menu on the left or from the options below to get started.",
     "card_beneficiaries_title": "Beneficiaries",
     "card_beneficiaries_desc": "Manage the beneficiaries registered in the system.",
