@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 type UserData = {
   id: number
@@ -15,12 +17,13 @@ export default function ProfilPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { t } = useTranslation()
 
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('token')
       if (!token) {
-        setError("Non authentifié")
+        setError(t('not_authenticated'))
         return
       }
 
@@ -29,7 +32,7 @@ export default function ProfilPage() {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!res.ok) throw new Error('Erreur lors du chargement')
+        if (!res.ok) throw new Error(t('error_fetch'))
 
         const data = await res.json()
         setUser(data)
@@ -39,27 +42,27 @@ export default function ProfilPage() {
     }
 
     fetchUser()
-  }, [])
+  }, [t])
 
-  if (error) return <div className="p-6 text-red-600">Erreur : {error}</div>
-  if (!user) return <div className="p-6">Chargement...</div>
+  if (error) return <div className="p-6 text-red-600">{t('error_prefix')} {error}</div>
+  if (!user) return <div className="p-6">{t('loading')}</div>
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Mon profil</h1>
+      <h1 className="text-2xl font-bold">{t('profile_title')}</h1>
 
       <div className="space-y-2">
-        <p><strong>Nom :</strong> {user.nom}</p>
-        <p><strong>Prénom :</strong> {user.prenom}</p>
-        <p><strong>Email :</strong> {user.email}</p>
-        {user.telephone && <p><strong>Téléphone :</strong> {user.telephone}</p>}
+        <p><strong>{t('label_lastname')} :</strong> {user.nom}</p>
+        <p><strong>{t('label_firstname')} :</strong> {user.prenom}</p>
+        <p><strong>{t('label_email')} :</strong> {user.email}</p>
+        {user.telephone && <p><strong>{t('label_phone')} :</strong> {user.telephone}</p>}
       </div>
 
       <button
         onClick={() => router.push('/profil/modifier')}
         className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
       >
-        Modifier mes informations
+        {t('edit_profile_button')}
       </button>
     </div>
   )

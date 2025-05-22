@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 type UserData = {
   id: number
@@ -13,6 +15,7 @@ type UserData = {
 
 export default function ModifierProfilPage() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [user, setUser] = useState<UserData | null>(null)
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
@@ -27,7 +30,7 @@ export default function ModifierProfilPage() {
     const fetchUser = async () => {
       const token = localStorage.getItem('token')
       if (!token) {
-        setError("Non authentifié")
+        setError(t('not_authenticated'))
         return
       }
 
@@ -38,7 +41,7 @@ export default function ModifierProfilPage() {
           },
         })
 
-        if (!res.ok) throw new Error('Erreur lors du chargement')
+        if (!res.ok) throw new Error(t('error_fetch'))
 
         const data = await res.json()
         setUser(data)
@@ -51,33 +54,33 @@ export default function ModifierProfilPage() {
     }
 
     fetchUser()
-  }, [])
+  }, [t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setSuccess(null)
     setLoading(true)
-  
+
     const token = localStorage.getItem('token')
     if (!token || !user) return
-  
+
     const payload: any = {
       nom,
       prenom,
       telephone,
     }
-  
+
     if (password) {
       if (password !== passwordConfirm) {
-        setError('Les mots de passe ne correspondent pas.')
+        setError(t('password_mismatch'))
         setLoading(false)
         return
       }
       payload.password = password
       payload.password_confirmation = passwordConfirm
     }
-  
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
         method: 'PUT',
@@ -87,19 +90,19 @@ export default function ModifierProfilPage() {
         },
         body: JSON.stringify(payload),
       })
-  
+
       const data = await res.json()
-  
+
       if (!res.ok) {
         throw new Error(
           data.message ||
-          data.errors?.nom?.[0] ||
-          data.errors?.prenom?.[0] ||
-          data.errors?.password?.[0] ||
-          'Erreur de mise à jour'
+            data.errors?.nom?.[0] ||
+            data.errors?.prenom?.[0] ||
+            data.errors?.password?.[0] ||
+            t('error_fetch')
         )
       }
-  
+
       router.push('/profil')
     } catch (err: any) {
       setError(err.message)
@@ -107,18 +110,17 @@ export default function ModifierProfilPage() {
       setLoading(false)
     }
   }
-  
 
-  if (error) return <div className="p-6 text-red-600">Erreur : {error}</div>
-  if (!user) return <div className="p-6">Chargement...</div>
+  if (error) return <div className="p-6 text-red-600">{t('error_prefix')} {error}</div>
+  if (!user) return <div className="p-6">{t('loading')}</div>
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Modifier mon profil</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('edit_profile_title')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium">Nom</label>
+          <label className="block text-sm font-medium">{t('label_lastname')}</label>
           <input
             type="text"
             value={nom}
@@ -129,7 +131,7 @@ export default function ModifierProfilPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Prénom</label>
+          <label className="block text-sm font-medium">{t('label_firstname')}</label>
           <input
             type="text"
             value={prenom}
@@ -140,7 +142,7 @@ export default function ModifierProfilPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Téléphone</label>
+          <label className="block text-sm font-medium">{t('label_phone')}</label>
           <input
             type="text"
             value={telephone}
@@ -150,7 +152,7 @@ export default function ModifierProfilPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Nouveau mot de passe</label>
+          <label className="block text-sm font-medium">{t('label_password')}</label>
           <input
             type="password"
             value={password}
@@ -160,7 +162,7 @@ export default function ModifierProfilPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Confirmer le mot de passe</label>
+          <label className="block text-sm font-medium">{t('label_password_confirm')}</label>
           <input
             type="password"
             value={passwordConfirm}
@@ -178,7 +180,7 @@ export default function ModifierProfilPage() {
             disabled={loading}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {loading ? 'Enregistrement...' : 'Enregistrer'}
+            {loading ? t('saving') : t('save')}
           </button>
 
           <button
@@ -186,7 +188,7 @@ export default function ModifierProfilPage() {
             onClick={() => router.push('/profil')}
             className="text-gray-700 hover:underline"
           >
-            Annuler
+            {t('cancel')}
           </button>
         </div>
       </form>

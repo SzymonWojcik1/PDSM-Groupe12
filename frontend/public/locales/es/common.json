@@ -24,5 +24,80 @@
     "card_users_title": "Usuarios",
     "card_users_desc": "Gestionar las cuentas de usuario y sus roles.",
     "card_profile_title": "Mi perfil",
-    "card_profile_desc": "Consultar o modificar la información de tu cuenta."
+    "card_profile_desc": "Consultar o modificar la información de tu cuenta.",
+
+    "profile_title": "Mi perfil",
+    "label_lastname": "Apellido",
+    "label_firstname": "Nombre",
+    "label_email": "Correo electrónico",
+    "label_phone": "Teléfono",
+    "loading": "Cargando...",
+    "error_prefix": "Error:",
+    "edit_profile_button": "Modificar mi información",
+    "not_authenticated": "No autenticado",
+    "error_fetch": "Error al cargar",
+
+    "edit_profile_title": "Modificar mi perfil",
+    "label_password": "Nueva contraseña",
+    "label_password_confirm": "Confirmar contraseña",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "password_mismatch": "Las contraseñas no coinciden.",
+
+    
+    "user_management": "Gestión de usuarios",
+    "filter_by_role": "Filtrar por rol",
+    "filter_by_partner": "Filtrar por socio",
+    "filter_by_superior": "Filtrar por superior",
+    "create_user": "Crear usuario",
+    "edit": "Modificar",
+    "delete": "Eliminar",
+    "confirm_delete_user": "¿Eliminar este usuario?",
+    "error_loading_users": "Error al cargar los usuarios",
+    "error_delete_user": "Error al eliminar usuario",
+    "no_users_found": "No se encontraron usuarios.",
+    "column_lastname": "Apellido",
+    "column_firstname": "Nombre",
+    "column_email": "Correo",
+    "column_phone": "Teléfono",
+    "column_role": "Rol",
+    "column_partner": "Socio",
+    "column_superior": "Superior",
+    "column_actions": "Acciones",
+
+    
+    "create_user_title": "Crear un usuario",
+    "input_lastname": "Apellido",
+    "input_firstname": "Nombre",
+    "input_email": "Correo electrónico",
+    "input_phone": "Teléfono",
+    "select_role": "Seleccionar un rol",
+    "select_superior": "Sin superior",
+    "select_partner": "Sin socio",
+    "create": "Crear",
+    "error_fetch_partners": "Error al cargar los socios",
+    "error_fetch_roles": "Error al cargar los roles",
+    "error_fetch_users": "Error al cargar los usuarios",
+    "error_create_user": "Error al crear el usuario",
+
+    "edit_user_title": "Modificar un usuario",
+    "input_password": "Nueva contraseña",
+    "input_password_confirm": "Confirmación de la contraseña",
+    "error_fetch_user": "Error al cargar el usuario",
+    "error_update_user": "Error al actualizar el usuario",
+
+
+    "partners_list_title": "Lista de socios",
+    "create_partner": "Crear un socio",
+    "column_name": "Nombre",
+    "column_country": "País",
+    "column_region": "Región",
+    "column_action": "Acción",
+    "edit": "Modificar",
+    "delete": "Eliminar",
+    "no_partners_found": "No se encontró ningún socio."
+
+
+
   }
