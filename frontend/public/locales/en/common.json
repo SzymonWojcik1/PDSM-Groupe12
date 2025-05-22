@@ -30,6 +30,7 @@
     "profile_title": "My profile",
     "label_lastname": "Last name",
     "label_firstname": "First name",
+    "label_role": "Role",
     "label_email": "Email",
     "label_phone": "Phone",
     "loading": "Loading...",

@@ -29,6 +29,7 @@
     "profile_title": "Mi perfil",
     "label_lastname": "Apellido",
     "label_firstname": "Nombre",
+    "label_role": "Rol",
     "label_email": "Correo electrónico",
     "label_phone": "Teléfono",
     "loading": "Cargando...",
