@@ -4,33 +4,25 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
-
-type Partenaire = {
-  part_id: number
-  part_nom: string
-  part_pays: string
-  part_region: string
-}
+import { countriesByRegion } from '@/lib/countriesByRegion'
 
 export default function PartenairesPage() {
   const { t } = useTranslation()
-  const [partenaires, setPartenaires] = useState<Partenaire[]>([])
-  const [filtered, setFiltered] = useState<Partenaire[]>([])
+  const [partenaires, setPartenaires] = useState<any[]>([])
+  const [filtered, setFiltered] = useState<any[]>([])
   const [filters, setFilters] = useState({
     nom: '',
     pays: '',
     region: '',
   })
 
-  const fetchPartenaires = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-    const data = await res.json()
-    setPartenaires(data)
-    setFiltered(data)
-  }
-
   useEffect(() => {
-    fetchPartenaires()
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+      .then(res => res.json())
+      .then(data => {
+        setPartenaires(data)
+        setFiltered(data)
+      })
   }, [])
 
   useEffect(() => {
@@ -49,25 +41,31 @@ export default function PartenairesPage() {
     setFiltered(result)
   }, [filters, partenaires])
 
-  const deletePartenaire = async (id: number) => {
-    if (!confirm(t('confirm_delete'))) return
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
-      method: 'DELETE',
-    })
-    fetchPartenaires()
-  }
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFilters(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleRegionChange = (region: string) => {
+    setFilters(prev => ({ ...prev, region, pays: '' }))
   }
 
   const resetFilters = () => {
     setFilters({ nom: '', pays: '', region: '' })
   }
 
-  const paysOptions = Array.from(new Set(partenaires.map(p => p.part_pays)))
-  const regionOptions = Array.from(new Set(partenaires.map(p => p.part_region)))
+  const deletePartenaire = async (id: number) => {
+    if (!confirm(t('confirm_delete'))) return
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
+      method: 'DELETE',
+    })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+      .then(res => res.json())
+      .then(data => {
+        setPartenaires(data)
+        setFiltered(data)
+      })
+  }
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -96,32 +94,33 @@ export default function PartenairesPage() {
               type="text"
               name="nom"
               value={filters.nom}
-              onChange={handleFilterChange}
+              onChange={handleChange}
               placeholder="Rechercher par nom..."
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
             />
 
             <select
-              name="pays"
-              value={filters.pays}
-              onChange={handleFilterChange}
+              name="region"
+              value={filters.region}
+              onChange={(e) => handleRegionChange(e.target.value)}
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
             >
-              <option value="">Tous les pays</option>
-              {paysOptions.map(pays => (
-                <option key={pays} value={pays}>{pays}</option>
+              <option value="">Toutes les régions</option>
+              {Object.keys(countriesByRegion).map(region => (
+                <option key={region} value={region}>{region}</option>
               ))}
             </select>
 
             <select
-              name="region"
-              value={filters.region}
-              onChange={handleFilterChange}
+              name="pays"
+              value={filters.pays}
+              onChange={handleChange}
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
+              disabled={!filters.region}
             >
-              <option value="">Toutes les régions</option>
-              {regionOptions.map(region => (
-                <option key={region} value={region}>{region}</option>
+              <option value="">Tous les pays</option>
+              {(countriesByRegion as Record<string, string[]>)[filters.region]?.map(pays => (
+                <option key={pays} value={pays}>{pays}</option>
               ))}
             </select>
 
