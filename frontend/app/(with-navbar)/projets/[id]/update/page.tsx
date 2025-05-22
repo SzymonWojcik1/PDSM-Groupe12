@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type Partenaire = {
   part_id: number;
@@ -83,63 +84,98 @@ export default function UpdateProjetPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-8">
-      <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold mb-4 text-black">Modifier le projet</h1>
-
-        {errorMessage && (
-          <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
-            {errorMessage}
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier un projet</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">Ajustez les informations du projet ci-dessous.</p>
+            </div>
+            <Link
+              href="/projets"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
           </div>
-        )}
+        </header>
 
-        <input
-          type="text"
-          name="pro_nom"
-          value={formData.pro_nom}
-          onChange={handleChange}
-          placeholder="Nom du projet"
-          className="w-full p-2 border rounded text-black"
-          required
-        />
+        <div className="bg-white border rounded-2xl shadow-sm p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
+                {errorMessage}
+              </div>
+            )}
 
-        <input
-          type="date"
-          name="pro_dateDebut"
-          value={formData.pro_dateDebut}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom du projet</label>
+              <input
+                type="text"
+                name="pro_nom"
+                value={formData.pro_nom}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                required
+              />
+            </div>
 
-        <input
-          type="date"
-          name="pro_dateFin"
-          value={formData.pro_dateFin}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                <input
+                  type="date"
+                  name="pro_dateDebut"
+                  value={formData.pro_dateDebut}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                <input
+                  type="date"
+                  name="pro_dateFin"
+                  value={formData.pro_dateFin}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  required
+                />
+              </div>
+            </div>
 
-        <select
-          name="pro_part_id"
-          value={formData.pro_part_id}
-          onChange={handleChange}
-          className="w-full p-2 border rounded text-black"
-          required
-        >
-          <option value="">Sélectionner un partenaire</option>
-          {partenaires.map((p) => (
-            <option key={p.part_id} value={p.part_id}>
-              {p.part_nom}
-            </option>
-          ))}
-        </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Partenaire</label>
+              <select
+                name="pro_part_id"
+                value={formData.pro_part_id}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                required
+              >
+                <option value="">Sélectionner un partenaire</option>
+                {partenaires.map((p) => (
+                  <option key={p.part_id} value={p.part_id}>
+                    {p.part_nom}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Enregistrer les modifications
-        </button>
-      </form>
-    </div>
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="bg-[#9F0F3A] text-white px-6 py-2 rounded hover:bg-[#800d30] transition"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
   );
 }
