@@ -91,6 +91,8 @@
     "error_update_user": "Erreur lors de la mise à jour",
 
     "partners_list_title": "Liste des partenaires",
+    "partners_list_description": "Gérer les partenaires.",
+    "partners_table_title": "Partenaires",
     "create_partner": "Créer un partenaire",
     "column_name": "Nom",
     "column_country": "Pays",

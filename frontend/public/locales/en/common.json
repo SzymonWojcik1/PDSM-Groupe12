@@ -89,6 +89,8 @@
     "error_update_user": "Error while updating user",
   
     "partners_list_title": "List of partners",
+    "partners_list_description": "Manage partners.",
+    "partners_table_title": "Partners",
     "create_partner": "Create a partner",
     "column_name": "Name",
     "column_country": "Country",
