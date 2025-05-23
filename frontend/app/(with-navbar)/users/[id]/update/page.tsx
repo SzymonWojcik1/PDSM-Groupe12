@@ -2,25 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
-type Partenaire = {
-  part_id: number
-  part_nom: string
-}
-
-type EnumItem = {
-  value: string
-  label: string
-}
-
-type User = {
-  id: number
-  nom: string
-  prenom: string
-  role: string
-}
+type Partenaire = { part_id: number; part_nom: string }
+type EnumItem = { value: string; label: string }
+type User = { id: number; nom: string; prenom: string; role: string }
 
 export default function EditUserPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const router = useRouter()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -74,14 +65,14 @@ export default function EditUserPage() {
         })
         setCurrentRole(data.role)
       })
-      .catch(() => setError('Erreur lors du chargement de l’utilisateur'))
+      .catch(() => setError(t('error_fetch_user')))
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(setPartenaires)
-      .catch(() => setError('Erreur lors du chargement des partenaires'))
+      .catch(() => setError(t('error_fetch_partners')))
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -103,15 +94,15 @@ export default function EditUserPage() {
         }))
         setRoles(rolesWithLabels)
       })
-      .catch(() => setError('Erreur lors du chargement des rôles'))
+      .catch(() => setError(t('error_fetch_roles')))
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(setSuperieurs)
-      .catch(() => setError('Erreur lors du chargement des utilisateurs'))
-  }, [token, id])
+      .catch(() => setError(t('error_fetch_users')))
+  }, [token, id, t])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -135,7 +126,7 @@ export default function EditUserPage() {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Erreur lors de la mise à jour')
+      if (!res.ok) throw new Error(data.message || t('error_update_user'))
 
       router.push('/users')
     } catch (err: any) {
@@ -150,48 +141,133 @@ export default function EditUserPage() {
     return supIndex > roleIndex
   })
 
-  if (userRole !== 'siege') {
-    return null
-  }
+  if (userRole !== 'siege') return null
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-8">
-      <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-black mb-4">Modifier un utilisateur</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('edit_user_title')}</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">{t('edit_user_description') || 'Modifiez les informations de l’utilisateur.'}</p>
+            </div>
+            <Link
+              href="/users"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
+          </div>
+        </header>
 
-        {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
+        <div className="bg-white border rounded-2xl shadow-sm p-6 w-full max-w-2xl">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
+                {error}
+              </div>
+            )}
 
-        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded text-black" required />
-        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded text-black" required />
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded text-black" required />
-        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone" className="w-full p-2 border rounded text-black" />
+            <input
+              type="text"
+              name="nom"
+              value={formData.nom}
+              onChange={handleChange}
+              placeholder={t('input_lastname')}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="text"
+              name="prenom"
+              value={formData.prenom}
+              onChange={handleChange}
+              placeholder={t('input_firstname')}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder={t('input_email')}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="text"
+              name="telephone"
+              value={formData.telephone}
+              onChange={handleChange}
+              placeholder={t('input_phone')}
+              className="border p-2 rounded text-black"
+            />
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder={t('input_password')}
+              className="border p-2 rounded text-black"
+            />
+            <input
+              type="password"
+              name="password_confirmation"
+              value={formData.password_confirmation}
+              onChange={handleChange}
+              placeholder={t('input_password_confirm')}
+              className="border p-2 rounded text-black"
+            />
 
-        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Nouveau mot de passe" className="w-full p-2 border rounded text-black" />
-        <input type="password" name="password_confirmation" value={formData.password_confirmation} onChange={handleChange} placeholder="Confirmation du mot de passe" className="w-full p-2 border rounded text-black" />
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+              required
+            >
+              <option value="">{t('select_role')}</option>
+              {roles.map(role => (
+                <option key={role.value} value={role.value}>{role.label}</option>
+              ))}
+            </select>
 
-        <select name="role" value={formData.role} onChange={handleChange} className="w-full p-2 border rounded text-black" required>
-          <option value="">Sélectionner un rôle</option>
-          {roles.map(role => (
-            <option key={role.value} value={role.value}>{role.label}</option>
-          ))}
-        </select>
+            <select
+              name="superieur_id"
+              value={formData.superieur_id}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+            >
+              <option value="">{t('select_superior')}</option>
+              {superieursFiltres.map(sup => (
+                <option key={sup.id} value={sup.id}>{sup.prenom} {sup.nom} ({sup.role})</option>
+              ))}
+            </select>
 
-        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
-          <option value="">Aucun supérieur</option>
-          {superieursFiltres.map(sup => (
-            <option key={sup.id} value={sup.id}>{sup.prenom} {sup.nom} ({sup.role})</option>
-          ))}
-        </select>
+            <select
+              name="partenaire_id"
+              value={formData.partenaire_id}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+            >
+              <option value="">{t('select_partner')}</option>
+              {partenaires.map(p => (
+                <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
+              ))}
+            </select>
 
-        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
-          <option value="">Aucun partenaire</option>
-          {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
-          ))}
-        </select>
-
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Enregistrer</button>
-      </form>
-    </div>
+            <button
+              type="submit"
+              className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
+            >
+              {t('save')}
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
   )
 }

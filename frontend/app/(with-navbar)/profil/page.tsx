@@ -1,66 +1,102 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 
 type UserData = {
-  id: number
-  nom: string
-  prenom: string
-  email: string
-  telephone?: string
-}
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone?: string;
+  role: string;
+};
 
 export default function ProfilPage() {
-  const [user, setUser] = useState<UserData | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const [user, setUser] = useState<UserData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       if (!token) {
-        setError("Non authentifié")
-        return
+        setError(t('not_authenticated'));
+        return;
       }
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        });
 
-        if (!res.ok) throw new Error('Erreur lors du chargement')
+        if (!res.ok) throw new Error(t('error_fetch'));
 
-        const data = await res.json()
-        setUser(data)
+        const data = await res.json();
+        setUser(data);
       } catch (err: any) {
-        setError(err.message)
+        setError(err.message);
       }
+    };
+
+    fetchUser();
+  }, [t]);
+
+  const getTranslatedRole = (role: string) => {
+    switch (role) {
+      case 'siege':
+        return 'Siège';
+      case 'cr':
+        return 'Coordinateur régional';
+      case 'cn':
+        return 'Coordinateur national';
+      case 'partenaire':
+        return 'Partenaire local';
+      default:
+        return role;
     }
+  };
 
-    fetchUser()
-  }, [])
+  if (error) {
+    return <div className="p-6 text-red-600 text-base">{t('error_prefix')} {error}</div>;
+  }
 
-  if (error) return <div className="p-6 text-red-600">Erreur : {error}</div>
-  if (!user) return <div className="p-6">Chargement...</div>
+  if (!user) {
+    return <div className="p-6 text-gray-600 text-base">{t('loading')}</div>;
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Mon profil</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-10">
+          <h1 className="text-5xl font-bold text-[#9F0F3A] mb-1">{t('profile_title')}</h1>
+          <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
+        </header>
 
-      <div className="space-y-2">
-        <p><strong>Nom :</strong> {user.nom}</p>
-        <p><strong>Prénom :</strong> {user.prenom}</p>
-        <p><strong>Email :</strong> {user.email}</p>
-        {user.telephone && <p><strong>Téléphone :</strong> {user.telephone}</p>}
+        <section className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
+          <div className="grid md:grid-cols-2 gap-y-6 gap-x-12 text-lg text-gray-800">
+            <p><span className="font-semibold">{t('label_lastname')} :</span> {user.nom}</p>
+            <p><span className="font-semibold">{t('label_firstname')} :</span> {user.prenom}</p>
+            <p><span className="font-semibold">{t('label_email')} :</span> {user.email}</p>
+            {user.telephone && (
+              <p><span className="font-semibold">{t('label_phone')} :</span> {user.telephone}</p>
+            )}
+            <p><span className="font-semibold">{t('label_role')} :</span> {getTranslatedRole(user.role)}</p>
+          </div>
+
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={() => router.push('/profil/modifier')}
+              className="text-base text-white bg-[#9F0F3A] hover:bg-[#800d30] px-6 py-3 rounded transition"
+            >
+              {t('edit_profile_button')}
+            </button>
+          </div>
+        </section>
       </div>
-
-      <button
-        onClick={() => router.push('/profil/modifier')}
-        className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Modifier mes informations
-      </button>
-    </div>
-  )
+    </main>
+  );
 }

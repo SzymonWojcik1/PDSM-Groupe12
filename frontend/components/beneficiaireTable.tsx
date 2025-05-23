@@ -1,36 +1,35 @@
-'use client';
+'use client'
 
-import { enumsShow } from '@/lib/enumsShow';
+import { enumsShow } from '@/lib/enumsShow'
 
 export type Beneficiaire = {
-  ben_id: string;
-  ben_prenom: string;
-  ben_nom: string;
-  ben_date_naissance: string;
-  ben_region: string;
-  ben_pays: string;
-  ben_type: string;
-  ben_type_autre: string | null;
-  ben_zone: string;
-  ben_sexe: string;
-  ben_sexe_autre: string | null;
-  ben_genre: string | null;
-  ben_genre_autre: string | null;
-  ben_ethnicite: string;
-};
+  ben_id: string
+  ben_prenom: string
+  ben_nom: string
+  ben_date_naissance: string
+  ben_region: string
+  ben_pays: string
+  ben_type: string
+  ben_type_autre: string | null
+  ben_zone: string
+  ben_sexe: string
+  ben_sexe_autre: string | null
+  ben_genre: string | null
+  ben_genre_autre: string | null
+  ben_ethnicite: string
+}
 
-export type EnumMap = Record<string, { value: string; label: string }[]>;
+export type EnumMap = Record<string, { value: string; label: string }[]>
 
 interface BeneficiairesTableProps {
-  beneficiaires: Beneficiaire[];
-  enums: EnumMap;
-  selectable?: boolean;
-  selectedIds?: string[];
-  toggleSelection?: (id: string) => void;
-  selectedCount?: number;
-  onUpdate?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  renderExtraColumn?: (b: Beneficiaire) => React.ReactNode;
+  beneficiaires: Beneficiaire[]
+  enums: EnumMap
+  selectable?: boolean
+  selectedIds?: string[]
+  toggleSelection?: (id: string) => void
+  onUpdate?: (id: string) => void
+  onDelete?: (id: string) => void
+  renderExtraColumn?: (b: Beneficiaire) => React.ReactNode
 }
 
 export default function BeneficiaireTable({
@@ -43,7 +42,7 @@ export default function BeneficiaireTable({
   onDelete,
   renderExtraColumn,
 }: BeneficiairesTableProps) {
-  const hasActions = onUpdate || onDelete || renderExtraColumn;
+  const hasActions = onUpdate || onDelete || renderExtraColumn
 
   return (
     <div className="overflow-x-auto">
@@ -80,7 +79,7 @@ export default function BeneficiaireTable({
                 <td className="px-3 py-2">
                   <input
                     type="checkbox"
-                    checked={selectedIds.includes(b.ben_id)}
+                    checked={selectedIds?.includes(b.ben_id) ?? false}
                     onChange={() => toggleSelection?.(b.ben_id)}
                     className="h-4 w-4"
                   />
@@ -121,8 +120,8 @@ export default function BeneficiaireTable({
                   {onDelete && (
                     <button
                       onClick={() => {
-                        const confirmed = confirm(`Supprimer ${b.ben_prenom} ${b.ben_nom} ?`);
-                        if (confirmed) onDelete(b.ben_id);
+                        const confirmed = confirm(`Supprimer ${b.ben_prenom} ${b.ben_nom} ?`)
+                        if (confirmed) onDelete(b.ben_id)
                       }}
                       className="text-gray-500 hover:text-red-600 hover:underline"
                     >
@@ -137,5 +136,5 @@ export default function BeneficiaireTable({
         </tbody>
       </table>
     </div>
-  );
+  )
 }

@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 type Partenaire = { part_id: number; part_nom: string }
 type EnumItem = { value: string; label: string }
 type User = { id: number; nom: string; prenom: string; role: string }
 
 export default function CreateUserPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
@@ -15,7 +19,7 @@ export default function CreateUserPage() {
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
   const [superieurs, setSuperieurs] = useState<User[]>([])
-  const [error, setError] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const [formData, setFormData] = useState({
     nom: '', prenom: '', email: '', telephone: '', role: '', partenaire_id: '', superieur_id: ''
@@ -28,11 +32,8 @@ export default function CreateUserPage() {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.role === 'siege') {
-          setHasAccess(true)
-        } else {
-          router.push('/')
-        }
+        if (data.role === 'siege') setHasAccess(true)
+        else router.push('/')
       })
       .catch(() => router.push('/'))
   }, [token])
@@ -44,8 +45,8 @@ export default function CreateUserPage() {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setPartenaires(data))
-      .catch(() => setError('Erreur lors du chargement des partenaires'))
+      .then(setPartenaires)
+      .catch(() => setErrorMessage(t('error_fetch_partners')))
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -63,20 +64,20 @@ export default function CreateUserPage() {
         }))
         setRoles(rolesWithLabels)
       })
-      .catch(() => setError('Erreur lors du chargement des rôles'))
+      .catch(() => setErrorMessage(t('error_fetch_roles')))
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setSuperieurs(data))
-      .catch(() => setError('Erreur lors du chargement des utilisateurs'))
+      .then(setSuperieurs)
+      .catch(() => setErrorMessage(t('error_fetch_users')))
   }, [token, hasAccess])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    setError('')
+    setErrorMessage('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,10 +92,10 @@ export default function CreateUserPage() {
         body: JSON.stringify(formData)
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Erreur lors de la création.')
+      if (!res.ok) throw new Error(data.message || t('error_create_user'))
       router.push('/users')
     } catch (err: any) {
-      setError(err.message)
+      setErrorMessage(err.message)
     }
   }
 
@@ -108,32 +109,114 @@ export default function CreateUserPage() {
   if (!hasAccess) return null
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-8">
-      <form onSubmit={handleSubmit} className="bg-gray-100 p-6 rounded shadow-md w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-black mb-4">Créer un utilisateur</h1>
-        {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
-        <input type="text" name="nom" value={formData.nom} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded text-black" required />
-        <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded text-black" required />
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded text-black" required />
-        <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} placeholder="Téléphone" className="w-full p-2 border rounded text-black" />
-        <select name="role" value={formData.role} onChange={handleChange} className="w-full p-2 border rounded text-black" required>
-          <option value="">Sélectionner un rôle</option>
-          {roles.map(role => (<option key={role.value} value={role.value}>{role.label}</option>))}
-        </select>
-        <select name="superieur_id" value={formData.superieur_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
-          <option value="">Aucun supérieur</option>
-          {superieursFiltres.map(sup => (
-            <option key={sup.id} value={sup.id}>{sup.prenom} {sup.nom} ({sup.role})</option>
-          ))}
-        </select>
-        <select name="partenaire_id" value={formData.partenaire_id} onChange={handleChange} className="w-full p-2 border rounded text-black">
-          <option value="">Aucun partenaire</option>
-          {partenaires.map(p => (
-            <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
-          ))}
-        </select>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Créer</button>
-      </form>
-    </div>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('create_user_title')}</h1>
+              <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+              <p className="text-gray-600">{t('create_user_description') || 'Remplissez les informations pour ajouter un nouvel utilisateur.'}</p>
+            </div>
+            <Link
+              href="/users"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              Retour à la liste
+            </Link>
+          </div>
+        </header>
+
+        <div className="bg-white border rounded-2xl shadow-sm p-6 w-full max-w-2xl">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
+                {errorMessage}
+              </div>
+            )}
+
+            <input
+              type="text"
+              name="nom"
+              placeholder={t('input_lastname') || 'Nom'}
+              value={formData.nom}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="text"
+              name="prenom"
+              placeholder={t('input_firstname') || 'Prénom'}
+              value={formData.prenom}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder={t('input_email') || 'Email'}
+              value={formData.email}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+              required
+            />
+            <input
+              type="text"
+              name="telephone"
+              placeholder={t('input_phone') || 'Téléphone'}
+              value={formData.telephone}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+            />
+
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+              required
+            >
+              <option value="">{t('select_role')}</option>
+              {roles.map(role => (
+                <option key={role.value} value={role.value}>{role.label}</option>
+              ))}
+            </select>
+
+            <select
+              name="superieur_id"
+              value={formData.superieur_id}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+            >
+              <option value="">{t('select_superior')}</option>
+              {superieursFiltres.map(s => (
+                <option key={s.id} value={s.id}>{s.prenom} {s.nom} ({s.role})</option>
+              ))}
+            </select>
+
+            <select
+              name="partenaire_id"
+              value={formData.partenaire_id}
+              onChange={handleChange}
+              className="border p-2 rounded text-black"
+            >
+              <option value="">{t('select_partner')}</option>
+              {partenaires.map(p => (
+                <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
+              ))}
+            </select>
+
+            <button
+              type="submit"
+              className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
+            >
+              {t('create')}
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
   )
 }

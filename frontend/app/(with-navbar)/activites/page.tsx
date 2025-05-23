@@ -2,17 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FaFileExport } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-
-type Activite = {
-  act_id: number;
-  act_nom: string;
-  act_dateDebut: string;
-  act_dateFin: string;
-  partenaire: { part_nom: string; part_id: number };
-  projet: { pro_nom: string; pro_id: number };
-};
+import ActiviteFilters from '@/components/activiteFilters';
+import ActiviteTable, { Activite } from '@/components/ActiviteTable';
 
 type Partenaire = {
   part_id: number;
@@ -26,45 +18,26 @@ type Projet = {
 
 export default function ActivitesPage() {
   const [activites, setActivites] = useState<Activite[]>([]);
+  const [filtered, setFiltered] = useState<Activite[]>([]);
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
   const [projets, setProjets] = useState<Projet[]>([]);
-  const [filteredActivites, setFilteredActivites] = useState<Activite[]>([]);
-  const [filters, setFilters] = useState({
-    search: '',
-    partenaire: '',
-    projet: '',
-  });
+  const [filters, setFilters] = useState({ search: '', partenaire: '', projet: '' });
 
-  const fetchPartenaires = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
-    const data = await res.json();
-    setPartenaires(data);
-  };
-
-  const fetchProjets = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`);
-    const data = await res.json();
-    setProjets(data);
-  };
-
-  const fetchActivites = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`);
-    const data = await res.json();
-    setActivites(data);
-    setFilteredActivites(data);
-  };
-
-  const deleteActivite = async (id: number) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
-      method: 'DELETE',
-    });
-    fetchActivites();
-  };
+  const router = useRouter();
 
   useEffect(() => {
-    fetchActivites();
-    fetchPartenaires();
-    fetchProjets();
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`)
+      .then(res => res.json())
+      .then(data => {
+        setActivites(data);
+        setFiltered(data);
+      });
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+      .then(res => res.json())
+      .then(setPartenaires);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`)
+      .then(res => res.json())
+      .then(setProjets);
   }, []);
 
   useEffect(() => {
@@ -75,17 +48,19 @@ export default function ActivitesPage() {
       );
     }
     if (filters.partenaire) {
-      result = result.filter(a =>
-        a.partenaire?.part_id.toString() === filters.partenaire
-      );
+      result = result.filter(a => a.partenaire?.part_id.toString() === filters.partenaire);
     }
     if (filters.projet) {
-      result = result.filter(a =>
-        a.projet?.pro_id.toString() === filters.projet
-      );
+      result = result.filter(a => a.projet?.pro_id.toString() === filters.projet);
     }
-    setFilteredActivites(result);
+    setFiltered(result);
   }, [filters, activites]);
+
+  const deleteActivite = async (id: number) => {
+    if (!confirm('Supprimer cette activité ?')) return;
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
+    setActivites(prev => prev.filter(a => a.act_id !== id));
+  };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -93,214 +68,74 @@ export default function ActivitesPage() {
   };
 
   const resetFilters = () => {
-    setFilters({
-      search: '',
-      partenaire: '',
-      projet: '',
-    });
-  };
-
-  const handleExport = () => {
-    const dataToExport = filteredActivites.map(a => ({
-      Nom: a.act_nom,
-      'Date de début': a.act_dateDebut,
-      'Date de fin': a.act_dateFin,
-      Partenaire: a.partenaire?.part_nom || '',
-      Projet: a.projet?.pro_nom || ''
-    }));
-
-    type ExportRow = {
-      Nom: string;
-      'Date de début': string;
-      'Date de fin': string;
-      Partenaire: string;
-      Projet: string;
-    };
-
-    const headers = ['Nom', 'Date de début', 'Date de fin', 'Partenaire', 'Projet'] as const;
-    const csv = [
-      headers.join(','),
-      ...dataToExport.map(row => headers.map(header => (row as ExportRow)[header]).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'activites.csv';
-    link.click();
-  };
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/import`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (response.status === 207 && result.fichier_erreurs) {
-      alert(result.message + '\\nUn fichier d’erreurs sera téléchargé.');
-      window.open(result.fichier_erreurs, '_blank');
-    } else if (response.ok) {
-      alert(result.message);
-    } else {
-      alert(result.message || 'Erreur lors de l’import.');
-    }
-
-    fetchActivites();
-    e.target.value = '';
+    setFilters({ search: '', partenaire: '', projet: '' });
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center p-8">
-      <h1 className="text-2xl font-bold mb-4 text-black">Liste des activités</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Gestion des activités</h1>
+          <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+          <p className="text-gray-600">Consultez, filtrez et gérez les activités enregistrées dans le système.</p>
+        </header>
 
-      <div className="flex gap-4 mb-4">
-        <Link href="/activites/creer">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Créer une activité
-          </button>
-        </Link>
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => router.push('/activites/creer')}
+              className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium"
+            >
+              + Créer une activité
+            </button>
 
-        <button
-          onClick={handleExport}
-          className="bg-emerald-500 text-white px-6 py-2.5 rounded-lg hover:bg-emerald-600 inline-flex items-center shadow-sm font-medium text-sm"
-        >
-          <FaFileExport className="mr-2 text-lg" />
-          Exporter
-        </button>
+            <button
+              onClick={() => router.push('/activites/import')}
+              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
+            >
+              Importer un fichier
+            </button>
 
-        <button
-          onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}/modele-import-activites`, '_blank')}
-          className="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 inline-flex items-center shadow-sm font-medium text-sm"
-        >
-          Télécharger modèle de base
-        </button>
+            <button
+              onClick={() => router.push('/activites/export')}
+              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
+            >
+              Exporter les données
+            </button>
 
-        <input
-          type="file"
-          accept=".csv"
-          id="import-file"
-          onChange={handleImport}
-          style={{ display: 'none' }}
-        />
-        <button
-          onClick={() => document.getElementById('import-file')?.click()}
-          className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 inline-flex items-center shadow-sm font-medium text-sm"
-        >
-          Importer un fichier CSV
-        </button>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}modele-import-activites`}
+              download
+              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
+            >
+              Télécharger modèle Excel
+            </a>
 
-        <Link href="/activites/dashboard">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Accéder au dashboard
-          </button>
-        </Link>
-        
-      </div>
-
-      <div className="w-full max-w-4xl mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <input
-            type="text"
-            name="search"
-            placeholder="Rechercher par nom..."
-            value={filters.search}
-            onChange={handleFilterChange}
-            className="border p-2 rounded text-gray-800 placeholder-gray-500"
-          />
-
-          <select
-            name="partenaire"
-            value={filters.partenaire}
-            onChange={handleFilterChange}
-            className="border p-2 rounded text-gray-800"
-          >
-            <option value="" className="text-gray-800">Tous les partenaires</option>
-            {partenaires.map(p => (
-              <option key={p.part_id} value={p.part_id} className="text-gray-800">
-                {p.part_nom}
-              </option>
-            ))}
-          </select>
-
-          <select
-            name="projet"
-            value={filters.projet}
-            onChange={handleFilterChange}
-            className="border p-2 rounded text-gray-800"
-          >
-            <option value="" className="text-gray-800">Tous les projets</option>
-            {projets.map(p => (
-              <option key={p.pro_id} value={p.pro_id} className="text-gray-800">
-                {p.pro_nom}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={resetFilters}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 font-medium"
-          >
-            Réinitialiser les filtres
-          </button>
+            <button
+              onClick={() => router.push('/activites/dashboard')}
+              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
+            >
+              Voir le dashboard
+            </button>
+          </div>
         </div>
-      </div>
 
-      <table className="w-full max-w-4xl border border-gray-200 text-black">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">Nom</th>
-            <th className="p-2">Début</th>
-            <th className="p-2">Fin</th>
-            <th className="p-2">Partenaire</th>
-            <th className="p-2">Projet</th>
-            <th className="p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredActivites.map((a) => (
-            <tr key={a.act_id} className="border-t">
-              <td className="p-2">{a.act_nom}</td>
-              <td className="p-2">{a.act_dateDebut}</td>
-              <td className="p-2">{a.act_dateFin}</td>
-              <td className="p-2">{a.partenaire?.part_nom}</td>
-              <td className="p-2">{a.projet?.pro_nom}</td>
-              <td className="p-2 flex gap-2">
-                <Link href={`/activites/${a.act_id}/ajouter-beneficiaire`}>
-                  <button className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-                    Ajouter Bénéficiaires
-                  </button>
-                </Link>
-                <Link href={`/activites/${a.act_id}/update`}>
-                  <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                    Modifier
-                  </button>
-                </Link>
-                <button
-                  onClick={() => deleteActivite(a.act_id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                >
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-          {filteredActivites.length === 0 && (
-            <tr>
-              <td colSpan={6} className="text-center p-4 text-gray-500">
-                Aucune activité trouvée.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+        <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les activités</h2>
+          <ActiviteFilters
+            filters={filters}
+            partenaires={partenaires}
+            projets={projets}
+            onChange={handleFilterChange}
+            onReset={resetFilters}
+          />
+        </div>
+
+        <section className="bg-white border rounded-2xl shadow-sm p-6">
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des activités</h2>
+          <ActiviteTable activites={filtered} onDelete={deleteActivite} />
+        </section>
+      </div>
+    </main>
   );
 }

@@ -1,89 +1,85 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-
-type Projet = {
-  pro_id: number;
-  pro_nom: string;
-  pro_dateDebut: string;
-  pro_dateFin: string;
-  partenaire: {
-    part_nom: string;
-  };
-};
+import { useRouter } from 'next/navigation';
+import ProjetFilters from '@/components/ProjetFilters';
+import ProjetTable, { Projet } from '@/components/ProjetTable';
 
 export default function ProjetsPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
+  const [filtered, setFiltered] = useState<Projet[]>([]);
+  const [filters, setFilters] = useState({ search: '', dateDebut: '', dateFin: '' });
 
-  const fetchProjets = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`);
-    const data = await res.json();
-    setProjets(data);
-  };
-
-  const deleteProjet = async (id: number) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, {
-      method: 'DELETE',
-    });
-    fetchProjets();
-  };
+  const router = useRouter();
 
   useEffect(() => {
-    fetchProjets();
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`)
+      .then(res => res.json())
+      .then(data => {
+        setProjets(data);
+        setFiltered(data);
+      });
   }, []);
 
+  useEffect(() => {
+    let result = [...projets];
+    if (filters.search) {
+      result = result.filter(p =>
+        p.pro_nom.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+    if (filters.dateDebut) {
+      result = result.filter(p => p.pro_dateDebut >= filters.dateDebut);
+    }
+    if (filters.dateFin) {
+      result = result.filter(p => p.pro_dateFin <= filters.dateFin);
+    }
+    setFiltered(result);
+  }, [filters, projets]);
+
+  const deleteProjet = async (id: number) => {
+    if (!confirm('Supprimer ce projet ?')) return;
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, { method: 'DELETE' });
+    setProjets(prev => prev.filter(p => p.pro_id !== id));
+  };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ search: '', dateDebut: '', dateFin: '' });
+  };
+
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-start p-8">
-      <div className="w-full max-w-5xl">
-        <h1 className="text-2xl font-bold mb-4 text-black">Liste des projets</h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Gestion des projets</h1>
+          <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
+          <p className="text-gray-600">Consultez, filtrez et gérez les projets enregistrés dans le système.</p>
+        </header>
 
-        <Link href="/projets/creer">
-          <button className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Créer un projet
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
+          <button
+            onClick={() => router.push('/projets/creer')}
+            className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium"
+          >
+            + Créer un projet
           </button>
-        </Link>
+        </div>
 
-        <table className="w-full border border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 text-left text-black">Nom</th>
-              <th className="p-2 text-left text-black">Début</th>
-              <th className="p-2 text-left text-black">Fin</th>
-              <th className="p-2 text-left text-black">Partenaire</th>
-              <th className="p-2 text-left text-black">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projets.map((projet) => (
-              <tr key={projet.pro_id} className="border-t">
-                <td className="p-2 text-black">{projet.pro_nom}</td>
-                <td className="p-2 text-black">{projet.pro_dateDebut}</td>
-                <td className="p-2 text-black">{projet.pro_dateFin}</td>
-                <td className="p-2 text-black">{projet.partenaire?.part_nom}</td>
-                <td className="p-2 flex gap-2">
-                    <button onClick={() => deleteProjet(projet.pro_id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-                        Supprimer
-                    </button>
-                    <Link href={`/projets/${projet.pro_id}/update`}>
-                        <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                        Modifier
-                        </button>
-                    </Link>
-                </td>
-              </tr>
-            ))}
-            {projets.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center p-4 text-gray-500">
-                  Aucun projet trouvé.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les projets</h2>
+          <ProjetFilters filters={filters} onChange={handleFilterChange} onReset={resetFilters} />
+        </div>
+
+        <section className="bg-white border rounded-2xl shadow-sm p-6">
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des projets</h2>
+          <ProjetTable projets={filtered} onDelete={deleteProjet} />
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

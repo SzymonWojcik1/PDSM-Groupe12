@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Pencil, Trash } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 
 type Indicateur = {
   ind_id: number;
   ind_nom: string;
   ind_code: string;
   ind_valeurCible: number;
+  valeurReelle?: number;
 };
 
 type Output = {
@@ -33,6 +36,7 @@ type Objectif = {
 };
 
 export default function UpdateCadreLogiquePage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
 
@@ -60,18 +64,18 @@ export default function UpdateCadreLogiquePage() {
         const year = new Date(data.cad_dateDebut).getFullYear();
         setAnnee(year);
       } catch (err) {
-        console.error('Erreur chargement du cadre logique :', err);
+        console.error(t('loading_error'), err);
       }
 
       fetchObjectifs();
     };
 
     load();
-  }, [id]);
+  }, [id, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cadNom || !cadDateDebut || !cadDateFin) return alert("Tous les champs sont requis.");
+    if (!cadNom || !cadDateDebut || !cadDateFin) return alert(t('all_fields_required'));
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
         method: 'PUT',
@@ -82,10 +86,10 @@ export default function UpdateCadreLogiquePage() {
           cad_dateFin: cadDateFin,
         }),
       });
-      alert("Cadre logique mis à jour.");
+      alert(t('update_success'));
     } catch (err) {
-      console.error('Erreur lors de la modification :', err);
-      alert("Échec de la mise à jour.");
+      console.error(t('update_failed'), err);
+      alert(t('update_failed'));
     }
   };
 
@@ -102,6 +106,16 @@ export default function UpdateCadreLogiquePage() {
           for (const output of outputs) {
             const indRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`);
             const indicateurs: Indicateur[] = await indRes.json();
+            for (const ind of indicateurs) {
+              try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
+                const countData = await res.json();
+                ind.valeurReelle = countData.count || 0;
+              } catch (err) {
+                ind.valeurReelle = 0;
+              }
+            }
+
             output.indicateurs = indicateurs;
           }
           outcome.outputs = outputs;
@@ -132,44 +146,44 @@ export default function UpdateCadreLogiquePage() {
   };
 
   const modifierTexte = async (type: string, id: number, nomActuel: string, url: string, field = 'nom') => {
-    const nom = prompt(`Nouveau nom pour ce ${type} :`, nomActuel);
+    const nom = prompt(t('new_name_for', { type }), nomActuel);
     if (nom) await modifierNom(url, { [`${type}_${field}`]: nom });
   };
 
   const modifierIndicateur = async (ind: Indicateur) => {
-    const nom = prompt("Nouveau nom de l’indicateur :", ind.ind_nom);
+    const nom = prompt(t('new_indicator_name'), ind.ind_nom);
     if (!nom) return;
 
-    const val = prompt("Nouvelle valeur cible :", ind.ind_valeurCible.toString());
+    const val = prompt(t('new_target_value'), ind.ind_valeurCible.toString());
     if (!val || isNaN(parseInt(val))) return;
 
     await modifierNom(`indicateurs/${ind.ind_id}`, {
         ind_nom: nom,
         ind_valeurCible: parseInt(val),
-        ind_code: ind.ind_code, // ← ajoute bien ça !
+        ind_code: ind.ind_code,
     });
-    };
+  };
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier le cadre logique</h1>
+            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_logframe')}</h1>
             <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           </div>
           <Link
             href="/cadre-logique"
             className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
           >
-            Retour à la liste
+            {t('back_to_list')}
           </Link>
         </header>
 
         <div className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block font-semibold mb-1">Nom du cadre</label>
+              <label className="block font-semibold mb-1">{t('logframe_name')}</label>
               <input
                 type="text"
                 value={cadNom}
@@ -179,7 +193,7 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Année de début</label>
+              <label className="block font-semibold mb-1">{t('start_year')}</label>
               <input
                 type="number"
                 value={annee}
@@ -189,7 +203,7 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Date de début automatique</label>
+              <label className="block font-semibold mb-1">{t('auto_start_date')}</label>
               <input
                 type="date"
                 value={cadDateDebut}
@@ -198,7 +212,7 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Date de fin automatique</label>
+              <label className="block font-semibold mb-1">{t('auto_end_date')}</label>
               <input
                 type="date"
                 value={cadDateFin}
@@ -210,7 +224,7 @@ export default function UpdateCadreLogiquePage() {
               type="submit"
               className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
             >
-              Enregistrer les modifications
+              {t('save_changes')}
             </button>
           </form>
         </div>
@@ -220,10 +234,10 @@ export default function UpdateCadreLogiquePage() {
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-gray-800">{obj.obj_nom}</h2>
               <div className="flex gap-2">
-                <button onClick={() => modifierTexte('obj', obj.obj_id, obj.obj_nom, `objectifs-generaux/${obj.obj_id}`)}>
+                <button onClick={() => modifierTexte('obj', obj.obj_id, obj.obj_nom, `objectifs-generaux/${obj.obj_id}`)} title={t('edit')}>
                   <Pencil className="w-4 h-4 text-gray-600" />
                 </button>
-                <button onClick={() => supprimerElement(`objectifs-generaux/${obj.obj_id}`)}>
+                <button onClick={() => supprimerElement(`objectifs-generaux/${obj.obj_id}`)} title={t('delete')}>
                   <Trash className="w-4 h-4 text-red-500" />
                 </button>
               </div>
@@ -232,10 +246,11 @@ export default function UpdateCadreLogiquePage() {
             <table className="w-full text-sm border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outcomes')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outputs')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('indicators')}</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">{t('target_value')}</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">{t('actual_value')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,14 +262,14 @@ export default function UpdateCadreLogiquePage() {
                           <td rowSpan={out.outputs.reduce((acc, o) => acc + (o.indicateurs.length || 1), 0)} className="border px-4 py-2 align-top">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold">{`Outcome ${j + 1}`}</div>
+                                <div className="font-bold">{`${t('outcomes')} ${j + 1}`}</div>
                                 <div>{out.out_nom}</div>
                               </div>
                               <div className="flex gap-2">
-                                <button onClick={() => modifierTexte('out', out.out_id, out.out_nom, `outcomes/${out.out_id}`)}>
+                                <button onClick={() => modifierTexte('out', out.out_id, out.out_nom, `outcomes/${out.out_id}`)} title={t('edit')}>
                                   <Pencil className="w-4 h-4 text-gray-600" />
                                 </button>
-                                <button onClick={() => supprimerElement(`outcomes/${out.out_id}`)}>
+                                <button onClick={() => supprimerElement(`outcomes/${out.out_id}`)} title={t('delete')}>
                                   <Trash className="w-4 h-4 text-red-500" />
                                 </button>
                               </div>
@@ -265,14 +280,14 @@ export default function UpdateCadreLogiquePage() {
                           <td rowSpan={op.indicateurs.length || 1} className="border px-4 py-2 align-top">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold">{`Output ${j + 1}.${k + 1}`}</div>
+                                <div className="font-bold">{`${t('outputs')} ${j + 1}.${k + 1}`}</div>
                                 <div>{op.opu_nom}</div>
                               </div>
                               <div className="flex gap-2">
-                                <button onClick={() => modifierTexte('opu', op.opu_id, op.opu_nom, `outputs/${op.opu_id}`)}>
+                                <button onClick={() => modifierTexte('opu', op.opu_id, op.opu_nom, `outputs/${op.opu_id}`)} title={t('edit')}>
                                   <Pencil className="w-4 h-4 text-gray-600" />
                                 </button>
-                                <button onClick={() => supprimerElement(`outputs/${op.opu_id}`)}>
+                                <button onClick={() => supprimerElement(`outputs/${op.opu_id}`)} title={t('delete')}>
                                   <Trash className="w-4 h-4 text-red-500" />
                                 </button>
                               </div>
@@ -282,20 +297,21 @@ export default function UpdateCadreLogiquePage() {
                         <td className="border px-4 py-2">
                         <div className="flex justify-between items-start">
                             <div>
-                            <span className="font-bold">{`Indicateur ${j + 1}.${k + 1}.${l + 1}`}</span><br />
+                            <span className="font-bold">{`${t('indicators')} ${j + 1}.${k + 1}.${l + 1}`}</span><br />
                             {ind.ind_nom}
                             </div>
                             <div className="flex gap-2">
-                            <button onClick={() => modifierIndicateur(ind)}>
+                            <button onClick={() => modifierIndicateur(ind)} title={t('edit')}>
                                 <Pencil className="w-4 h-4 text-gray-600" />
                             </button>
-                            <button onClick={() => supprimerElement(`indicateurs/${ind.ind_id}`)}>
+                            <button onClick={() => supprimerElement(`indicateurs/${ind.ind_id}`)} title={t('delete')}>
                                 <Trash className="w-4 h-4 text-red-500" />
                             </button>
                             </div>
                         </div>
                         </td>
                         <td className="border px-4 py-2">{ind.ind_valeurCible}</td>
+                        <td className="border px-4 py-2 text-center">{ind.valeurReelle ?? '–'}</td>
                       </tr>
                     ))
                   )
