@@ -17,27 +17,29 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
 {
     public function collection()
     {
+
         return collect([
             ['Jean', 'Dupont', '1990-05-14', 'Europe', 'France', 'adult', null, 'urban', 'male', null, 'cis_hetero', null, 'Français']
         ]);
+
     }
 
     public function headings(): array
     {
         return [
-            'ben_prenom*',
-            'ben_nom*',
-            'ben_date_naissance*',
-            'ben_region*',
-            'ben_pays*',
-            'ben_type*',
+            'ben_prenom',
+            'ben_nom',
+            'ben_date_naissance',
+            'ben_region',
+            'ben_pays',
+            'ben_type',
             'ben_type_autre',
             'ben_zone',
-            'ben_sexe*',
+            'ben_sexe',
             'ben_sexe_autre',
             'ben_genre',
             'ben_genre_autre',
-            'ben_ethnicite*'
+            'ben_ethnicite'
         ];
     }
 
@@ -81,6 +83,7 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                         'Remplir si "other"', 'Ex: Français'
                     ]
                 ], null, 'A2');
+
 
                 for ($row = 3; $row <= 500; $row++) {
                     $sheet->getStyle("C$row")->getNumberFormat()->setFormatCode('yyyy-mm-dd');

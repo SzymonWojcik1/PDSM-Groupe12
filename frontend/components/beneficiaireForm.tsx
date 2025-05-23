@@ -29,10 +29,9 @@ type Props = {
   initialData?: BeneficiaireFormData;
   onSubmit: (data: BeneficiaireFormData) => Promise<void>;
   submitLabel?: string;
-  mode?: 'create' | 'edit';
 };
 
-export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 'Enregistrer', mode = 'create' }: Props) {
+export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 'Enregistrer' }: Props) {
   const [form, setForm] = useState<BeneficiaireFormData>(
     initialData || {
       ben_prenom: '', ben_nom: '', ben_date_naissance: '', ben_region: '', ben_pays: '',
@@ -190,7 +189,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
         {renderField('Ethnicité*', 'ben_ethnicite')}
         {ethniciteFocused && (
           <p className="text-xs text-gray-600 mt-1">
-            L'ethnicité, ou appartenance ethnique, une assignation sociale et une représentation, attribuées à un individu ou à un groupe humain, en fonction de critères culturels ou de leur apparence physique.
+            L&apos;ethnicité, ou appartenance ethnique, une assignation sociale et une représentation, attribuées à un individu ou à un groupe humain, en fonction de critères culturels ou de leur apparence physique.
           </p>
         )}
       </div>

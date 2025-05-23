@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRef } from 'react';
+import ImportExcel from '@/components/ImportExcel';
 import { useRouter } from 'next/navigation';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
@@ -17,6 +19,7 @@ export default function BeneficiairesPage() {
     genre: '',
     search: '',
   });
+
 
   const router = useRouter();
 
@@ -79,6 +82,47 @@ export default function BeneficiairesPage() {
     }
   };
 
+  // Create a ref to programmatically trigger the hidden file input
+  const importRef = useRef<HTMLInputElement>(null);
+
+  // Function to simulate a click on the hidden input (opens the file dialog)
+  const triggerImport = () => {
+    importRef.current?.click();
+  };
+
+  const handleImport = async (rows: Record<string, unknown>[]) => {
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const [index, row] of rows.entries()) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(row),
+        });
+
+        const json = await response.json();
+
+        if (!response.ok) {
+          errorCount++;
+          console.error(`Ligne ${index + 1} échouée :`, json.errors || json.message || json);
+        } else {
+          successCount++;
+          console.log(`Ligne ${index + 1} importée avec succès :`, json);
+        }
+      } catch (err) {
+        errorCount++;
+        console.error(`Ligne ${index + 1} : erreur inattendue`, err);
+      }
+    }
+
+    alert(`Import terminé.\n Succès : ${successCount}\n Échecs : ${errorCount}`);
+    location.reload();
+  };
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
@@ -105,11 +149,19 @@ export default function BeneficiairesPage() {
             </button>
 
             <button
-              onClick={() => router.push('/beneficiaires/import')}
+              onClick={triggerImport}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
               Importer un fichier
             </button>
+            <ImportExcel
+              ref={importRef}
+              fromCol={0}
+              toCol={13}
+              dateFields={['ben_date_naissance']}
+              onPreview={handleImport}
+            />
+
 
             <button
               onClick={() => router.push('/beneficiaires/export')}
@@ -119,7 +171,7 @@ export default function BeneficiairesPage() {
             </button>
 
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}/beneficiaires/template`}
+              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}beneficiaires/template`}
               download
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
