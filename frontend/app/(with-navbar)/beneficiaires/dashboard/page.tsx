@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
@@ -22,6 +24,7 @@ type GenreData = { genre: string; nombre: number };
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9F0F3A', '#8884d8'];
 
 export default function DashboardBeneficiaires() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ total: 0, actifs: 0, nouveaux: 0, participants: 0 });
   const [dataRegion, setDataRegion] = useState<RegionData[]>([]);
   const [dataMois, setDataMois] = useState<MoisData[]>([]);
@@ -105,6 +108,10 @@ export default function DashboardBeneficiaires() {
           nombre
         }));
 
+        // Tri des tranches d'âge par ordre croissant
+        const tranchesOrdre = ['0-17 ans', '18-24 ans', '25-34 ans', '35-49 ans', '50+ ans'];
+        const dataAgeSorted = [...dataAge].sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
+
         // Données par statut
         const statutMap = new Map<string, number>();
         data.forEach((b: any) => {
@@ -175,32 +182,36 @@ export default function DashboardBeneficiaires() {
       .catch(err => console.error('Erreur chargement dashboard:', err));
   }, []);
 
+  // Tri des tranches d'âge par ordre croissant (juste avant le return)
+  const tranchesOrdre = ['0-17 ans', '18-24 ans', '25-34 ans', '35-49 ans', '50+ ans'];
+  const dataAgeSorted = [...dataAge].sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Tableau de bord des bénéficiaires</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('beneficiaries_dashboard')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
             </div>
             <Link
               href="/beneficiaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 justify-center mx-auto w-fit">
-          <StatCard label="Total bénéficiaires" value={stats.total} />
-          <StatCard label="Actifs" value={stats.actifs} />
-          <StatCard label="Nouveaux ce mois" value={stats.nouveaux} />
+          <StatCard label={t('total_beneficiaries')} value={stats.total} />
+          <StatCard label={t('active')} value={stats.actifs} />
+          <StatCard label={t('new_this_month')} value={stats.nouveaux} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <ChartCard title="Répartition par région">
+          <ChartCard title={t('distribution_by_region')}>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
@@ -222,7 +233,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Évolution mensuelle des inscriptions">
+          <ChartCard title={t('monthly_registration_trend')}>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={dataMois}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -237,26 +248,26 @@ export default function DashboardBeneficiaires() {
                   strokeWidth={2}
                   dot={{ fill: "#9F0F3A", strokeWidth: 2 }}
                   activeDot={{ r: 8 }}
-                  name="Inscriptions"
+                  name={t('registrations')}
                 />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Répartition par tranche d'âge">
+          <ChartCard title={t('distribution_by_age_group')}>
             <div className="flex justify-center items-center w-full h-full">
               <ResponsiveContainer width={"90%"} height={250}>
-                <BarChart data={dataAge}>
+                <BarChart data={dataAgeSorted}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="tranche" />
                   <YAxis />
                   <Tooltip />
                   <Bar 
                     dataKey="nombre" 
-                    name="Nombre de bénéficiaires"
+                    name={t('number_of_beneficiaries')}
                     radius={[4, 4, 0, 0]}
                   >
-                    {dataAge.map((entry, index) => (
+                    {dataAgeSorted.map((entry, index) => (
                       <Cell key={`cell-age-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
@@ -265,7 +276,7 @@ export default function DashboardBeneficiaires() {
             </div>
           </ChartCard>
 
-          <ChartCard title="Répartition par type de bénéficiaire">
+          <ChartCard title={t('distribution_by_beneficiary_type')}>
             <ResponsiveContainer width="100%" height={380}>
               <PieChart>
                 <Pie
@@ -287,7 +298,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Répartition par zone">
+          <ChartCard title={t('distribution_by_zone')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -309,7 +320,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Répartition du sexe">
+          <ChartCard title={t('distribution_by_sex')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -331,7 +342,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Répartition du genre">
+          <ChartCard title={t('distribution_by_gender')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie

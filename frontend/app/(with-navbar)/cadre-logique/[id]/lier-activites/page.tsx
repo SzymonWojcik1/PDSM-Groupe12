@@ -3,6 +3,8 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 
 export type Activite = {
   act_id: number
@@ -18,6 +20,7 @@ type ActiviteWithCount = Activite & {
 }
 
 export default function LierActivitesPage() {
+  const { t } = useTranslation();
   const { id } = useParams()
   const searchParams = useSearchParams()
   const indicateurId = searchParams.get('ind')
@@ -101,32 +104,32 @@ export default function LierActivitesPage() {
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-[#9F0F3A]">Lier des activités à un indicateur</h1>
+          <h1 className="text-3xl font-bold text-[#9F0F3A]">{t('link_activities_to_indicator')}</h1>
           <button
             onClick={() => router.back()}
             className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea]"
           >
-            ← Retour
+            ← {t('back')}
           </button>
         </div>
 
         <p className="text-gray-600 mb-4">
-          Nombre total de bénéficiaires associés : <strong>{valeurReelle}</strong>
+          {t('total_beneficiaries_linked')}: <strong>{valeurReelle}</strong>
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Activités disponibles */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">Toutes les activités</h2>
+            <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">{t('all_activities')}</h2>
             <input
               type="text"
-              placeholder="Rechercher une activité..."
+              placeholder={t('search_activity')}
               value={searchAll}
               onChange={e => setSearchAll(e.target.value)}
               className="mb-4 w-full border border-gray-300 rounded px-4 py-2 text-sm"
             />
             {availableActivites.length === 0 ? (
-              <p className="text-gray-500">Aucune activité disponible</p>
+              <p className="text-gray-500">{t('no_available_activity')}</p>
             ) : (
               <ul className="space-y-2">
                 {availableActivites.map(act => (
@@ -137,7 +140,7 @@ export default function LierActivitesPage() {
                       disabled={isLoading}
                       className="text-green-600 hover:underline disabled:text-gray-400"
                     >
-                      Lier
+                      {t('link')}
                     </button>
                   </li>
                 ))}
@@ -147,27 +150,27 @@ export default function LierActivitesPage() {
 
           {/* Activités liées */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">Activités liées</h2>
+            <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">{t('linked_activities')}</h2>
             <input
               type="text"
-              placeholder="Rechercher une activité liée..."
+              placeholder={t('search_linked_activity')}
               value={searchLinked}
               onChange={e => setSearchLinked(e.target.value)}
               className="mb-4 w-full border border-gray-300 rounded px-4 py-2 text-sm"
             />
             {filteredLinkedActivites.length === 0 ? (
-              <p className="text-gray-500">Aucune activité liée</p>
+              <p className="text-gray-500">{t('no_linked_activity')}</p>
             ) : (
               <ul className="space-y-2">
                 {filteredLinkedActivites.map(act => (
                   <li key={act.act_id} className="flex justify-between items-center">
-                    <span>{act.act_nom} – {act.nbBeneficiaires} bénéficiaire(s)</span>
+                    <span>{act.act_nom} – {act.nbBeneficiaires} {t('beneficiaries')}</span>
                     <button
                       onClick={() => handleUnlink(act.act_id)}
                       disabled={isLoading}
                       className="text-red-600 hover:underline disabled:text-gray-400"
                     >
-                      Retirer
+                      {t('unlink')}
                     </button>
                   </li>
                 ))}
