@@ -24,4 +24,5 @@ class IndicateurActivite extends Model
     {
         return $this->belongsTo(Indicateur::class, 'ind_id', 'ind_id');
     }
+
 }

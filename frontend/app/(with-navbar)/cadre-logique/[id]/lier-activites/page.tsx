@@ -3,8 +3,8 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export type Activite = {
   act_id: number
@@ -20,50 +20,39 @@ type ActiviteWithCount = Activite & {
 }
 
 export default function LierActivitesPage() {
-  const { t } = useTranslation();
   const { id } = useParams()
   const searchParams = useSearchParams()
   const indicateurId = searchParams.get('ind')
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [activites, setActivites] = useState<Activite[]>([])
   const [linkedActivites, setLinkedActivites] = useState<ActiviteWithCount[]>([])
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchAll, setSearchAll] = useState('')
   const [searchLinked, setSearchLinked] = useState('')
 
   const fetchActivites = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`)
-    const data = await res.json()
-    setActivites(data)
+    const [allRes, linksRes] = await Promise.all([
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`).then(res => res.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${indicateurId}/activites-with-count`).then(res => res.json()),
+    ])
+
+    setActivites(allRes)
+    setLinkedActivites(linksRes)
   }
 
-  const fetchLinkedActivites = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite`)
-    const data = await res.json()
-
-    const filtered = data.filter((item: any) => item.ind_id == indicateurId)
-
-    const detailed: ActiviteWithCount[] = []
-    for (const link of filtered) {
-      const act = link.activite
-      if (!act) continue
-      const benRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${act.act_id}/beneficiaires`)
-      const benList = await benRes.json()
-      detailed.push({ ...act, nbBeneficiaires: benList.length })
-    }
-
-    setLinkedActivites(detailed)
-  }
-
-  const handleLink = async (actId: number) => {
+  const handleLinkMany = async () => {
     setIsLoading(true)
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ind_id: indicateurId, act_id: actId }),
+      body: JSON.stringify({ ind_id: indicateurId, act_ids: selectedIds })
     })
-    await fetchLinkedActivites()
+
+    setSelectedIds([])
+    await fetchActivites()
     setIsLoading(false)
   }
 
@@ -75,19 +64,15 @@ export default function LierActivitesPage() {
 
     if (link) {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/${link.id}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       })
-      await fetchLinkedActivites()
+      await fetchActivites()
     }
-
     setIsLoading(false)
   }
 
   useEffect(() => {
-    if (indicateurId) {
-      fetchActivites()
-      fetchLinkedActivites()
-    }
+    if (indicateurId) fetchActivites()
   }, [indicateurId])
 
   const availableActivites = activites
@@ -113,9 +98,18 @@ export default function LierActivitesPage() {
           </button>
         </div>
 
-        <p className="text-gray-600 mb-4">
-          {t('total_beneficiaries_linked')}: <strong>{valeurReelle}</strong>
-        </p>
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-gray-600">
+            {t('total_beneficiaries_linked')} : <strong>{valeurReelle}</strong>
+          </p>
+          <button
+            onClick={handleLinkMany}
+            disabled={isLoading || selectedIds.length === 0}
+            className="px-4 py-2 bg-[#9F0F3A] text-white rounded hover:bg-[#800d30] disabled:bg-gray-300"
+          >
+            {isLoading ? t('linking') : t('link')}
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Activités disponibles */}
@@ -134,14 +128,20 @@ export default function LierActivitesPage() {
               <ul className="space-y-2">
                 {availableActivites.map(act => (
                   <li key={act.act_id} className="flex justify-between items-center">
-                    <span>{act.act_nom}</span>
-                    <button
-                      onClick={() => handleLink(act.act_id)}
-                      disabled={isLoading}
-                      className="text-green-600 hover:underline disabled:text-gray-400"
-                    >
-                      {t('link')}
-                    </button>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(act.act_id)}
+                        onChange={e => {
+                          setSelectedIds(prev =>
+                            e.target.checked
+                              ? [...prev, act.act_id]
+                              : prev.filter(id => id !== act.act_id)
+                          )
+                        }}
+                      />
+                      {act.act_nom}
+                    </label>
                   </li>
                 ))}
               </ul>

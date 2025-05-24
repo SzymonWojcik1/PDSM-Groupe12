@@ -88,4 +88,32 @@ class CadreLogiqueController extends Controller
 
         return response()->json(['message' => 'Cadre logique supprimé']);
     }
+
+    public function structure($id)
+    {
+        $cadre = CadreLogique::with([
+            'objectifsGeneraux.outcomes.outputs.indicateurs.activites' 
+        ])->findOrFail($id);
+
+        // Calculer valeurReelle côté PHP
+        foreach ($cadre->objectifsGeneraux as $objectif) {
+            foreach ($objectif->outcomes as $outcome) {
+                foreach ($outcome->outputs as $output) {
+                    foreach ($output->indicateurs as $indicateur) {
+                        $ids = $indicateur->activites->pluck('act_id');
+                        $count = \DB::table('activite_beneficiaire')
+                            ->whereIn('acb_act_id', $ids)
+                            ->distinct('acb_ben_id')
+                            ->count('acb_ben_id');
+
+                        $indicateur->valeurReelle = $count;
+                    }
+                }
+            }
+        }
+
+        return response()->json($cadre->objectifsGeneraux);
+    }
+
+
 }

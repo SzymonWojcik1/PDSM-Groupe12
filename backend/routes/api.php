@@ -107,6 +107,7 @@ Route::controller(CadreLogiqueController::class)->group(function(){
     Route::get('/cadre-logique/{id}', [CadreLogiqueController::class, 'show']);
     Route::put('/cadre-logique/{id}', [CadreLogiqueController::class, 'update']);
     Route::delete('/cadre-logique/{id}', [CadreLogiqueController::class, 'destroy']);
+    Route::get('/cadre-logique/{id}/structure', [CadreLogiqueController::class, 'structure']);
 });
 
 // Routes pour les objectifs généraux
@@ -151,7 +152,7 @@ Route::controller(IndicateurActiviteController::class)->group(function(){
     Route::post('/indicateur-activite', 'store');
     Route::get('/indicateur-activite/{id}', 'show');
     Route::delete('/indicateur-activite/{id}', 'destroy');
-
+    Route::post('/indicateur-activite/batch', 'storeBatch');
 });
 
 // Route pour compter le nombre de bénéficiaires dans une activiteé

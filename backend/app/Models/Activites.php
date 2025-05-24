@@ -23,4 +23,11 @@ class Activites extends Model
     {
         return $this->belongsTo(Projet::class, 'act_pro_id', 'pro_id');
     }
+
+    public function beneficiaires()
+    {
+        return $this->belongsToMany(Beneficiaire::class, 'activite_beneficiaire', 'acb_act_id', 'acb_ben_id');
+    }
+
+
 }

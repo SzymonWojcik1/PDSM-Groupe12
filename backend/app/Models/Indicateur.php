@@ -23,4 +23,18 @@ class Indicateur extends Model
     {
         return $this->belongsTo(Output::class, 'opu_id', 'opu_id');
     }
+
+    public function activites()
+    {
+        return $this->belongsToMany(
+            \App\Models\Activites::class,
+            'activite_indicateur',
+            'ind_id',
+            'act_id',
+            'ind_id',
+            'act_id'
+        );
+    }
+
+
 }

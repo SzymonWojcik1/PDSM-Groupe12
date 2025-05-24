@@ -83,6 +83,12 @@ export default function CadreLogiquePage() {
                           {t('edit')}
                         </button>
                         <button
+                          onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/dashboard`)}
+                          className="text-sm text-gray-700 border border-gray-700 px-3 py-1 rounded hover:bg-gray-100 transition"
+                        >
+                          Dashboard
+                        </button>
+                        <button
                           onClick={() => {
                             if (confirm(t('confirm_delete_logframe', { name: cadre.cad_nom }))) {
                               fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {

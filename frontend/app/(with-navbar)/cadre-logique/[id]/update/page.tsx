@@ -95,33 +95,8 @@ export default function UpdateCadreLogiquePage() {
 
   const fetchObjectifs = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux?cad_id=${id}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
       const data: Objectif[] = await res.json();
-      for (const obj of data) {
-        const outRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes?obj_id=${obj.obj_id}`);
-        const outcomes: Outcome[] = await outRes.json();
-        for (const outcome of outcomes) {
-          const opRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs?out_id=${outcome.out_id}`);
-          const outputs: Output[] = await opRes.json();
-          for (const output of outputs) {
-            const indRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs?opu_id=${output.opu_id}`);
-            const indicateurs: Indicateur[] = await indRes.json();
-            for (const ind of indicateurs) {
-              try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${ind.ind_id}/beneficiaires-count`);
-                const countData = await res.json();
-                ind.valeurReelle = countData.count || 0;
-              } catch (err) {
-                ind.valeurReelle = 0;
-              }
-            }
-
-            output.indicateurs = indicateurs;
-          }
-          outcome.outputs = outputs;
-        }
-        obj.outcomes = outcomes;
-      }
       setObjectifs(data);
     } catch (err) {
       console.error('Erreur chargement hiérarchie :', err);
