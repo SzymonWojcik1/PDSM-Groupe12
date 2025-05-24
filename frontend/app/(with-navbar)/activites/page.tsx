@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ActiviteFilters from '@/components/activiteFilters';
@@ -73,6 +72,42 @@ export default function ActivitesPage() {
     setFilters({ search: '', partenaire: '', projet: '' });
   };
 
+  const exportToCSV = () => {
+    // Créer l'en-tête du CSV
+    const headers = [
+      t('table_name'),
+      t('table_start'),
+      t('table_end'),
+      t('table_partner'),
+      t('table_project')
+    ].join(',');
+
+    // Convertir les données en lignes CSV
+    const rows = filtered.map(activite => [
+      activite.act_nom,
+      activite.act_dateDebut,
+      activite.act_dateFin,
+      activite.partenaire?.part_nom || '',
+      activite.projet?.pro_nom || ''
+    ].map(field => `"${field}"`).join(','));
+
+    // Combiner l'en-tête et les données
+    const csvContent = [headers, ...rows].join('\n');
+
+    // Créer un blob et un lien de téléchargement
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `activites_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
@@ -99,7 +134,7 @@ export default function ActivitesPage() {
             </button>
 
             <button
-              onClick={() => router.push('/activites/export')}
+              onClick={exportToCSV}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
               {t('export_data')}
