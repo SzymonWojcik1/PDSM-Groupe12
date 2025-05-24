@@ -51,7 +51,7 @@ export default function ActiviteTable({ activites, onDelete }: ActiviteTableProp
                   onClick={() => router.push(`/activites/${a.act_id}/ajouter-beneficiaire`)}
                   className="text-sm text-[#9F0F3A] hover:underline"
                 >
-                  {t('beneficiaries')}
+                  {t('beneficiariesMaj')}
                 </button>
                 <button
                   onClick={() => router.push(`/activites/${a.act_id}/update`)}
