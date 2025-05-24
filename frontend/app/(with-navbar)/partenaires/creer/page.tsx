@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { countriesByRegion } from '@/lib/countriesByRegion';
 
 export default function CreerPartenaire() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [form, setForm] = useState({ part_nom: '', part_pays: '', part_region: '' });
   const [errorMessage, setErrorMessage] = useState('');
@@ -29,7 +31,7 @@ export default function CreerPartenaire() {
     const data = await res.json();
 
     if (!res.ok) {
-      setErrorMessage(data.message || 'Une erreur est survenue');
+      setErrorMessage(data.message || t('error_occurred'));
       return;
     }
 
@@ -42,15 +44,15 @@ export default function CreerPartenaire() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Créer un partenaire</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('create_partner_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Remplissez les informations du partenaire à enregistrer.</p>
+              <p className="text-gray-600">{t('create_partner_description')}</p>
             </div>
             <Link
               href="/partenaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -65,7 +67,7 @@ export default function CreerPartenaire() {
 
             <input
               name="part_nom"
-              placeholder="Nom"
+              placeholder={t('partner_name')}
               className="border p-2 rounded text-black"
               onChange={handleChange}
               required
@@ -78,7 +80,7 @@ export default function CreerPartenaire() {
               className="border p-2 rounded text-black"
               required
             >
-              <option value="">-- Choisir une région --</option>
+              <option value="">{t('select_region')}</option>
               {Object.keys(countriesByRegion).map((region) => (
                 <option key={region} value={region}>{region}</option>
               ))}
@@ -92,7 +94,7 @@ export default function CreerPartenaire() {
               className="border p-2 rounded text-black"
               required
             >
-              <option value="">-- Choisir un pays --</option>
+              <option value="">{t('select_country')}</option>
               {form.part_region && countriesByRegion[form.part_region as keyof typeof countriesByRegion]?.map((pays) => (
                 <option key={pays} value={pays}>{pays}</option>
               ))}
@@ -102,7 +104,7 @@ export default function CreerPartenaire() {
               type="submit"
               className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
             >
-              Créer le partenaire
+              {t('create_partner')}
             </button>
           </form>
         </div>

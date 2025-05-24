@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { enumsShow } from '@/lib/enumsShow'
 
 export type Beneficiaire = {
@@ -42,31 +43,32 @@ export default function BeneficiaireTable({
   onDelete,
   renderExtraColumn,
 }: BeneficiairesTableProps) {
+  const { t } = useTranslation()
   const hasActions = onUpdate || onDelete || renderExtraColumn
 
   return (
     <div className="overflow-x-auto">
       {selectable && selectedIds.length > 0 && (
         <div className="mb-3 text-sm text-gray-600">
-          {selectedIds.length} bénéficiaire{selectedIds.length > 1 && 's'} sélectionné
+          {t('beneficiaries_selected', { count: selectedIds.length })}
         </div>
       )}
 
       <table className="min-w-full text-sm bg-white border border-gray-200 rounded-lg shadow-sm">
         <thead className="bg-[#F3F4F6] text-gray-700">
           <tr>
-            {selectable && <th className="px-3 py-2 text-left">Sélection</th>}
-            <th className="px-3 py-2 text-left">Prénom</th>
-            <th className="px-3 py-2 text-left">Nom</th>
-            <th className="px-3 py-2 text-left min-w-[140px]">Naissance</th>
-            <th className="px-3 py-2 text-left">Région</th>
-            <th className="px-3 py-2 text-left">Pays</th>
-            <th className="px-3 py-2 text-left">Type</th>
-            <th className="px-3 py-2 text-left">Zone</th>
-            <th className="px-3 py-2 text-left">Sexe</th>
-            <th className="px-3 py-2 text-left">Genre</th>
-            <th className="px-3 py-2 text-left">Ethnicité</th>
-            {hasActions && <th className="px-3 py-2 text-center">Actions</th>}
+            {selectable && <th className="px-3 py-2 text-left">{t('selection')}</th>}
+            <th className="px-3 py-2 text-left">{t('firstname')}</th>
+            <th className="px-3 py-2 text-left">{t('lastname')}</th>
+            <th className="px-3 py-2 text-left min-w-[140px]">{t('birth')}</th>
+            <th className="px-3 py-2 text-left">{t('region')}</th>
+            <th className="px-3 py-2 text-left">{t('country')}</th>
+            <th className="px-3 py-2 text-left">{t('type')}</th>
+            <th className="px-3 py-2 text-left">{t('zone')}</th>
+            <th className="px-3 py-2 text-left">{t('sex')}</th>
+            <th className="px-3 py-2 text-left">{t('gender')}</th>
+            <th className="px-3 py-2 text-left">{t('ethnicity')}</th>
+            {hasActions && <th className="px-3 py-2 text-center">{t('actions')}</th>}
           </tr>
         </thead>
         <tbody>
@@ -114,18 +116,21 @@ export default function BeneficiaireTable({
                       onClick={() => onUpdate(b.ben_id)}
                       className="text-[#9F0F3A] hover:underline"
                     >
-                      Modifier
+                      {t('modify')}
                     </button>
                   )}
                   {onDelete && (
                     <button
                       onClick={() => {
-                        const confirmed = confirm(`Supprimer ${b.ben_prenom} ${b.ben_nom} ?`)
+                        const confirmed = confirm(t('confirm_delete_beneficiary', {
+                          firstname: b.ben_prenom,
+                          lastname: b.ben_nom
+                        }))
                         if (confirmed) onDelete(b.ben_id)
                       }}
                       className="text-gray-500 hover:text-red-600 hover:underline"
                     >
-                      Supprimer
+                      {t('delete')}
                     </button>
                   )}
                   {renderExtraColumn && renderExtraColumn(b)}

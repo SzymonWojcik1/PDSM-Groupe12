@@ -1,12 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import '@/lib/i18n'
+import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function ForgotPasswordPage() {
+  const { t, i18n } = useTranslation('common', { useSuspense: false })
+  const [mounted, setMounted] = useState(false)
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || !i18n.isInitialized) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,10 +37,10 @@ export default function ForgotPasswordPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || data.errors?.email?.[0] || 'Erreur inconnue')
+        throw new Error(data.message || data.errors?.email?.[0] || t('forgot_error_unknown'))
       }
 
-      setMessage('Un email de réinitialisation a été envoyé.')
+      setMessage(t('forgot_success'))
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -39,19 +50,22 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="absolute top-4 right-4 w-40">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8 space-y-6">
         <h2 className="text-2xl font-semibold text-center text-gray-800">
-          Mot de passe oublié
+          {t('forgot_title')}
         </h2>
 
         <p className="text-sm text-gray-600 text-center">
-          Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.
+          {t('forgot_description')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Adresse e-mail
+              {t('email')}
             </label>
             <input
               type="email"
@@ -71,7 +85,7 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
           >
-            {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
+            {loading ? t('forgot_sending') : t('forgot_button')}
           </button>
         </form>
       </div>

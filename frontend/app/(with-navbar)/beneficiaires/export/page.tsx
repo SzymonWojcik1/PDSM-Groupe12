@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
 
 export default function ExportBeneficiairesPage() {
+  const { t } = useTranslation();
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
@@ -46,7 +48,7 @@ export default function ExportBeneficiairesPage() {
   const exportSelected = () => {
     const selectedBeneficiaires = beneficiaires.filter(b => selectedIds.includes(b.ben_id));
     if (selectedBeneficiaires.length === 0) {
-      alert('Aucun bénéficiaire sélectionné.');
+      alert(t('no_beneficiaries_selected'));
       return;
     }
 
@@ -69,15 +71,15 @@ export default function ExportBeneficiairesPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Exporter des bénéficiaires</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('export_beneficiaries_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Sélectionnez les bénéficiaires à exporter et filtrez selon vos critères.</p>
+              <p className="text-gray-600">{t('export_beneficiaries_description')}</p>
             </div>
             <Link
               href="/beneficiaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -92,19 +94,19 @@ export default function ExportBeneficiairesPage() {
                 : 'bg-[#9F0F3A] text-white hover:bg-[#800d30]'
             }`}
           >
-            Exporter la sélection
+            {t('export_selection')}
           </button>
 
           <button
             onClick={toggleSelectAll}
             className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
           >
-            {selectedIds.length === beneficiaires.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+            {selectedIds.length === beneficiaires.length ? t('deselect_all') : t('select_all')}
           </button>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
           <BeneficiaireFilters
             filters={filters}
             onChange={(e) => setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }))}
@@ -115,7 +117,7 @@ export default function ExportBeneficiairesPage() {
         </div>
 
         <section className="bg-white border rounded-2xl shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('beneficiaries_list')}</h2>
           <BeneficiaireTable
             beneficiaires={beneficiaires}
             enums={enums}

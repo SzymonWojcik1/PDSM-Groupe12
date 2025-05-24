@@ -1,7 +1,9 @@
 'use client'
-
-import { useState } from 'react'
+import '@/lib/i18n'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -9,6 +11,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const { t, i18n } = useTranslation('common', { useSuspense: false })
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || !i18n.isInitialized) return null
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,7 +37,7 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || data.errors?.email?.[0] || 'Erreur inconnue')
+        throw new Error(data.message || data.errors?.email?.[0] || t('login_error_unknown'))
       }
 
       localStorage.setItem('token', data.token)
@@ -53,13 +63,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="absolute top-4 right-4 w-40">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8 space-y-6">
-        <h2 className="text-2xl font-semibold text-center text-gray-800">Connexion</h2>
+        <h2 className="text-2xl font-semibold text-center text-gray-800">{t('login_title')}</h2>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              {t('email')}
             </label>
             <input
               type="email"
@@ -73,7 +86,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Mot de passe
+              {t('password')}
             </label>
             <input
               type="password"
@@ -92,13 +105,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t('logging_in') : t('login_button')}
           </button>
         </form>
 
         <div className="text-sm text-center">
           <a href="/forgot-password" className="text-blue-600 hover:underline">
-            Mot de passe oublié ?
+            {t('forgot_password')}
           </a>
         </div>
       </div>

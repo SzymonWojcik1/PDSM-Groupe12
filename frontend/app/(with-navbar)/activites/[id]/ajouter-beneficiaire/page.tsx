@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getActivityById,
   fetchBeneficiaires,
@@ -18,6 +19,7 @@ type Beneficiaire = {
 };
 
 export default function AjouterBeneficiaire() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
   const [activity, setActivity] = useState<any>(null);
@@ -96,18 +98,18 @@ export default function AjouterBeneficiaire() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">
-                Ajouter des bénéficiaires
+                {t('add_beneficiaries')}
               </h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">
-                Activité : <strong>{activity?.act_nom || 'Chargement...'}</strong>
+                {t('activity')} : <strong>{activity?.act_nom || t('loading')}</strong>
               </p>
             </div>
             <button
               onClick={() => router.push('/activites')}
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              ← Retour à la liste
+              {t('back_to_list')}
             </button>
           </div>
         </header>
@@ -116,7 +118,7 @@ export default function AjouterBeneficiaire() {
         <div className="mb-6">
           <input
             type="text"
-            placeholder="Rechercher un bénéficiaire..."
+            placeholder={t('search_beneficiary')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full border border-gray-300 px-4 py-2 rounded text-sm"
@@ -126,18 +128,18 @@ export default function AjouterBeneficiaire() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Bénéficiaires disponibles */}
           <section className="bg-white border rounded-2xl shadow-sm p-6">
-            <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Bénéficiaires disponibles</h2>
+            <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('available_beneficiaries')}</h2>
             {availableBeneficiaires.length === 0 ? (
-              <p className="text-gray-600">Aucun bénéficiaire à ajouter.</p>
+              <p className="text-gray-600">{t('no_beneficiaries_to_add')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border border-gray-200">
                   <thead className="bg-gray-100 text-left">
                     <tr>
-                      <th className="px-4 py-2">Prénom</th>
-                      <th className="px-4 py-2">Nom</th>
-                      <th className="px-4 py-2">Naissance</th>
-                      <th className="px-4 py-2">Actions</th>
+                      <th className="px-4 py-2">{t('firstname')}</th>
+                      <th className="px-4 py-2">{t('lastname')}</th>
+                      <th className="px-4 py-2">{t('birthdate')}</th>
+                      <th className="px-4 py-2">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -152,7 +154,7 @@ export default function AjouterBeneficiaire() {
                             disabled={isLoading}
                             className="text-green-600 hover:underline disabled:text-gray-400"
                           >
-                            Ajouter
+                            {t('add')}
                           </button>
                         </td>
                       </tr>
@@ -165,18 +167,18 @@ export default function AjouterBeneficiaire() {
 
           {/* Bénéficiaires déjà inscrits */}
           <section className="bg-white border rounded-2xl shadow-sm p-6">
-            <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Bénéficiaires inscrits</h2>
+            <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('registered_beneficiaries')}</h2>
             {activityBeneficiaires.length === 0 ? (
-              <p className="text-gray-600">Aucun bénéficiaire inscrit à cette activité.</p>
+              <p className="text-gray-600">{t('no_registered_beneficiaries')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border border-gray-200">
                   <thead className="bg-gray-100 text-left">
                     <tr>
-                      <th className="px-4 py-2">Prénom</th>
-                      <th className="px-4 py-2">Nom</th>
-                      <th className="px-4 py-2">Naissance</th>
-                      <th className="px-4 py-2">Actions</th>
+                      <th className="px-4 py-2">{t('firstname')}</th>
+                      <th className="px-4 py-2">{t('lastname')}</th>
+                      <th className="px-4 py-2">{t('birthdate')}</th>
+                      <th className="px-4 py-2">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -191,7 +193,7 @@ export default function AjouterBeneficiaire() {
                             disabled={isLoading}
                             className="text-red-600 hover:underline disabled:text-gray-400"
                           >
-                            Retirer
+                            {t('remove')}
                           </button>
                         </td>
                       </tr>

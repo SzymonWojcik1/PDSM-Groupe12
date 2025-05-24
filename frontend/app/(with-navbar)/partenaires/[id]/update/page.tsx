@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { countriesByRegion } from '@/lib/countriesByRegion'
 
 export default function UpdatePartenaire() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const router = useRouter()
 
@@ -46,7 +48,7 @@ export default function UpdatePartenaire() {
     const data = await res.json()
 
     if (!res.ok) {
-      setErrorMessage(data.message || 'Une erreur est survenue')
+      setErrorMessage(data.message || t('error_occurred'))
       return
     }
 
@@ -59,14 +61,14 @@ export default function UpdatePartenaire() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier un partenaire</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_partner_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
             </div>
             <Link
               href="/partenaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -81,7 +83,7 @@ export default function UpdatePartenaire() {
 
             <input
               name="part_nom"
-              placeholder="Nom"
+              placeholder={t('partner_name')}
               className="border p-2 rounded text-black"
               value={form.part_nom}
               onChange={handleChange}
@@ -95,7 +97,7 @@ export default function UpdatePartenaire() {
               className="border p-2 rounded text-black"
               required
             >
-              <option value="">Sélectionner une région</option>
+              <option value="">{t('select_region')}</option>
               {Object.keys(countriesByRegion).map((region) => (
                 <option key={region} value={region}>{region}</option>
               ))}
@@ -109,7 +111,7 @@ export default function UpdatePartenaire() {
               disabled={!form.part_region}
               required
             >
-              <option value="">Sélectionner un pays</option>
+              <option value="">{t('select_country')}</option>
               {(countriesByRegion as Record<string, string[]>)[form.part_region]?.map((country) => (
                 <option key={country} value={country}>{country}</option>
               ))}
@@ -119,7 +121,7 @@ export default function UpdatePartenaire() {
               type="submit"
               className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
             >
-              Enregistrer les modifications
+              {t('save_changes')}
             </button>
           </form>
         </div>

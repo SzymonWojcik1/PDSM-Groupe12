@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Partenaire = { part_id: number; part_nom: string };
 type Projet = { pro_id: number; pro_nom: string };
@@ -28,6 +29,7 @@ export default function ActiviteForm({
   onSubmit,
   submitLabel,
 }: ActiviteFormProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     act_nom: '',
     act_dateDebut: '',
@@ -70,12 +72,12 @@ export default function ActiviteForm({
     const fin = new Date(formData.act_dateFin);
 
     if (debut > fin) {
-      setErrorMessage("La date de début ne peut pas être après la date de fin.");
+      setErrorMessage(t('date_start_after_end'));
       return;
     }
 
     if (debut < now || fin < now) {
-      setErrorMessage("Les dates ne peuvent pas être dans le passé.");
+      setErrorMessage(t('date_in_past'));
       return;
     }
 
@@ -89,7 +91,7 @@ export default function ActiviteForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'activité</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('activity_name')}</label>
         <input
           type="text"
           name="act_nom"
@@ -102,7 +104,7 @@ export default function ActiviteForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('start_date')}</label>
           <input
             type="date"
             name="act_dateDebut"
@@ -113,7 +115,7 @@ export default function ActiviteForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('end_date')}</label>
           <input
             type="date"
             name="act_dateFin"
@@ -126,7 +128,7 @@ export default function ActiviteForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Partenaire</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('partner')}</label>
         <select
           name="act_part_id"
           value={formData.act_part_id}
@@ -134,7 +136,7 @@ export default function ActiviteForm({
           className="w-full border border-gray-300 rounded px-3 py-2"
           required
         >
-          <option value="">Sélectionner un partenaire</option>
+          <option value="">{t('select_partner')}</option>
           {partenaires.map((p) => (
             <option key={p.part_id} value={p.part_id}>
               {p.part_nom}
@@ -144,7 +146,7 @@ export default function ActiviteForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Projet</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('project')}</label>
         <select
           name="act_pro_id"
           value={formData.act_pro_id}
@@ -152,7 +154,7 @@ export default function ActiviteForm({
           className="w-full border border-gray-300 rounded px-3 py-2"
           required
         >
-          <option value="">Sélectionner un projet</option>
+          <option value="">{t('select_project')}</option>
           {projets.map((p) => (
             <option key={p.pro_id} value={p.pro_id}>
               {p.pro_nom}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 export type Activite = {
   act_id: number;
@@ -18,9 +19,10 @@ interface ActiviteTableProps {
 
 export default function ActiviteTable({ activites, onDelete }: ActiviteTableProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   if (activites.length === 0) {
-    return <p className="text-gray-600">Aucune activité trouvée.</p>;
+    return <p className="text-gray-600">{t('no_activities_found')}</p>;
   }
 
   return (
@@ -28,12 +30,12 @@ export default function ActiviteTable({ activites, onDelete }: ActiviteTableProp
       <table className="w-full table-auto border border-gray-200 text-sm text-left">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-4 py-2">Nom</th>
-            <th className="px-4 py-2 min-w-[120px]">Début</th>
-            <th className="px-4 py-2 min-w-[120px]">Fin</th>
-            <th className="px-4 py-2">Partenaire</th>
-            <th className="px-4 py-2">Projet</th>
-            <th className="px-4 py-2">Actions</th>
+            <th className="px-4 py-2">{t('table_name')}</th>
+            <th className="px-4 py-2 min-w-[120px]">{t('table_start')}</th>
+            <th className="px-4 py-2 min-w-[120px]">{t('table_end')}</th>
+            <th className="px-4 py-2">{t('table_partner')}</th>
+            <th className="px-4 py-2">{t('table_project')}</th>
+            <th className="px-4 py-2">{t('table_actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -49,19 +51,19 @@ export default function ActiviteTable({ activites, onDelete }: ActiviteTableProp
                   onClick={() => router.push(`/activites/${a.act_id}/ajouter-beneficiaire`)}
                   className="text-sm text-[#9F0F3A] hover:underline"
                 >
-                  Bénéficiaires
+                  {t('beneficiaries')}
                 </button>
                 <button
                   onClick={() => router.push(`/activites/${a.act_id}/update`)}
                   className="text-sm text-blue-600 hover:underline"
                 >
-                  Modifier
+                  {t('edit')}
                 </button>
                 <button
                   onClick={() => onDelete(a.act_id)}
                   className="text-sm text-gray-500 hover:text-red-600 hover:underline"
                 >
-                  Supprimer
+                  {t('delete')}
                 </button>
               </td>
             </tr>

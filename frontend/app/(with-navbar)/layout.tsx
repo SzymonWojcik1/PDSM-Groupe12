@@ -24,7 +24,7 @@ import '@/lib/i18n' // à inclure UNE fois côté client
 
 const navItems = [
   { key: 'home', href: '/home', icon: Home },
-  { key: 'beneficiaries', href: '/beneficiaires', icon: Users },
+  { key: 'beneficiariesMaj', href: '/beneficiaires', icon: Users },
   { key: 'activities', href: '/activites', icon: Activity },
   { key: 'projects', href: '/projets', icon: Folder },
   { key: 'partners', href: '/partenaires', icon: Building },

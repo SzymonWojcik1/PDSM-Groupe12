@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { countriesByRegion } from '@/lib/countriesByRegion';
 
 type Props = {
@@ -19,6 +20,7 @@ export default function RegionCountrySelector({
   initialRegion = '',
   initialCountry = '',
 }: Props) {
+  const { t } = useTranslation();
   const [selectedRegion, setSelectedRegion] = useState(initialRegion);
   const [selectedCountry, setSelectedCountry] = useState(initialCountry);
 
@@ -51,7 +53,7 @@ export default function RegionCountrySelector({
         onChange={handleRegion}
         className={`border p-2 rounded ${regionError ? 'border-red-500' : ''}`}
       >
-        <option value="">Select a region</option>
+        <option value="">{t('select_region')}</option>
         {regions.map((r) => (
           <option key={r} value={r}>
             {r}
@@ -65,7 +67,7 @@ export default function RegionCountrySelector({
         disabled={!selectedRegion}
         className={`border p-2 rounded ${countryError ? 'border-red-500' : ''}`}
       >
-        <option value="">Select a country</option>
+        <option value="">{t('select_country')}</option>
         {countries.map((c) => (
           <option key={c} value={c}>
             {c}

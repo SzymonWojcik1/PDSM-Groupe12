@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import ImportExcel from '@/components/ImportExcel';
 import { useRouter } from 'next/navigation';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
 
 export default function BeneficiairesPage() {
+  const { t } = useTranslation();
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
   const [filters, setFilters] = useState({
@@ -19,7 +21,6 @@ export default function BeneficiairesPage() {
     genre: '',
     search: '',
   });
-
 
   const router = useRouter();
 
@@ -68,7 +69,7 @@ export default function BeneficiairesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = confirm("Êtes-vous sûr de vouloir supprimer ce bénéficiaire ?");
+    const confirmed = confirm(t('confirm_delete_beneficiary'));
     if (!confirmed) return;
 
     try {
@@ -78,14 +79,12 @@ export default function BeneficiairesPage() {
       setBeneficiaires(prev => prev.filter(b => b.ben_id !== id));
     } catch (err) {
       console.error('Erreur suppression:', err);
-      alert("Une erreur est survenue lors de la suppression.");
+      alert(t('error_deleting_beneficiary'));
     }
   };
 
-  // Create a ref to programmatically trigger the hidden file input
   const importRef = useRef<HTMLInputElement>(null);
 
-  // Function to simulate a click on the hidden input (opens the file dialog)
   const triggerImport = () => {
     importRef.current?.click();
   };
@@ -119,7 +118,7 @@ export default function BeneficiairesPage() {
       }
     }
 
-    alert(`Import terminé.\n Succès : ${successCount}\n Échecs : ${errorCount}`);
+    alert(t('import_completed', { success: successCount, error: errorCount }));
     location.reload();
   };
 
@@ -127,9 +126,9 @@ export default function BeneficiairesPage() {
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Gestion des bénéficiaires</h1>
+          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('beneficiaries_management_title')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-          <p className="text-gray-600">Consultez, filtrez et gérez les bénéficiaires enregistrés dans le système.</p>
+          <p className="text-gray-600">{t('beneficiaries_management_description')}</p>
         </header>
 
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
@@ -138,21 +137,21 @@ export default function BeneficiairesPage() {
               onClick={() => router.push('/beneficiaires/add')}
               className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium"
             >
-              + Ajouter un bénéficiaire
+              {t('add_beneficiary')}
             </button>
 
             <button
               onClick={() => router.push('/beneficiaires/delete')}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
-              Supprimer bénéficiaire(s)
+              {t('delete_beneficiaries')}
             </button>
 
             <button
               onClick={triggerImport}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
-              Importer un fichier
+              {t('import_file')}
             </button>
             <ImportExcel
               ref={importRef}
@@ -162,12 +161,11 @@ export default function BeneficiairesPage() {
               onPreview={handleImport}
             />
 
-
             <button
               onClick={() => router.push('/beneficiaires/export')}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
-              Exporter les données
+              {t('export_data')}
             </button>
 
             <a
@@ -175,20 +173,20 @@ export default function BeneficiairesPage() {
               download
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
-              Télécharger modèle Excel
+              {t('download_excel_template')}
             </a>
 
             <button
               onClick={() => router.push('/beneficiaires/dashboard')}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
-              Voir le dashboard
+              {t('view_dashboard')}
             </button>
           </div>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
           <BeneficiaireFilters
             filters={filters}
             onChange={handleChange}
@@ -199,10 +197,10 @@ export default function BeneficiairesPage() {
         </div>
 
         <section className="bg-white border rounded-2xl shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('beneficiaries_list')}</h2>
 
           {beneficiaires.length === 0 ? (
-            <p className="text-gray-600">Aucun bénéficiaire trouvé pour les filtres actuels.</p>
+            <p className="text-gray-600">{t('no_beneficiaries_found')}</p>
           ) : (
             <BeneficiaireTable
               beneficiaires={beneficiaires}

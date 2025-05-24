@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import ActiviteForm from '@/components/ActiviteForm';
 
 export default function UpdateActivitePage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
 
@@ -39,15 +41,15 @@ export default function UpdateActivitePage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier une activité</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('edit_activity')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Ajustez les champs ci-dessous pour mettre à jour l’activité.</p>
+              <p className="text-gray-600">{t('edit_activity_description')}</p>
             </div>
             <Link
               href="/activites"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -56,7 +58,7 @@ export default function UpdateActivitePage() {
           {initialData && (
             <ActiviteForm
               initialData={initialData}
-              submitLabel="Enregistrer les modifications"
+              submitLabel={t('save_changes')}
               onSubmit={async (data) => {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
                   method: 'PUT',
@@ -68,7 +70,7 @@ export default function UpdateActivitePage() {
                   router.push('/activites');
                 } else {
                   const err = await res.json();
-                  alert(err.message || 'Erreur lors de la mise à jour');
+                  alert(err.message || t('update_error'));
                 }
               }}
             />

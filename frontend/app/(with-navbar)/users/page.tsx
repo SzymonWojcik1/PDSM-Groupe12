@@ -122,13 +122,13 @@ export default function UsersPage() {
           value: role.value,
           label:
             role.value === 'cn'
-              ? 'Coordination nationale'
+              ? t('coordination_nationale')
               : role.value === 'cr'
-              ? 'Coordination régionale'
+              ? t('coordination_regionale')
               : role.value === 'siege'
-              ? 'Siège'
+              ? t('siege')
               : role.value === 'utilisateur'
-              ? 'Utilisateur'
+              ? t('utilisateur')
               : role.label
         }))
         setRoles(rolesWithLabels)
@@ -167,14 +167,14 @@ export default function UsersPage() {
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">Filtres</h2>
+          <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('filters')}</h2>
           <div className="flex flex-wrap gap-3 items-end">
             <input
               type="text"
               name="search"
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              placeholder="Rechercher par nom ou prénom..."
+              placeholder={t('search_by_name_firstname')}
               className="px-4 py-2 rounded text-sm bg-white border border-gray-300 text-black"
             />
 
@@ -215,7 +215,7 @@ export default function UsersPage() {
               onClick={resetFilters}
               className="px-4 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 text-sm"
             >
-              Réinitialiser
+              {t('reset')}
             </button>
           </div>
         </div>

@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
 
 export default function SupprimerBeneficiairesPage() {
+  const { t } = useTranslation();
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
@@ -63,7 +65,7 @@ export default function SupprimerBeneficiairesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = confirm('Êtes-vous sûr de vouloir supprimer ce bénéficiaire ?');
+    const confirmed = confirm(t('confirm_delete_beneficiary'));
     if (!confirmed) return;
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
@@ -71,12 +73,12 @@ export default function SupprimerBeneficiairesPage() {
       setSelectedIds(prev => prev.filter(x => x !== id));
     } catch (err) {
       console.error('Erreur suppression:', err);
-      alert('Une erreur est survenue.');
+      alert(t('error_occurred'));
     }
   };
 
   const deleteSelected = async () => {
-    const confirmed = confirm('Confirmer la suppression des bénéficiaires sélectionnés ?');
+    const confirmed = confirm(t('confirm_delete_selection'));
     if (!confirmed) return;
     for (const id of selectedIds) {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
@@ -91,15 +93,15 @@ export default function SupprimerBeneficiairesPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Supprimer des bénéficiaires</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('delete_beneficiaries_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Sélectionnez les bénéficiaires à supprimer en utilisant les filtres.</p>
+              <p className="text-gray-600">{t('delete_beneficiaries_description')}</p>
             </div>
             <Link
               href="/beneficiaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -114,19 +116,19 @@ export default function SupprimerBeneficiairesPage() {
                 : 'bg-[#9F0F3A] text-white hover:bg-[#800d30]'
             }`}
           >
-            Supprimer la sélection
+            {t('delete_selection')}
           </button>
 
           <button
             onClick={toggleSelectAll}
             className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
           >
-            {beneficiaires.every(b => selectedIds.includes(b.ben_id)) ? 'Tout désélectionner' : 'Tout sélectionner'}
+            {beneficiaires.every(b => selectedIds.includes(b.ben_id)) ? t('deselect_all') : t('select_all')}
           </button>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Filtrer les bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
           <BeneficiaireFilters
             filters={filters}
             onChange={handleChange}
@@ -137,10 +139,10 @@ export default function SupprimerBeneficiairesPage() {
         </div>
 
         <section className="bg-white border rounded-2xl shadow-sm p-6">
-        <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">Liste des bénéficiaires</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('beneficiaries_list')}</h2>
 
           {beneficiaires.length === 0 ? (
-            <p className="text-gray-600">Aucun bénéficiaire trouvé.</p>
+            <p className="text-gray-600">{t('no_beneficiaries_found')}</p>
           ) : (
             <BeneficiaireTable
               beneficiaires={beneficiaires}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { countriesByRegion } from '@/lib/countriesByRegion';
 
 type FilterProps = {
@@ -19,12 +20,14 @@ type FilterProps = {
 };
 
 export default function BeneficiaireFilters({ filters, onChange, onRegionChange, onReset, enums }: FilterProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <input
         type="text"
         name="search"
-        placeholder="Rechercher par nom ou prénom"
+        placeholder={t('search_by_name_firstname')}
         value={filters.search}
         onChange={onChange}
         className="h-10 px-3 rounded-lg border border-gray-300 bg-white text-sm"
@@ -36,7 +39,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         onChange={(e) => onRegionChange(e.target.value)}
         className="h-10 px-3 rounded-lg border border-gray-300 bg-white text-sm"
       >
-        <option value="">-- Région --</option>
+        <option value="">{t('select_region')}</option>
         {Object.keys(countriesByRegion).map((region) => (
           <option key={region} value={region}>{region}</option>
         ))}
@@ -49,7 +52,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         disabled={!filters.region}
         className="h-10 px-3 rounded-lg border border-gray-300 bg-white text-sm"
       >
-        <option value="">-- Pays --</option>
+        <option value="">{t('select_country')}</option>
         {filters.region && countriesByRegion[filters.region as keyof typeof countriesByRegion]?.map((country) => (
           <option key={country} value={country}>{country}</option>
         ))}
@@ -63,7 +66,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
           onChange={onChange}
           className="h-10 px-3 rounded-lg border border-gray-300 bg-white text-sm"
         >
-          <option value="">-- {field.charAt(0).toUpperCase() + field.slice(1)} --</option>
+          <option value="">{t(`select_${field}`)}</option>
           {enums[field]?.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
@@ -76,7 +79,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
           onClick={onReset}
           className="px-4 py-2 mt-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm"
         >
-          Réinitialiser les filtres
+          {t('reset_filters')}
         </button>
       </div>
     </div>

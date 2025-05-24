@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
 
 type ImportExcelProps = {
@@ -13,6 +14,7 @@ type ImportExcelProps = {
 // ForwardRef component so we can trigger file input
 const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
   ({ fromCol = 0, toCol = 6, dateFields = [], onPreview }, ref) => {
+    const { t } = useTranslation();
 
     // Called when a file is selected
     const handleExcelFile = (file: File) => {
@@ -34,7 +36,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
         const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (rawRows.length <= 3) {
-          console.warn('Pas assez de lignes (besoin de minimum 4)');
+          console.warn(t('not_enough_rows'));
           return;
         }
 
@@ -86,7 +88,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
           formatted.push(rowObj);
         }
 
-        console.log('Données importées :', formatted);
+        console.log(t('imported_data') + ':', formatted);
         onPreview?.(formatted);
       };
 
@@ -105,6 +107,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
         accept=".xlsx, .xls"
         onChange={handleChange}
         className="hidden"
+        title={t('import_excel')}
       />
     );
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import RegionCountrySelector from '@/components/regionCountrySelector';
@@ -31,7 +32,8 @@ type Props = {
   submitLabel?: string;
 };
 
-export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 'Enregistrer' }: Props) {
+export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<BeneficiaireFormData>(
     initialData || {
       ben_prenom: '', ben_nom: '', ben_date_naissance: '', ben_region: '', ben_pays: '',
@@ -124,12 +126,12 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
           onFocus={name === 'ben_ethnicite' ? () => setEthniciteFocused(true) : undefined}
           onBlur={name === 'ben_ethnicite' ? () => setEthniciteFocused(false) : undefined}
         />
-        {isEmpty && <p className="text-xs text-red-600">Ce champ est requis.</p>}
+        {isEmpty && <p className="text-xs text-red-600">{t('field_required')}</p>}
         {isInvalidName && (
           <p className="text-xs text-red-600">
             {value.length > 50
-              ? 'Maximum 50 caractères autorisés.'
-              : 'Caractères non autorisés. Seules les lettres, - et \' sont permis.'}
+              ? t('max_chars')
+              : t('invalid_chars')}
           </p>
         )}
       </div>
@@ -138,11 +140,11 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {renderField('Prénom*', 'ben_prenom')}
-      {renderField('Nom*', 'ben_nom')}
+      {renderField(t('firstname'), 'ben_prenom')}
+      {renderField(t('lastname'), 'ben_nom')}
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-left">Date de naissance*</label>
+        <label className="text-sm font-medium text-left">{t('birthdate')}</label>
         <DatePicker
           selected={form.ben_date_naissance ? new Date(form.ben_date_naissance) : null}
           onChange={(date: Date | null) =>
@@ -155,7 +157,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
           }
           dateFormat="yyyy-MM-dd"
           className={`border p-2 rounded w-full ${showErrors && !form.ben_date_naissance ? 'border-red-500' : ''}`}
-          placeholderText="Choisir une date"
+          placeholderText={t('choose_date')}
           showYearDropdown
           showMonthDropdown
           dropdownMode="select"
@@ -174,22 +176,52 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
         initialCountry={form.ben_pays}
       />
 
-      <EnumSelect name="ben_type" label="Type*" options={enums.type || []} value={form.ben_type} onChange={handleChange} error={!form.ben_type && showErrors} errorMessage="Veuillez sélectionner un type" />
-      {form.ben_type === 'other' && renderField('Type autre', 'ben_type_autre', 'text', undefined, true)}
+      <EnumSelect 
+        name="ben_type" 
+        label={t('type')} 
+        options={enums.type || []} 
+        value={form.ben_type} 
+        onChange={handleChange} 
+        error={!form.ben_type && showErrors} 
+        errorMessage={t('select_type')} 
+      />
+      {form.ben_type === 'other' && renderField(t('other_type'), 'ben_type_autre', 'text', undefined, true)}
 
-      <EnumSelect name="ben_zone" label="Zone*" options={enums.zone || []} value={form.ben_zone} onChange={handleChange} error={!form.ben_zone && showErrors} errorMessage="Veuillez sélectionner une zone" />
+      <EnumSelect 
+        name="ben_zone" 
+        label={t('zone')} 
+        options={enums.zone || []} 
+        value={form.ben_zone} 
+        onChange={handleChange} 
+        error={!form.ben_zone && showErrors} 
+        errorMessage={t('select_zone')} 
+      />
 
-      <EnumSelect name="ben_sexe" label="Sexe*" options={enums.sexe || []} value={form.ben_sexe} onChange={handleChange} error={!form.ben_sexe && showErrors} errorMessage="Veuillez sélectionner un sexe" />
-      {form.ben_sexe === 'other' && renderField('Sexe autre', 'ben_sexe_autre', 'text', undefined, true)}
+      <EnumSelect 
+        name="ben_sexe" 
+        label={t('sex')} 
+        options={enums.sexe || []} 
+        value={form.ben_sexe} 
+        onChange={handleChange} 
+        error={!form.ben_sexe && showErrors} 
+        errorMessage={t('select_sex')} 
+      />
+      {form.ben_sexe === 'other' && renderField(t('other_sex'), 'ben_sexe_autre', 'text', undefined, true)}
 
-      <EnumSelect name="ben_genre" label="Genre" options={enums.genre || []} value={form.ben_genre} onChange={handleChange} />
-      {form.ben_genre === 'other' && renderField('Genre autre', 'ben_genre_autre')}
+      <EnumSelect 
+        name="ben_genre" 
+        label={t('gender')} 
+        options={enums.genre || []} 
+        value={form.ben_genre} 
+        onChange={handleChange} 
+      />
+      {form.ben_genre === 'other' && renderField(t('other_gender'), 'ben_genre_autre')}
 
       <div className="flex flex-col gap-1 relative">
-        {renderField('Ethnicité*', 'ben_ethnicite')}
+        {renderField(t('ethnicity'), 'ben_ethnicite')}
         {ethniciteFocused && (
           <p className="text-xs text-gray-600 mt-1">
-            L&apos;ethnicité, ou appartenance ethnique, une assignation sociale et une représentation, attribuées à un individu ou à un groupe humain, en fonction de critères culturels ou de leur apparence physique.
+            {t('ethnicity_help')}
           </p>
         )}
       </div>
@@ -199,9 +231,9 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel = 
         className={`w-full font-semibold py-2 rounded
           ${!isFormValid() ? 'bg-gray-400 text-white' : 'bg-[#9F0F3A] text-white hover:bg-[#800d30]'}
         `}
-        title={!isFormValid() ? 'Veuillez remplir tous les champs obligatoires.' : ''}
+        title={!isFormValid() ? t('fill_required_fields') : ''}
       >
-        {submitLabel}
+        {submitLabel || t('save')}
       </button>
     </form>
   );

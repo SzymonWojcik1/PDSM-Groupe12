@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 type Partenaire = {
   part_id: number;
@@ -10,6 +11,7 @@ type Partenaire = {
 };
 
 export default function UpdateProjetPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
 
@@ -58,12 +60,12 @@ export default function UpdateProjetPage() {
     const now = new Date();
 
     if (debut > fin) {
-      setErrorMessage("La date de début ne peut pas être après la date de fin.");
+      setErrorMessage(t('date_start_after_end'));
       return;
     }
 
     if (debut < now || fin < now) {
-      setErrorMessage("Les dates du projet ne peuvent pas être dans le passé.");
+      setErrorMessage(t('date_in_past'));
       return;
     }
 
@@ -76,7 +78,7 @@ export default function UpdateProjetPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setErrorMessage(data.message || 'Une erreur est survenue');
+      setErrorMessage(data.message || t('error_occurred'));
       return;
     }
 
@@ -89,15 +91,15 @@ export default function UpdateProjetPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier un projet</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_project_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Ajustez les informations du projet ci-dessous.</p>
+              <p className="text-gray-600">{t('update_project_description')}</p>
             </div>
             <Link
               href="/projets"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
@@ -111,7 +113,7 @@ export default function UpdateProjetPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom du projet</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('project_name')}</label>
               <input
                 type="text"
                 name="pro_nom"
@@ -124,7 +126,7 @@ export default function UpdateProjetPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('start_date')}</label>
                 <input
                   type="date"
                   name="pro_dateDebut"
@@ -135,7 +137,7 @@ export default function UpdateProjetPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('end_date')}</label>
                 <input
                   type="date"
                   name="pro_dateFin"
@@ -148,7 +150,7 @@ export default function UpdateProjetPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Partenaire</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('partner')}</label>
               <select
                 name="pro_part_id"
                 value={formData.pro_part_id}
@@ -156,7 +158,7 @@ export default function UpdateProjetPage() {
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 required
               >
-                <option value="">Sélectionner un partenaire</option>
+                <option value="">{t('select_partner')}</option>
                 {partenaires.map((p) => (
                   <option key={p.part_id} value={p.part_id}>
                     {p.part_nom}
@@ -170,7 +172,7 @@ export default function UpdateProjetPage() {
                 type="submit"
                 className="bg-[#9F0F3A] text-white px-6 py-2 rounded hover:bg-[#800d30] transition"
               >
-                Enregistrer les modifications
+                {t('save_changes')}
               </button>
             </div>
           </form>

@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function VerifyPage() {
+  const { t, i18n } = useTranslation('common', { useSuspense: false })
   const router = useRouter()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const token = localStorage.getItem('token')
     if (!token) {
       router.replace('/login')
@@ -23,7 +29,7 @@ export default function VerifyPage() {
 
     const token = localStorage.getItem('token')
     if (!token) {
-      setError('Aucun token trouvé. Veuillez vous reconnecter.')
+      setError(t('2fa_error_no_token'))
       setLoading(false)
       router.replace('/login')
       return
@@ -42,7 +48,7 @@ export default function VerifyPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || 'Code invalide.')
+        throw new Error(data.message || t('2fa_error_invalid_code'))
       }
 
       localStorage.setItem('2fa_validated', 'true')
@@ -54,21 +60,26 @@ export default function VerifyPage() {
     }
   }
 
+  if (!mounted || !i18n.isInitialized) return null
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="absolute top-4 right-4 w-40">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8 space-y-6">
         <h2 className="text-2xl font-semibold text-center text-gray-800">
-          Vérification en deux étapes
+          {t('2fa_title')}
         </h2>
 
         <p className="text-sm text-gray-600 text-center">
-          Un code a été envoyé à votre adresse e-mail. Veuillez le saisir ci-dessous :
+          {t('2fa_description')}
         </p>
 
         <form onSubmit={handleVerify} className="space-y-4">
           <div>
             <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-              Code de vérification
+              {t('2fa_code_label')}
             </label>
             <input
               type="text"
@@ -87,7 +98,7 @@ export default function VerifyPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
           >
-            {loading ? 'Vérification...' : 'Valider le code'}
+            {loading ? t('2fa_verifying') : t('2fa_button')}
           </button>
         </form>
       </div>

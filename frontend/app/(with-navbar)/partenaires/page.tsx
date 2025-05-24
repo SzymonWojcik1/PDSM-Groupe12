@@ -88,14 +88,14 @@ export default function PartenairesPage() {
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">Filtres</h2>
+          <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('filters')}</h2>
           <div className="flex flex-wrap gap-3 items-end">
             <input
               type="text"
               name="nom"
               value={filters.nom}
               onChange={handleChange}
-              placeholder="Rechercher par nom..."
+              placeholder={t('search_by_name')}
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
             />
 
@@ -105,7 +105,7 @@ export default function PartenairesPage() {
               onChange={(e) => handleRegionChange(e.target.value)}
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
             >
-              <option value="">Toutes les régions</option>
+              <option value="">{t('all_regions')}</option>
               {Object.keys(countriesByRegion).map(region => (
                 <option key={region} value={region}>{region}</option>
               ))}
@@ -118,7 +118,7 @@ export default function PartenairesPage() {
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
               disabled={!filters.region}
             >
-              <option value="">Tous les pays</option>
+              <option value="">{t('all_countries')}</option>
               {(countriesByRegion as Record<string, string[]>)[filters.region]?.map(pays => (
                 <option key={pays} value={pays}>{pays}</option>
               ))}
@@ -128,7 +128,7 @@ export default function PartenairesPage() {
               onClick={resetFilters}
               className="px-4 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 text-sm"
             >
-              Réinitialiser
+              {t('reset')}
             </button>
           </div>
         </div>
