@@ -33,5 +33,7 @@ class UserSeeder extends Seeder
                 'partenaire_id' => $partenaire->part_id,
             ]);
         }
+
+        
     }
 }
