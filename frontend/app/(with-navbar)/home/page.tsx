@@ -9,17 +9,17 @@ export default function HomePage() {
       </p>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-      <Card title="Bénéficiaires" href="/beneficiaires" description="Gérer les bénéficiaires enregistrés dans le système." />
-      <Card title="Activités" href="/activites" description="Consulter ou créer de nouvelles activités." />
-      <Card title="Projets" href="/projets" description="Accéder à la liste des projets et leurs détails." />
-      <Card title="Partenaires" href="/partenaires" description="Visualiser les partenaires associés aux projets." />
-      <Card title="Cadre logique" href="/cadre-logique" description="Voir les cadres logiques." />
-      {typeof window !== 'undefined' && localStorage.getItem('role') === 'siege' && (
-        <Card title="Utilisateurs" href="/users" description="Gérer les comptes utilisateurs et leurs rôles." />
-      )}
-      <Card title="Mon profil" href="/profil" description="Consulter ou modifier les informations de votre compte." />
-    </section>
-
+        <Card title="Bénéficiaires" href="/beneficiaires" description="Gérer les bénéficiaires enregistrés dans le système." />
+        <Card title="Activités" href="/activites" description="Consulter ou créer de nouvelles activités." />
+        <Card title="Projets" href="/projets" description="Accéder à la liste des projets et leurs détails." />
+        <Card title="Partenaires" href="/partenaires" description="Visualiser les partenaires associés aux projets." />
+        <Card title="Cadre logique" href="/cadre-logique" description="Voir les cadres logiques." />
+        <Card title="Évaluations" href="/evaluation" description="Consulter ou créer des évaluations des partenaires." />
+        {typeof window !== 'undefined' && localStorage.getItem('role') === 'siege' && (
+          <Card title="Utilisateurs" href="/users" description="Gérer les comptes utilisateurs et leurs rôles." />
+        )}
+        <Card title="Mon profil" href="/profil" description="Consulter ou modifier les informations de votre compte." />
+      </section>
     </div>
   )
 }

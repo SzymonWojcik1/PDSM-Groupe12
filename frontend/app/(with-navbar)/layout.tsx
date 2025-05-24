@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -14,10 +14,12 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  UserCircle
+  UserCircle,
+  ClipboardList
 } from 'lucide-react'
 
 import ProtectedRoute from '@/components/ProtectedRoute'
+
 
 const navItems = [
   { name: 'Accueil', href: '/home', icon: Home },
@@ -26,6 +28,7 @@ const navItems = [
   { name: 'Projets', href: '/projets', icon: Folder },
   { name: 'Partenaires', href: '/partenaires', icon: Building },
   { name: 'Cadre logique', href: '/cadre-logique', icon: ChartLine },
+  { name: 'Évaluations', href: '/evaluation', icon: ClipboardList }, 
   { name: 'Utilisateurs', href: '/users', icon: Users },
 ]
 
@@ -75,29 +78,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </button>
 
             <nav className="space-y-2 mt-10">
-            {navItems
-              .filter(({ href }) => {
-                if (href === '/users') {
-                  const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null
-                  return role === 'siege'
-                }
-                return true
-              })
-              .map(({ name, href, icon: Icon }) => {
-
-                const isActive = pathname.startsWith(href)
-                return (
-                  <Link key={href} href={href}>
-                    <div
-                      className={`flex items-center gap-3 px-2 py-2 rounded cursor-pointer transition 
-                        ${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-200 text-gray-800'}`}
-                    >
-                      <Icon size={20} />
-                      {open && <span>{name}</span>}
-                    </div>
-                  </Link>
-                )
-              })}
+              {navItems
+                .filter(({ href }) => {
+                  if (href === '/users') {
+                    const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null
+                    return role === 'siege'
+                  }
+                  return true
+                })
+                .map(({ name, href, icon: Icon }) => {
+                  const isActive = pathname.startsWith(href)
+                  return (
+                    <Link key={href} href={href}>
+                      <div
+                        className={`flex items-center gap-3 px-2 py-2 rounded cursor-pointer transition 
+                          ${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-200 text-gray-800'}`}
+                      >
+                        <Icon size={20} />
+                        {open && <span>{name}</span>}
+                      </div>
+                    </Link>
+                  )
+                })}
             </nav>
           </div>
 
