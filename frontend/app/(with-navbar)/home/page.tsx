@@ -49,6 +49,11 @@ export default function HomePage() {
             href="/cadre-logique"
             description={t('card_logframe_desc')}
           />
+          <Card 
+              title="Évaluations" 
+              href="/evaluation" 
+              description="Consulter ou créer des évaluations des partenaires." 
+          />
           {role === 'siege' && (
             <Card
               title={t('card_users_title')}

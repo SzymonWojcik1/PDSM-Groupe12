@@ -16,6 +16,7 @@ use App\Http\Controllers\OutcomeController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\IndicateurController;
 use App\Http\Controllers\IndicateurActiviteController;
+use App\Http\Controllers\EvaluationController;
 
 
 
@@ -163,3 +164,16 @@ Route::get('/indicateur/{id}/beneficiaires-count', function ($id) {
 
     return response()->json(['count' => $count]);
 });
+
+
+Route::controller(EvaluationController::class)->group(function () {
+        Route::get('/evaluations', 'index');
+        Route::post('/evaluations', 'store');
+        Route::get('/evaluations/{id}', 'show');
+        Route::patch('/evaluations/{id}/soumettre', 'updateStatut');
+        Route::get('/mes-evaluations','mesEvaluations');
+        Route::put('/evaluations/{id}','update');
+        Route::get('/mes-evaluations/count', 'countMesEvaluations');
+
+});
+

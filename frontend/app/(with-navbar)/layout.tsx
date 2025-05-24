@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -14,6 +14,7 @@ import {
   ChartLine,
   LogOut,
   UserCircle,
+  ClipboardList
 } from 'lucide-react'
 
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -21,6 +22,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n' // à inclure UNE fois côté client
+
 
 const navItems = [
   { key: 'home', href: '/home', icon: Home },
@@ -30,6 +32,7 @@ const navItems = [
   { key: 'partners', href: '/partenaires', icon: Building },
   { key: 'logframe', href: '/cadre-logique', icon: ChartLine },
   { key: 'users', href: '/users', icon: Users },
+  { key: 'Évaluations', href: '/evaluation', icon: ClipboardList }, 
 ]
 
 export default function Layout({ children }: { children: React.ReactNode }) {
