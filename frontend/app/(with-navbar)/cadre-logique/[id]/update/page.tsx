@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Pencil, Trash } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
+import ModalInput from '@/components/ModalInput';
 
 type Indicateur = {
   ind_id: number;
@@ -35,17 +34,81 @@ type Objectif = {
   outcomes: Outcome[];
 };
 
-export default function UpdateCadreLogiquePage() {
-  const { t } = useTranslation();
-  const { id } = useParams();
-  const router = useRouter();
+// Contexte de la modale : modifier obj, out, opu ou ind
+type ModalContext =
+  | { type: 'obj'; id: number; currentName: string; url: string }
+  | { type: 'out'; id: number; currentName: string; url: string }
+  | { type: 'opu'; id: number; currentName: string; url: string }
+  | { type: 'indicateur'; ind: Indicateur; url: string }
+  | null;
 
+type ModalIndicateurInputProps = {
+  currentName: string;
+  currentValue: number;
+  onConfirm: (nom: string, valeur: number) => void;
+  onClose: () => void;
+};
+
+function ModalIndicateurInput({
+  currentName,
+  currentValue,
+  onConfirm,
+  onClose,
+}: ModalIndicateurInputProps) {
+  const [nom, setNom] = useState(currentName);
+  const [valeur, setValeur] = useState(currentValue.toString());
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
+        <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Modifier un indicateur</h2>
+        <label className="block text-sm font-medium mb-1">Nom de l’indicateur</label>
+        <input
+          type="text"
+          value={nom}
+          onChange={(e) => setNom(e.target.value)}
+          placeholder="Nom"
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-3"
+        />
+        <label className="block text-sm font-medium mb-1">Valeur cible</label>
+        <input
+          type="number"
+          value={valeur}
+          onChange={(e) => setValeur(e.target.value)}
+          placeholder="Valeur cible"
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+        />
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
+            Annuler
+          </button>
+          <button
+            onClick={() => {
+              const parsed = parseInt(valeur, 10);
+              if (nom.trim() && !isNaN(parsed)) {
+                onConfirm(nom.trim(), parsed);
+              }
+            }}
+            className="px-4 py-2 bg-[#9F0F3A] text-white rounded hover:bg-[#800d30]"
+          >
+            Valider
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function UpdateCadreLogiquePage() {
+  const { id } = useParams();
   const [cadNom, setCadNom] = useState('');
   const [annee, setAnnee] = useState<number | ''>('');
   const [cadDateDebut, setCadDateDebut] = useState('');
   const [cadDateFin, setCadDateFin] = useState('');
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
+  const [modalContext, setModalContext] = useState<ModalContext>(null);
 
+  // Dates auto
   useEffect(() => {
     if (typeof annee === 'number' && !isNaN(annee)) {
       setCadDateDebut(`${annee}-01-01`);
@@ -53,6 +116,7 @@ export default function UpdateCadreLogiquePage() {
     }
   }, [annee]);
 
+  // Chargement initial
   useEffect(() => {
     const load = async () => {
       try {
@@ -61,37 +125,14 @@ export default function UpdateCadreLogiquePage() {
         setCadNom(data.cad_nom || '');
         setCadDateDebut(data.cad_dateDebut || '');
         setCadDateFin(data.cad_dateFin || '');
-        const year = new Date(data.cad_dateDebut).getFullYear();
-        setAnnee(year);
+        setAnnee(new Date(data.cad_dateDebut).getFullYear());
       } catch (err) {
-        console.error(t('loading_error'), err);
+        console.error(err);
       }
-
       fetchObjectifs();
     };
-
     load();
-  }, [id, t]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cadNom || !cadDateDebut || !cadDateFin) return alert(t('all_fields_required'));
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cad_nom: cadNom,
-          cad_dateDebut: cadDateDebut,
-          cad_dateFin: cadDateFin,
-        }),
-      });
-      alert(t('update_success'));
-    } catch (err) {
-      console.error(t('update_failed'), err);
-      alert(t('update_failed'));
-    }
-  };
+  }, [id]);
 
   const fetchObjectifs = async () => {
     try {
@@ -99,7 +140,7 @@ export default function UpdateCadreLogiquePage() {
       const data: Objectif[] = await res.json();
       setObjectifs(data);
     } catch (err) {
-      console.error('Erreur chargement hiérarchie :', err);
+      console.error(err);
     }
   };
 
@@ -113,52 +154,46 @@ export default function UpdateCadreLogiquePage() {
   };
 
   const supprimerElement = async (url: string) => {
-    if (!confirm("Supprimer cet élément ?")) return;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
-      method: 'DELETE'
-    });
+    if (!confirm('Supprimer cet élément ?')) return;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, { method: 'DELETE' });
     if (res.ok) fetchObjectifs();
   };
 
-  const modifierTexte = async (type: string, id: number, nomActuel: string, url: string, field = 'nom') => {
-    const nom = prompt(t('new_name_for', { type }), nomActuel);
-    if (nom) await modifierNom(url, { [`${type}_${field}`]: nom });
-  };
-
-  const modifierIndicateur = async (ind: Indicateur) => {
-    const nom = prompt(t('new_indicator_name'), ind.ind_nom);
-    if (!nom) return;
-
-    const val = prompt(t('new_target_value'), ind.ind_valeurCible.toString());
-    if (!val || isNaN(parseInt(val))) return;
-
-    await modifierNom(`indicateurs/${ind.ind_id}`, {
-        ind_nom: nom,
-        ind_valeurCible: parseInt(val),
-        ind_code: ind.ind_code,
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cadNom || !cadDateDebut || !cadDateFin) return alert('Tous les champs sont requis.');
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cad_nom: cadNom, cad_dateDebut: cadDateDebut, cad_dateFin: cadDateFin }),
+      });
+      alert('Cadre logique mis à jour.');
+    } catch (err) {
+      console.error(err);
+      alert('Échec de la mise à jour.');
+    }
   };
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
+        {/* En-tête */}
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_logframe')}</h1>
+            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier le cadre logique</h1>
             <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           </div>
-          <Link
-            href="/cadre-logique"
-            className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
-          >
-            {t('back_to_list')}
+          <Link href="/cadre-logique" className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea]">
+            Retour à la liste
           </Link>
         </header>
 
+        {/* Formulaire de cadre */}
         <div className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block font-semibold mb-1">{t('logframe_name')}</label>
+              <label className="block font-semibold mb-1">Nom du cadre</label>
               <input
                 type="text"
                 value={cadNom}
@@ -168,7 +203,7 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">{t('start_year')}</label>
+              <label className="block font-semibold mb-1">Année de début</label>
               <input
                 type="number"
                 value={annee}
@@ -178,41 +213,33 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">{t('auto_start_date')}</label>
-              <input
-                type="date"
-                value={cadDateDebut}
-                readOnly
-                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
-              />
+              <label className="block font-semibold mb-1">Date de début automatique</label>
+              <input type="date" value={cadDateDebut} readOnly className="w-full border border-gray-300 rounded p-2 bg-gray-100" />
             </div>
             <div>
-              <label className="block font-semibold mb-1">{t('auto_end_date')}</label>
-              <input
-                type="date"
-                value={cadDateFin}
-                readOnly
-                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
-              />
+              <label className="block font-semibold mb-1">Date de fin automatique</label>
+              <input type="date" value={cadDateFin} readOnly className="w-full border border-gray-300 rounded p-2 bg-gray-100" />
             </div>
-            <button
-              type="submit"
-              className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"
-            >
-              {t('save_changes')}
+            <button type="submit" className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30]">
+              Enregistrer les modifications
             </button>
           </form>
         </div>
 
-        {objectifs.map((obj, i) => (
+        {/* Liste des objectifs */}
+        {objectifs.map((obj) => (
           <div key={obj.obj_id} className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-gray-800">{obj.obj_nom}</h2>
               <div className="flex gap-2">
-                <button onClick={() => modifierTexte('obj', obj.obj_id, obj.obj_nom, `objectifs-generaux/${obj.obj_id}`)} title={t('edit')}>
+                <button
+                  onClick={() =>
+                    setModalContext({ type: 'obj', id: obj.obj_id, currentName: obj.obj_nom, url: `objectifs-generaux/${obj.obj_id}` })
+                  }
+                >
                   <Pencil className="w-4 h-4 text-gray-600" />
                 </button>
-                <button onClick={() => supprimerElement(`objectifs-generaux/${obj.obj_id}`)} title={t('delete')}>
+                <button onClick={() => supprimerElement(`objectifs-generaux/${obj.obj_id}`)}>
                   <Trash className="w-4 h-4 text-red-500" />
                 </button>
               </div>
@@ -221,11 +248,11 @@ export default function UpdateCadreLogiquePage() {
             <table className="w-full text-sm border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('outcomes')}</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('outputs')}</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('indicators')}</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">{t('target_value')}</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">{t('actual_value')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">Valeur réelle</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,17 +261,29 @@ export default function UpdateCadreLogiquePage() {
                     op.indicateurs.map((ind, l) => (
                       <tr key={ind.ind_id}>
                         {k === 0 && l === 0 && (
-                          <td rowSpan={out.outputs.reduce((acc, o) => acc + (o.indicateurs.length || 1), 0)} className="border px-4 py-2 align-top">
+                          <td
+                            rowSpan={out.outputs.reduce((acc, o) => acc + (o.indicateurs.length || 1), 0)}
+                            className="border px-4 py-2 align-top"
+                          >
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold">{`${t('outcomes')} ${j + 1}`}</div>
+                                <div className="font-bold">{`Outcome ${j + 1}`}</div>
                                 <div>{out.out_nom}</div>
                               </div>
                               <div className="flex gap-2">
-                                <button onClick={() => modifierTexte('out', out.out_id, out.out_nom, `outcomes/${out.out_id}`)} title={t('edit')}>
+                                <button
+                                  onClick={() =>
+                                    setModalContext({
+                                      type: 'out',
+                                      id: out.out_id,
+                                      currentName: out.out_nom,
+                                      url: `outcomes/${out.out_id}`,
+                                    })
+                                  }
+                                >
                                   <Pencil className="w-4 h-4 text-gray-600" />
                                 </button>
-                                <button onClick={() => supprimerElement(`outcomes/${out.out_id}`)} title={t('delete')}>
+                                <button onClick={() => supprimerElement(`outcomes/${out.out_id}`)}>
                                   <Trash className="w-4 h-4 text-red-500" />
                                 </button>
                               </div>
@@ -255,14 +294,23 @@ export default function UpdateCadreLogiquePage() {
                           <td rowSpan={op.indicateurs.length || 1} className="border px-4 py-2 align-top">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold">{`${t('outputs')} ${j + 1}.${k + 1}`}</div>
+                                <div className="font-bold">{`Output ${j + 1}.${k + 1}`}</div>
                                 <div>{op.opu_nom}</div>
                               </div>
                               <div className="flex gap-2">
-                                <button onClick={() => modifierTexte('opu', op.opu_id, op.opu_nom, `outputs/${op.opu_id}`)} title={t('edit')}>
+                                <button
+                                  onClick={() =>
+                                    setModalContext({
+                                      type: 'opu',
+                                      id: op.opu_id,
+                                      currentName: op.opu_nom,
+                                      url: `outputs/${op.opu_id}`,
+                                    })
+                                  }
+                                >
                                   <Pencil className="w-4 h-4 text-gray-600" />
                                 </button>
-                                <button onClick={() => supprimerElement(`outputs/${op.opu_id}`)} title={t('delete')}>
+                                <button onClick={() => supprimerElement(`outputs/${op.opu_id}`)}>
                                   <Trash className="w-4 h-4 text-red-500" />
                                 </button>
                               </div>
@@ -270,20 +318,20 @@ export default function UpdateCadreLogiquePage() {
                           </td>
                         )}
                         <td className="border px-4 py-2">
-                        <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start">
                             <div>
-                            <span className="font-bold">{`${t('indicators')} ${j + 1}.${k + 1}.${l + 1}`}</span><br />
-                            {ind.ind_nom}
+                              <span className="font-bold">{`Indicateur ${j + 1}.${k + 1}.${l + 1}`}</span><br />
+                              {ind.ind_nom}
                             </div>
                             <div className="flex gap-2">
-                            <button onClick={() => modifierIndicateur(ind)} title={t('edit')}>
+                              <button onClick={() => setModalContext({ type: 'indicateur', ind, url: `indicateurs/${ind.ind_id}` })}>
                                 <Pencil className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button onClick={() => supprimerElement(`indicateurs/${ind.ind_id}`)} title={t('delete')}>
+                              </button>
+                              <button onClick={() => supprimerElement(`indicateurs/${ind.ind_id}`)}>
                                 <Trash className="w-4 h-4 text-red-500" />
-                            </button>
+                              </button>
                             </div>
-                        </div>
+                          </div>
                         </td>
                         <td className="border px-4 py-2">{ind.ind_valeurCible}</td>
                         <td className="border px-4 py-2 text-center">{ind.valeurReelle ?? '–'}</td>
@@ -296,6 +344,59 @@ export default function UpdateCadreLogiquePage() {
           </div>
         ))}
       </div>
+
+      {/* Modales dynamiques */}
+      {modalContext?.type === 'obj' && (
+        <ModalInput
+          title="Modifier objectif général"
+          label="Nom de l’objectif"
+          initialValue={modalContext.currentName}
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom) => {
+            await modifierNom(modalContext.url, { obj_nom: nom });
+            setModalContext(null);
+          }}
+        />
+      )}
+      {modalContext?.type === 'out' && (
+        <ModalInput
+          title="Modifier un outcome"
+          label="Nom de l’outcome"
+          initialValue={modalContext.currentName}
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom) => {
+            await modifierNom(modalContext.url, { out_nom: nom });
+            setModalContext(null);
+          }}
+        />
+      )}
+      {modalContext?.type === 'opu' && (
+        <ModalInput
+          title="Modifier un output"
+          label="Nom de l’output"
+          initialValue={modalContext.currentName}
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom) => {
+            await modifierNom(modalContext.url, { opu_nom: nom });
+            setModalContext(null);
+          }}
+        />
+      )}
+      {modalContext?.type === 'indicateur' && (
+        <ModalIndicateurInput
+          currentName={modalContext.ind.ind_nom}
+          currentValue={modalContext.ind.ind_valeurCible}
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom, valeur) => {
+            await modifierNom(modalContext.url, {
+              ind_nom: nom,
+              ind_valeurCible: valeur,
+              ind_code: modalContext.ind.ind_code,
+            });
+            setModalContext(null);
+          }}
+        />
+      )}
     </main>
   );
 }
