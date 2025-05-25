@@ -359,5 +359,9 @@
     "search_linked_activity": "Buscar una actividad vinculada...",
     "no_linked_activity": "Ninguna actividad vinculada",
     "beneficiaries": "beneficiario(s)",
-    "unlink": "Quitar"
+    "unlink": "Quitar",
+    "chatbot_title": "Asistente TdH",
+    "chatbot_placeholder": "Haz tu pregunta...",
+    "chatbot_loading": "Cargando...",
+    "chatbot_send": "Enviar"
 }

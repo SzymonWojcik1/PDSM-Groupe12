@@ -359,5 +359,9 @@
     "search_linked_activity": "Search a linked activity...",
     "no_linked_activity": "No linked activity",
     "beneficiaries": "beneficiary(ies)",
-    "unlink": "Unlink"
+    "unlink": "Unlink",
+    "chatbot_title": "TdH Assistant",
+    "chatbot_placeholder": "Ask your question...",
+    "chatbot_loading": "Loading...",
+    "chatbot_send": "Send"
 }

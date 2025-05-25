@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -19,10 +19,10 @@ import {
 
 import ProtectedRoute from '@/components/ProtectedRoute'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import ChatbotWidget from '@/components/ChatbotWidget'
 
 import { useTranslation } from 'react-i18next'
-import '@/lib/i18n' // à inclure UNE fois côté client
-
+import '@/lib/i18n'
 
 const navItems = [
   { key: 'home', href: '/home', icon: Home },
@@ -32,7 +32,7 @@ const navItems = [
   { key: 'partners', href: '/partenaires', icon: Building },
   { key: 'logframe', href: '/cadre-logique', icon: ChartLine },
   { key: 'users', href: '/users', icon: Users },
-  { key: 'Évaluations', href: '/evaluation', icon: ClipboardList }, 
+  { key: 'Évaluations', href: '/evaluation', icon: ClipboardList },
 ]
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -66,7 +66,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen">
+      <div className="fixed inset-0 flex overflow-hidden">
         <aside
           className={`relative bg-gray-100 border-r transition-all duration-300 ${
             open ? 'w-64' : 'w-16'
@@ -130,8 +130,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Chatbot flottant */}
+      <ChatbotWidget />
     </ProtectedRoute>
   )
 }
