@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
+import ModalInput from '@/components/ModalInput';
 
 type Indicateur = {
   ind_id: number;
@@ -34,18 +33,70 @@ type Objectif = {
   outcomes: Outcome[];
 };
 
+type ModalContext =
+  | { type: 'outcome'; objId: number; count: number }
+  | { type: 'output'; outId: number; count: number; outcomeIndex: number }
+  | { type: 'indicateur'; outId: number; opuId: number; count: number; outcomeIndex: number; outputIndex: number }
+  | null;
+
+type ModalIndicateurInputProps = {
+  onConfirm: (nom: string, valeur: number) => void;
+  onClose: () => void;
+};
+
+function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps) {
+  const [nom, setNom] = useState('');
+  const [valeur, setValeur] = useState('');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
+        <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Ajouter un indicateur</h2>
+        <label className="block text-sm font-medium mb-1">Nom de l’indicateur</label>
+        <input
+          type="text"
+          value={nom}
+          onChange={(e) => setNom(e.target.value)}
+          placeholder="Nom"
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-3"
+        />
+        <label className="block text-sm font-medium mb-1">Valeur cible</label>
+        <input
+          type="number"
+          value={valeur}
+          onChange={(e) => setValeur(e.target.value)}
+          placeholder="Valeur cible"
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+        />
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">Annuler</button>
+          <button
+            onClick={() => {
+              if (nom.trim() && !isNaN(parseInt(valeur))) {
+                onConfirm(nom.trim(), parseInt(valeur));
+              }
+            }}
+            className="px-4 py-2 bg-[#9F0F3A] text-white rounded hover:bg-[#800d30]"
+          >
+            Valider
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CadreLogiqueDetailPage() {
-  const { t, i18n } = useTranslation('common');
-  console.log('Langue active:', i18n.language, 'Traduction de objective:', t('objective'));
   const { id } = useParams();
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [nouveauObjectif, setNouveauObjectif] = useState('');
   const [error, setError] = useState('');
+  const [modalContext, setModalContext] = useState<ModalContext>(null);
 
   const fetchObjectifs = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
-      const data = await res.json();
+      const data: Objectif[] = await res.json();
       setObjectifs(data);
     } catch (err) {
       console.error('Erreur chargement hiérarchie :', err);
@@ -58,62 +109,21 @@ export default function CadreLogiqueDetailPage() {
 
   const ajouterObjectif = async () => {
     if (!nouveauObjectif.trim()) return;
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ obj_nom: nouveauObjectif, cad_id: id }),
     });
+
     if (res.ok) {
       setNouveauObjectif('');
       setError('');
       fetchObjectifs();
     } else {
       const data = await res.json();
-      setError(data.message || t('add_objective_error'));
+      setError(data.message || 'Erreur lors de l’ajout');
     }
-  };
-
-  const ajouterOutcome = async (objId: number, count: number) => {
-    const nom = prompt(t('new_outcome_name'));
-    if (!nom) return;
-    const out_code = `${count + 1}`;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ out_nom: nom, out_code, obj_id: objId }),
-    });
-    fetchObjectifs();
-  };
-
-  const ajouterOutput = async (outId: number, outputCount: number, outcomeIndex: number) => {
-    const nom = prompt(t('new_output_name'));
-    if (!nom) return;
-    const code = `${outcomeIndex + 1}.${outputCount + 1}`;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opu_nom: nom, opu_code: code, out_id: outId }),
-    });
-    fetchObjectifs();
-  };
-
-  const ajouterIndicateur = async (outId: number, opuId: number, indicateurCount: number, outcomeIndex: number, outputIndex: number) => {
-    const nom = prompt(t('new_indicator_name'));
-    const val = prompt(t('new_target_value'));
-    if (!nom || !val || isNaN(parseInt(val))) return;
-    const code = `${outcomeIndex + 1}.${outputIndex + 1}.${indicateurCount + 1}`;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ind_nom: nom,
-        ind_code: code,
-        ind_valeurCible: parseInt(val),
-        opu_id: opuId,
-        out_id: outId,
-      }),
-    });
-    fetchObjectifs();
   };
 
   return (
@@ -122,34 +132,34 @@ export default function CadreLogiqueDetailPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('fill_logframe')}</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Remplir le cadre logique</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">{t('add_outcomes_outputs_indicators')}</p>
+              <p className="text-gray-600">Ajoutez les outcomes, outputs et indicateurs pour chaque objectif.</p>
             </div>
             <Link
               href="/cadre-logique"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              {t('back_to_list')}
+              Retour à la liste
             </Link>
           </div>
         </header>
 
         <div className="bg-white p-6 rounded-xl shadow mb-8">
-          <h2 className="text-xl font-semibold mb-4">{t('add_general_objective')}</h2>
+          <h2 className="text-xl font-semibold mb-4">Ajouter un objectif général</h2>
           <div className="flex gap-3">
             <input
               type="text"
               value={nouveauObjectif}
               onChange={(e) => setNouveauObjectif(e.target.value)}
-              placeholder={t('objective_name_placeholder')}
+              placeholder="Nom de l’objectif"
               className="flex-1 border border-gray-300 rounded px-4 py-2"
             />
             <button
               onClick={ajouterObjectif}
               className="bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#800d30]"
             >
-              {t('add_objective')}
+              + Objectif
             </button>
           </div>
           {error && <p className="text-red-600 mt-2">{error}</p>}
@@ -157,21 +167,21 @@ export default function CadreLogiqueDetailPage() {
 
         {objectifs.map((obj, i) => (
           <div key={obj.obj_id} className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">{`${t('objective')} ${i + 1}`}</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{obj.obj_nom}</h2>
             <table className="w-full text-sm border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('results')}</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('products')}</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">{t('indicators')}</th>
-                  <th className="border px-4 py-2 w-1/10 text-left">{t('target_value')}</th>
-                  <th className="border px-4 py-2 w-1/8 text-left">{t('actual_value')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
+                  <th className="border px-4 py-2 w-1/10 text-left">Valeur cible</th>
+                  <th className="border px-4 py-2 w-1/8 text-left">Valeur réelle</th>
                 </tr>
               </thead>
               <tbody>
                 {obj.outcomes.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="border px-4 py-2 italic text-gray-400">{t('no_indicator')}</td>
+                    <td colSpan={4} className="border px-4 py-2 italic text-gray-400">Aucun indicateur</td>
                   </tr>
                 )}
                 {obj.outcomes.map((out, j) =>
@@ -180,17 +190,17 @@ export default function CadreLogiqueDetailPage() {
                       <td className="border px-4 py-2">
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-bold">{`${t('result')} ${j + 1}`}</div>
+                            <div className="font-bold">{`Outcome ${j + 1}`}</div>
                             <div>{out.out_nom}</div>
                           </div>
                           <button
-                            onClick={() => ajouterOutput(out.out_id, 0, j)}
+                            onClick={() => setModalContext({ type: 'output', outId: out.out_id, count: 0, outcomeIndex: j })}
                             className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                            {t('add_product')}
+                            + Output
                           </button>
                         </div>
                       </td>
-                      <td colSpan={3} className="border px-4 py-2 italic text-gray-400">{t('no_product')}</td>
+                      <td colSpan={3} className="border px-4 py-2 italic text-gray-400">Aucun output</td>
                     </tr>
                   ) : (
                     out.outputs.map((op, k) =>
@@ -200,13 +210,13 @@ export default function CadreLogiqueDetailPage() {
                             <td rowSpan={out.outputs.length} className="border px-4 py-2 align-top">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <div className="font-bold">{`${t('result')} ${j + 1}`}</div>
+                                  <div className="font-bold">{`Outcome ${j + 1}`}</div>
                                   <div>{out.out_nom}</div>
                                 </div>
                                 <button
-                                  onClick={() => ajouterOutput(out.out_id, out.outputs.length, j)}
+                                  onClick={() => setModalContext({ type: 'output', outId: out.out_id, count: out.outputs.length, outcomeIndex: j })}
                                   className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                  {t('add_product')}
+                                  + Output
                                 </button>
                               </div>
                             </td>
@@ -214,13 +224,13 @@ export default function CadreLogiqueDetailPage() {
                           <td className="border px-4 py-2">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold">{`${t('product')} ${j + 1}.${k + 1}`}</div>
+                                <div className="font-bold">{`Output ${j + 1}.${k + 1}`}</div>
                                 <div>{op.opu_nom}</div>
                               </div>
                               <button
-                                onClick={() => ajouterIndicateur(out.out_id, op.opu_id, 0, j, k)}
+                                onClick={() => setModalContext({ type: 'indicateur', outId: out.out_id, opuId: op.opu_id, count: 0, outcomeIndex: j, outputIndex: k })}
                                 className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                {t('add_indicator')}
+                                + Indicateur
                               </button>
                             </div>
                           </td>
@@ -234,13 +244,13 @@ export default function CadreLogiqueDetailPage() {
                               <td rowSpan={out.outputs.reduce((acc, o) => acc + (o.indicateurs.length || 1), 0)} className="border px-4 py-2 align-top">
                                 <div className="flex justify-between items-start">
                                   <div>
-                                    <div className="font-bold">{`${t('result')} ${j + 1}`}</div>
+                                    <div className="font-bold">{`Outcome ${j + 1}`}</div>
                                     <div>{out.out_nom}</div>
                                   </div>
                                   <button
-                                    onClick={() => ajouterOutput(out.out_id, out.outputs.length, j)}
+                                    onClick={() => setModalContext({ type: 'output', outId: out.out_id, count: out.outputs.length, outcomeIndex: j })}
                                     className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                    {t('add_product')}
+                                    + Output
                                   </button>
                                 </div>
                               </td>
@@ -249,19 +259,19 @@ export default function CadreLogiqueDetailPage() {
                               <td rowSpan={op.indicateurs.length || 1} className="border px-4 py-2 align-top">
                                 <div className="flex justify-between items-start">
                                   <div>
-                                    <div className="font-bold">{`${t('product')} ${j + 1}.${k + 1}`}</div>
+                                    <div className="font-bold">{`Output ${j + 1}.${k + 1}`}</div>
                                     <div>{op.opu_nom}</div>
                                   </div>
                                   <button
-                                    onClick={() => ajouterIndicateur(out.out_id, op.opu_id, op.indicateurs.length, j, k)}
+                                    onClick={() => setModalContext({ type: 'indicateur', outId: out.out_id, opuId: op.opu_id, count: op.indicateurs.length, outcomeIndex: j, outputIndex: k })}
                                     className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                    {t('add_indicator')}
+                                    + Indicateur
                                   </button>
                                 </div>
                               </td>
                             )}
                             <td className="border px-4 py-2">
-                              <span className="font-bold">{`${t('indicator')} ${j + 1}.${k + 1}.${l + 1}`}</span><br />
+                              <span className="font-bold">{`Indicateur ${j + 1}.${k + 1}.${l + 1}`}</span><br />
                               {ind.ind_nom}
                             </td>
                             <td className="border px-4 py-2">{ind.ind_valeurCible}</td>
@@ -274,9 +284,9 @@ export default function CadreLogiqueDetailPage() {
                               <br />
                               <Link
                                 href={`/cadre-logique/${id}/lier-activites?ind=${ind.ind_id}`}
-                                className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea] whitespace-nowrap"
+                                className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]"
                               >
-                                {t('link_activities')}
+                                + Lier activités
                               </Link>
                             </td>
                           </tr>
@@ -288,9 +298,9 @@ export default function CadreLogiqueDetailPage() {
                 <tr>
                   <td colSpan={4} className="px-4 py-2 text-right">
                     <button
-                      onClick={() => ajouterOutcome(obj.obj_id, obj.outcomes.length)}
+                      onClick={() => setModalContext({ type: 'outcome', objId: obj.obj_id, count: obj.outcomes.length })}
                       className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                      {t('add_result')}
+                      + Outcome
                     </button>
                   </td>
                 </tr>
@@ -299,6 +309,67 @@ export default function CadreLogiqueDetailPage() {
           </div>
         ))}
       </div>
+
+      {modalContext?.type === 'outcome' && (
+        <ModalInput
+          title="Ajouter un outcome"
+          label="Nom de l’outcome"
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom) => {
+            const { objId, count } = modalContext;
+            const code = `${count + 1}`;
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ out_nom: nom, out_code: code, obj_id: objId }),
+            });
+            setModalContext(null);
+            fetchObjectifs();
+          }}
+        />
+      )}
+
+      {modalContext?.type === 'output' && (
+        <ModalInput
+          title="Ajouter un output"
+          label="Nom de l’output"
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom) => {
+            const { outId, count, outcomeIndex } = modalContext;
+            const code = `${outcomeIndex + 1}.${count + 1}`;
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ opu_nom: nom, opu_code: code, out_id: outId }),
+            });
+            setModalContext(null);
+            fetchObjectifs();
+          }}
+        />
+      )}
+
+      {modalContext?.type === 'indicateur' && (
+        <ModalIndicateurInput
+          onClose={() => setModalContext(null)}
+          onConfirm={async (nom, valeur) => {
+            const { outId, opuId, count, outcomeIndex, outputIndex } = modalContext;
+            const code = `${outcomeIndex + 1}.${outputIndex + 1}.${count + 1}`;
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ind_nom: nom,
+                ind_code: code,
+                ind_valeurCible: valeur,
+                opu_id: opuId,
+                out_id: outId,
+              }),
+            });
+            setModalContext(null);
+            fetchObjectifs();
+          }}
+        />
+      )}
     </main>
   );
 }
