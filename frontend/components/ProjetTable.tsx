@@ -18,10 +18,19 @@ interface ProjetTableProps {
 
 export default function ProjetTable({ projets, onDelete }: ProjetTableProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (projets.length === 0) {
     return <p className="text-gray-600">{t('no_projects_found')}</p>;
+  }
+  function formatDate(dateString: string, locale = 'en') {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
   }
 
   return (
@@ -40,8 +49,12 @@ export default function ProjetTable({ projets, onDelete }: ProjetTableProps) {
           {projets.map((p) => (
             <tr key={p.pro_id} className="border-t hover:bg-gray-50">
               <td className="px-4 py-2 text-gray-800">{p.pro_nom}</td>
-              <td className="px-4 py-2 text-gray-800 whitespace-nowrap">{p.pro_dateDebut}</td>
-              <td className="px-4 py-2 text-gray-800 whitespace-nowrap">{p.pro_dateFin}</td>
+              <td className="px-4 py-2 text-gray-800 whitespace-nowrap">
+                {formatDate(p.pro_dateDebut, i18n.language)}
+              </td>
+              <td className="px-4 py-2 text-gray-800 whitespace-nowrap">
+                {formatDate(p.pro_dateFin, i18n.language)}
+              </td>
               <td className="px-4 py-2 text-gray-800">{p.partenaire?.part_nom}</td>
               <td className="px-4 py-2 space-x-2 whitespace-nowrap">
                 <button

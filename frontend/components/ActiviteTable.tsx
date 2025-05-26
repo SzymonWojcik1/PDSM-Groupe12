@@ -19,10 +19,19 @@ interface ActiviteTableProps {
 
 export default function ActiviteTable({ activites, onDelete }: ActiviteTableProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (activites.length === 0) {
     return <p className="text-gray-600">{t('no_activities_found')}</p>;
+  }
+  function formatDate(dateString: string, locale = 'en') {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
   }
 
   return (
@@ -42,8 +51,12 @@ export default function ActiviteTable({ activites, onDelete }: ActiviteTableProp
           {activites.map((a) => (
             <tr key={a.act_id} className="border-t hover:bg-gray-50">
               <td className="px-4 py-2 text-gray-800">{a.act_nom}</td>
-              <td className="px-4 py-2 whitespace-nowrap text-gray-800">{a.act_dateDebut}</td>
-              <td className="px-4 py-2 whitespace-nowrap text-gray-800">{a.act_dateFin}</td>
+              <td className="px-4 py-2 whitespace-nowrap text-gray-800">
+                {formatDate(a.act_dateDebut, i18n.language)}
+              </td>
+              <td className="px-4 py-2 whitespace-nowrap text-gray-800">
+                {formatDate(a.act_dateFin, i18n.language)}
+              </td>
               <td className="px-4 py-2 text-gray-800">{a.partenaire?.part_nom}</td>
               <td className="px-4 py-2 text-gray-800">{a.projet?.pro_nom}</td>
               <td className="px-4 py-2 space-x-2 whitespace-nowrap">
