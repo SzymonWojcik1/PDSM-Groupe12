@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::post('/users/{id}/partenaire', [UserController::class, 'assignPartenaire']);
     Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);   
+    Route::get('/users/{id}', [UserController::class, 'show']);
     Route::get('/me', [UserController::class, 'me']);
 
 
@@ -88,7 +88,7 @@ Route::controller(ActivitesController::class)->group(function(){
     Route::post('/activites/import', [ActivitesController::class, 'import']);
 });
 
-Route::get('/activites/template', [ActiviteExportTemplateController::class, 'downloadTemplate']);
+//Route::get('/activites/template', [ActiviteExportTemplateController::class, 'downloadTemplate']);
 
 Route::post('/activites/import', [ActivitesImportController::class, 'import']);
 
@@ -176,4 +176,3 @@ Route::controller(EvaluationController::class)->group(function () {
         Route::get('/mes-evaluations/count', 'countMesEvaluations');
 
 });
-
