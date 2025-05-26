@@ -1,5 +1,6 @@
 'use client'
 
+import '@/lib/i18n'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
