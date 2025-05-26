@@ -58,15 +58,76 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
           );
           if (isEmpty) break;
 
+          // Check required columns (1,2,3,4,5,6,8,9,13) are not empty
+          const requiredIndexes = [0, 1, 2, 3, 4, 5, 7, 8, 12];
+          const hasEmptyRequired = requiredIndexes.some(
+            (i) => sliced[i] === undefined || sliced[i] === null || sliced[i] === ''
+          );
+
+          if (hasEmptyRequired) {
+            console.error(' Missing required fields on row:', sliced);
+            continue;
+          }
+
+          // Validate first two columns and last : allowed chars and max length
+          const col1 = sliced[0];
+          const col2 = sliced[1];
+          const col12 = sliced[12];
+          const nameRegex = /^[a-zA-ZÀ-ÿ' -]+$/;
+
+          const isInvalid = (value: unknown) =>
+            typeof value !== 'string' ||
+            value.length > 50 ||
+            !nameRegex.test(value);
+
+          if (isInvalid(col1) || isInvalid(col2) || isInvalid(col12)) {
+            console.error(`Invalid column 1 or 2 or 12 (char set or length > 50) on row:`, sliced);
+            continue; // skip this row
+          }
+          // Conditional "other" field logic for cols 6, 9, 11
+          const otherConditions: [number, number][] = [
+            [5, 6], // if col 6 === 'other', then col 7 must be valid
+            [8, 9], // if col 9 === 'other', then col 10 must be valid
+            [10, 11], // if col 11 === 'other', then col 12 must be valid
+          ];
+
+          for (const [fieldIdx, otherIdx] of otherConditions) {
+            const baseValue = sliced[fieldIdx];
+            const otherValue = sliced[otherIdx];
+
+            if (
+              typeof baseValue === 'string' &&
+              baseValue.trim().toLowerCase() === 'other'
+            ) {
+              if (
+                typeof otherValue !== 'string' ||
+                otherValue.length > 50 ||
+                !nameRegex.test(otherValue)
+              ) {
+                console.error(
+                  ` Missing or invalid 'other' field at column ${otherIdx + 1} (following 'other' at column ${fieldIdx + 1}):`,
+                  sliced
+                );
+                continue;
+              }
+            }
+          }
+
           const rowObj: Record<string, unknown> = {};
+
           for (let i = fromCol; i < toCol; i++) {
             const key = headerRow[i - fromCol];
             let value = rowArray[i];
 
-            // Format the value if it's a date field
+            if (i - fromCol === 0 || i - fromCol === 1) {
+              if (typeof value === 'string') {
+                value = value.toLowerCase();
+              }
+            }
+
+            // Format date fields
             if (dateFields.includes(key)) {
               if (typeof value === 'number') {
-                // Convert Excel serial number to yyyy-mm-dd
                 const jsDate = XLSX.SSF.parse_date_code(value);
                 if (jsDate && jsDate.y && jsDate.m && jsDate.d) {
                   const yyyy = jsDate.y.toString().padStart(4, '0');
@@ -75,7 +136,6 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
                   value = `${yyyy}-${mm}-${dd}`;
                 }
               } else if (value instanceof Date) {
-                // Convert JS Date to yyyy-mm-dd
                 const yyyy = value.getFullYear().toString().padStart(4, '0');
                 const mm = (value.getMonth() + 1).toString().padStart(2, '0');
                 const dd = value.getDate().toString().padStart(2, '0');
@@ -85,6 +145,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
 
             rowObj[key] = value;
           }
+
           formatted.push(rowObj);
         }
 
