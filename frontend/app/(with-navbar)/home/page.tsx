@@ -50,9 +50,9 @@ export default function HomePage() {
             description={t('card_logframe_desc')}
           />
           <Card 
-              title="Évaluations" 
-              href="/evaluation" 
-              description="Consulter ou créer des évaluations des partenaires." 
+            title={t('card_evaluations_title', 'Évaluations')} 
+            href="/evaluation" 
+            description={t('card_evaluations_desc', 'Consulter ou créer des évaluations des partenaires.')} 
           />
           {role === 'siege' && (
             <Card

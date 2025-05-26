@@ -32,7 +32,7 @@ const navItems = [
   { key: 'partners', href: '/partenaires', icon: Building },
   { key: 'logframe', href: '/cadre-logique', icon: ChartLine },
   { key: 'users', href: '/users', icon: Users },
-  { key: 'Évaluations', href: '/evaluation', icon: ClipboardList },
+  { key: 'card_evaluations_title', href: '/evaluation', icon: ClipboardList },
 ]
 
 export default function Layout({ children }: { children: React.ReactNode }) {

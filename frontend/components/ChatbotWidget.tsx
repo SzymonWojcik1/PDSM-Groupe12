@@ -36,7 +36,7 @@ export default function ChatbotWidget() {
 - Importer/exporter des fichiers (CSV/Excel)
 - Filtrer des données par pays, région, sexe, type...
 - Utiliser les rôles (utilisateur, CN, CR, siège) pour accéder aux bonnes pages
-Tu dois répondre de manière claire, concise et sans inventer. Si une question est hors sujet (pas liée à l'application), indique poliment que tu es limité à l’aide pour l’application.`,
+Tu dois répondre de manière claire, concise et sans inventer. Si une question est hors sujet (pas liée à l'application), indique poliment que tu es limité à l'aide pour l'application.`,
 
       en: `You are a virtual assistant for the TdH application, used in a humanitarian context to manage beneficiaries, activities, and the logical framework. Help users understand how to use features such as:
 - Viewing or filling out the logical framework (objectives, outcomes, outputs, indicators)
@@ -86,6 +86,7 @@ Responde de forma clara, concisa y sin inventar información. Si la pregunta no 
         <button
           onClick={toggle}
           className="bg-[#9F0F3A] text-white p-3 rounded-full shadow-lg hover:bg-[#800d30]"
+          aria-label={t('chatbot_open', 'Ouvrir le chatbot')}
         >
           <MessageCircle className="w-6 h-6" />
         </button>
@@ -112,11 +113,13 @@ Responde de forma clara, concisa y sin inventar información. Si la pregunta no 
             placeholder={t('chatbot_placeholder', 'Pose ta question...')}
             rows={2}
             className="w-full border px-2 py-1 rounded text-sm"
+            aria-label={t('chatbot_placeholder', 'Pose ta question...')}
           />
           <button
             onClick={sendMessage}
             disabled={loading}
             className="mt-2 bg-[#9F0F3A] text-white rounded py-1.5 text-sm hover:bg-[#800d30] disabled:bg-gray-300"
+            aria-label={loading ? t('chatbot_loading', 'Chargement...') : t('chatbot_send', 'Envoyer')}
           >
             {loading ? t('chatbot_loading', 'Chargement...') : t('chatbot_send', 'Envoyer')}
           </button>

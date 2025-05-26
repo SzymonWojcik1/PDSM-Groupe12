@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { jsPDF } from 'jspdf'
+import { useTranslation } from 'react-i18next';
 
 type Evaluation = {
   eva_id: number
@@ -37,6 +38,7 @@ function formatDate(dateStr?: string) {
 }
 
 export default function EvaluationPage() {
+  const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
@@ -228,7 +230,7 @@ export default function EvaluationPage() {
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Évaluations</h1>
+            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('evaluations_title', 'Évaluations')}</h1>
             <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           </div>
           <div className="flex flex-col gap-2 items-end">
@@ -237,85 +239,90 @@ export default function EvaluationPage() {
                 href="/evaluation/creer"
                 className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition mb-2"
               >
-                ➕ Nouvelle évaluation
+                {t('new_evaluation', '➕ Nouvelle évaluation')}
               </Link>
             )}
           </div>
         </header>
 
-        {error && <p className="text-red-600">Erreur : {error}</p>}
+        {error && <p className="text-red-600">{t('error_prefix', 'Erreur :')} {error}</p>}
         {loading ? (
-          <p className="text-gray-400">Chargement...</p>
+          <p className="text-gray-400">{t('loading', 'Chargement...')}</p>
         ) : evaluations.length === 0 ? (
           <p className="text-gray-500">
             {user?.role === 'siege'
-              ? 'Aucune évaluation disponible.'
-              : 'Aucune évaluation à remplir pour le moment.'}
+              ? t('no_evaluations', 'Aucune évaluation disponible.')
+              : t('no_evaluations_to_fill', 'Aucune évaluation à remplir pour le moment.')}
           </p>
         ) : (
           <>
             {/* Filtres et recherche */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <input
-                type="text"
-                placeholder="Rechercher par ID, nom/prénom de l'utilisateur ou nom du partenaire..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="border px-3 py-2 rounded w-full md:w-1/3"
-              />
-              <select
-                value={statutFilter}
-                onChange={e => setStatutFilter(e.target.value)}
-                className="border px-3 py-2 rounded w-full md:w-1/4"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="en_attente">En attente</option>
-                <option value="soumis">Soumis</option>
-                {/* Ajoute d'autres statuts si besoin */}
-              </select>
-              <select
-                value={partenaireFilter}
-                onChange={e => setPartenaireFilter(e.target.value)}
-                className="border px-3 py-2 rounded w-full md:w-1/4"
-              >
-                <option value="">Tous les partenaires</option>
-                {partenaires.map(p => (
-                  <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
-                ))}
-              </select>
-              <select
-                value={sortDate}
-                onChange={e => setSortDate(e.target.value as 'desc' | 'asc')}
-                className="border px-3 py-2 rounded w-full md:w-1/4"
-              >
-                <option value="desc">Plus récentes d'abord</option>
-                <option value="asc">Plus anciennes d'abord</option>
-              </select>
-              <input
-                type="date"
-                value={dateDebut}
-                onChange={e => setDateDebut(e.target.value)}
-                className="border px-3 py-2 rounded w-full md:w-1/4"
-                placeholder="Date début"
-              />
-              <input
-                type="date"
-                value={dateFin}
-                onChange={e => setDateFin(e.target.value)}
-                className="border px-3 py-2 rounded w-full md:w-1/4"
-                placeholder="Date fin"
-              />
-              <button
-                onClick={handleExportPDF}
-                className="text-sm bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#800d30] transition border border-[#9F0F3A]"
-                type="button"
-              >
-                Exporter en PDF
-              </button>
+            <div className="mb-6 flex flex-col gap-2">
+              <div className="flex flex-col md:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder={t('search_placeholder', "Rechercher par ID, nom/prénom de l'utilisateur ou nom du partenaire...")}
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                />
+                <select
+                  value={statutFilter}
+                  onChange={e => setStatutFilter(e.target.value)}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                >
+                  <option value="">{t('all_statuses', 'Tous les statuts')}</option>
+                  <option value="en_attente">{t('status_pending', 'En attente')}</option>
+                  <option value="soumis">{t('status_submitted', 'Soumis')}</option>
+                </select>
+                <select
+                  value={partenaireFilter}
+                  onChange={e => setPartenaireFilter(e.target.value)}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                >
+                  <option value="">{t('all_partners', 'Tous les partenaires')}</option>
+                  {partenaires.map(p => (
+                    <option key={p.part_id} value={p.part_id}>{p.part_nom}</option>
+                  ))}
+                </select>
+                <select
+                  value={sortDate}
+                  onChange={e => setSortDate(e.target.value as 'desc' | 'asc')}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                >
+                  <option value="desc">{t('sort_newest', "Plus récentes d'abord")}</option>
+                  <option value="asc">{t('sort_oldest', "Plus anciennes d'abord")}</option>
+                </select>
+              </div>
+              <div className="flex flex-col md:flex-row gap-2 mt-1 items-center">
+                <label className="text-sm text-gray-700 whitespace-nowrap mr-1">{t('date_start', 'Date de début')}</label>
+                <input
+                  type="date"
+                  value={dateDebut}
+                  onChange={e => setDateDebut(e.target.value)}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                  placeholder={t('date_start', 'Date début')}
+                />
+                <label className="text-sm text-gray-700 whitespace-nowrap ml-2 mr-1">{t('date_end', 'Date de fin')}</label>
+                <input
+                  type="date"
+                  value={dateFin}
+                  onChange={e => setDateFin(e.target.value)}
+                  className="border px-3 py-2 rounded flex-1 min-w-0"
+                  placeholder={t('date_end', 'Date fin')}
+                />
+                <button
+                  onClick={handleExportPDF}
+                  className="text-sm bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#800d30] transition border border-[#9F0F3A] flex-1 min-w-0"
+                  type="button"
+                >
+                  {t('export_pdf', 'Exporter en PDF')}
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredEvaluations.length === 0 ? (
-                <p className="text-gray-500 col-span-2">Aucune évaluation ne correspond à la recherche ou au filtre.</p>
+                <p className="text-gray-500 col-span-2">{t('no_evaluation_match', 'Aucune évaluation ne correspond à la recherche ou au filtre.')}</p>
               ) : (
                 filteredEvaluations.map((eva) => {
                   const partenaire = partenaires.find(
@@ -326,29 +333,29 @@ export default function EvaluationPage() {
                       key={eva.eva_id}
                       className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition"
                     >
-                      <p className="text-sm text-gray-600">ID : {eva.eva_id}</p>
+                      <p className="text-sm text-gray-600">{t('id', 'ID')} : {eva.eva_id}</p>
                       {eva.eva_date_soumission && (
-                        <p className="text-xs text-gray-500">Date d'évaluation : {formatDate(eva.eva_date_soumission)}</p>
+                        <p className="text-xs text-gray-500">{t('evaluation_date', "Date d'évaluation")} : {formatDate(eva.eva_date_soumission)}</p>
                       )}
                       {eva.utilisateur && (
                         <p className="text-sm text-gray-600">
-                          Évalué : {eva.utilisateur.prenom} {eva.utilisateur.nom}
+                          {t('evaluated', 'Évalué')} : {eva.utilisateur.prenom} {eva.utilisateur.nom}
                         </p>
                       )}
                       {partenaire && (
-                        <p className="text-sm text-gray-600">Partenaire : {partenaire.part_nom}</p>
+                        <p className="text-sm text-gray-600">{t('partner', 'Partenaire')} : {partenaire.part_nom}</p>
                       )}
-                      <p className="font-medium text-gray-800">Statut : {eva.eva_statut}</p>
+                      <p className="font-medium text-gray-800">{t('status', 'Statut')} : {t('status_' + eva.eva_statut, eva.eva_statut)}</p>
                       <p className="text-sm text-gray-600">
-                        Utilisateur évalué : {eva.eva_use_id}
+                        {t('evaluated_user_id', 'Utilisateur évalué')} : {eva.eva_use_id}
                       </p>
                       <Link
                         href={`/evaluation/${eva.eva_id}`}
                         className="inline-block mt-2 text-blue-600 text-sm underline"
                       >
                         {user?.role === 'siege'
-                          ? 'Voir l\'évaluation →'
-                          : 'Remplir cette évaluation →'}
+                          ? t('see_evaluation', "Voir l'évaluation →")
+                          : t('fill_evaluation', "Remplir cette évaluation →")}
                       </Link>
                     </div>
                   );

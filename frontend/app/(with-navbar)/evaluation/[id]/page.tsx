@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next';
 
 type Critere = {
   label: string
@@ -20,6 +21,7 @@ type User = {
 }
 
 export default function EvaluationDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams()
   const router = useRouter()
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null)
@@ -103,18 +105,21 @@ export default function EvaluationDetailPage() {
   }
 
   if (error) {
-    return <p className="text-red-600 p-6">{error}</p>
+    return <p className="text-red-600 p-6">{t('error_prefix', 'Erreur :')} {error}</p>
   }
 
   if (!evaluation || !user) {
-    return <p className="p-6 text-gray-500">Chargement...</p>
+    return <p className="p-6 text-gray-500">{t('loading', 'Chargement...')}</p>
   }
 
   return (
     <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded">
       <h1 className="text-2xl font-bold text-[#9F0F3A] mb-6">
-        Remplir l’évaluation #{evaluation.eva_id}
+        {t('fill_evaluation_title', 'Remplir l\'évaluation')} #{evaluation.eva_id}
       </h1>
+
+      {/* Si besoin d'afficher le statut, ajouter :
+      <p>{t('status', 'Statut')} : {t('status_' + evaluation.eva_statut, evaluation.eva_statut)}</p> */}
 
       {evaluation.criteres.map((critere, index) => (
         <div key={index} className="mb-4 p-4 border rounded bg-gray-50">
@@ -122,7 +127,7 @@ export default function EvaluationDetailPage() {
 
           {user.role === 'siege' && evaluation.eva_statut === 'soumis' ? (
             <p className={`text-sm font-semibold ${critere.reussi ? 'text-green-600' : 'text-red-600'}`}>
-              {critere.reussi ? '✅ Réussi' : '❌ Non réussi'}
+              {critere.reussi ? t('result_success', '✅ Réussi') : t('result_fail', '❌ Non réussi')}
             </p>
           ) : (
             <div className="flex items-center gap-4 text-sm">
@@ -134,7 +139,7 @@ export default function EvaluationDetailPage() {
                   checked={reponses[index] === 'reussi'}
                   onChange={() => handleChange(index, 'reussi')}
                 />
-                ✅ Réussi
+                {t('result_success', '✅ Réussi')}
               </label>
               <label className="flex items-center gap-1 text-red-700">
                 <input
@@ -144,7 +149,7 @@ export default function EvaluationDetailPage() {
                   checked={reponses[index] === 'non_reussi'}
                   onChange={() => handleChange(index, 'non_reussi')}
                 />
-                ❌ Non réussi
+                {t('result_fail', '❌ Non réussi')}
               </label>
             </div>
           )}
@@ -156,11 +161,11 @@ export default function EvaluationDetailPage() {
           onClick={handleSubmit}
           className="mt-4 bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#7e0c2f]"
         >
-          Soumettre
+          {t('submit', 'Soumettre')}
         </button>
       )}
 
-      {success && <p className="text-green-600 mt-4">✅ Évaluation soumise avec succès !</p>}
+      {success && <p className="text-green-600 mt-4">{t('evaluation_submitted_success', '✅ Évaluation soumise avec succès !')}</p>}
     </div>
   )
 }
