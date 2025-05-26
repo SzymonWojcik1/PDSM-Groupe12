@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ActiviteFilters from '@/components/activiteFilters';
 import ActiviteTable, { Activite } from '@/components/ActiviteTable';
+import ImportExcel from '@/components/ImportExcel';
 
 type Partenaire = {
   part_id: number;
@@ -25,6 +26,7 @@ export default function ActivitesPage() {
   const [filters, setFilters] = useState({ search: '', partenaire: '', projet: '' });
 
   const router = useRouter();
+  const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`)
@@ -33,9 +35,11 @@ export default function ActivitesPage() {
         setActivites(data);
         setFiltered(data);
       });
+
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
       .then(res => res.json())
       .then(setPartenaires);
+
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`)
       .then(res => res.json())
       .then(setProjets);
@@ -73,7 +77,6 @@ export default function ActivitesPage() {
   };
 
   const exportToCSV = () => {
-    // Créer l'en-tête du CSV
     const headers = [
       t('table_name'),
       t('table_start'),
@@ -82,7 +85,6 @@ export default function ActivitesPage() {
       t('table_project')
     ].join(',');
 
-    // Convertir les données en lignes CSV
     const rows = filtered.map(activite => [
       activite.act_nom,
       activite.act_dateDebut,
@@ -91,10 +93,8 @@ export default function ActivitesPage() {
       activite.projet?.pro_nom || ''
     ].map(field => `"${field}"`).join(','));
 
-    // Combiner l'en-tête et les données
     const csvContent = [headers, ...rows].join('\n');
 
-    // Créer un blob et un lien de téléchargement
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -106,6 +106,37 @@ export default function ActivitesPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const triggerImport = () => {
+    importRef.current?.click();
+  };
+
+  const handleImport = async (rows: Record<string, unknown>[]) => {
+    let imported = 0;
+
+    for (const [index, row] of rows.entries()) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/import`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(row),
+        });
+
+        const json = await response.json();
+
+        if (!response.ok) {
+          console.error(`Ligne ${index + 1} échouée :`, json.errors || json.message || json);
+        } else {
+          imported++;
+        }
+      } catch (err) {
+        console.error(`Ligne ${index + 1} : erreur inattendue`, err);
+      }
+    }
+
+    alert(`${imported} ligne(s) importée(s) avec succès.`);
+    location.reload();
   };
 
   return (
@@ -127,11 +158,18 @@ export default function ActivitesPage() {
             </button>
 
             <button
-              onClick={() => router.push('/activites/import')}
+              onClick={triggerImport}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
               {t('import_file')}
             </button>
+            <ImportExcel
+              ref={importRef}
+              fromCol={0}
+              toCol={5}
+              dateFields={['Date de début', 'Date de fin']}
+              onPreview={handleImport}
+            />
 
             <button
               onClick={exportToCSV}
@@ -141,7 +179,7 @@ export default function ActivitesPage() {
             </button>
 
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}modele-import-activites`}
+              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}activites/template`}
               download
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >

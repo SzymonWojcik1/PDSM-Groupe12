@@ -17,6 +17,9 @@ use App\Http\Controllers\OutputController;
 use App\Http\Controllers\IndicateurController;
 use App\Http\Controllers\IndicateurActiviteController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ActiviteExportTemplateController;
+use App\Http\Controllers\ActivitesImportController;
+
 
 
 
@@ -83,15 +86,11 @@ Route::controller(ActivitesController::class)->group(function(){
     Route::put('/activites/{id}', [ActivitesController::class, 'update']);
     Route::delete('/activites/{id}', [ActivitesController::class, 'destroy']);
     Route::post('/activites/import', [ActivitesController::class, 'import']);
-    Route::get('/activites/template', function () {
-        $path = storage_path('app/public/modele_import_activites.csv');
-        if (!file_exists($path)) {
-            return response()->json(['message' => 'Fichier non trouvé'], 404);
-        }
-        return response()->download($path, 'modele_import_activites.csv');
-    });
-
 });
+
+Route::get('/activites/template', [ActiviteExportTemplateController::class, 'downloadTemplate']);
+
+Route::post('/activites/import', [ActivitesImportController::class, 'import']);
 
 // Routes pour la gestion des bénéficiaires d'une activité
 Route::controller(ActiviteBeneficiaireController::class)->group(function(){
