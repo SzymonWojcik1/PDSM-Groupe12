@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { jsPDF } from 'jspdf'
 
 type Evaluation = {
   eva_id: number
@@ -13,6 +14,7 @@ type Evaluation = {
     prenom?: string
     nom?: string
   }
+  criteres?: { label: string; reussi: boolean }[]
 }
 
 type User = {
@@ -148,6 +150,79 @@ export default function EvaluationPage() {
     return sortDate === 'desc' ? dateB - dateA : dateA - dateB;
   });
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    // Titre principal
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Liste des évaluations filtrées', 105, 15, { align: 'center' });
+    let y = 25;
+    filteredEvaluations.forEach((eva, idx) => {
+      // Séparateur
+      if (idx > 0) {
+        doc.setDrawColor(180);
+        doc.line(10, y, 200, y);
+        y += 4;
+      }
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Évaluation #${eva.eva_id}`, 10, y);
+      y += 7;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      if (eva.utilisateur) {
+        doc.text(`Évalué : ${eva.utilisateur.prenom || ''} ${eva.utilisateur.nom || ''}`, 10, y);
+        y += 6;
+      }
+      const partenaire = partenaires.find(p => p.part_id === eva.utilisateur?.partenaire_id);
+      if (partenaire) {
+        doc.text(`Partenaire : ${partenaire.part_nom}`, 10, y);
+        y += 6;
+      }
+      // Statut en couleur
+      if (eva.eva_statut === 'soumis') {
+        doc.setTextColor(0, 128, 0);
+      } else if (eva.eva_statut === 'en_attente') {
+        doc.setTextColor(200, 100, 0);
+      } else {
+        doc.setTextColor(0, 0, 0);
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Statut : ${eva.eva_statut}`, 10, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      y += 6;
+      if (eva.eva_date_soumission) {
+        doc.text(`Date d'évaluation : ${formatDate(eva.eva_date_soumission)}`, 10, y);
+        y += 6;
+      }
+      doc.text(`Utilisateur évalué : ${eva.eva_use_id}`, 10, y);
+      y += 6;
+      // Critères
+      if (Array.isArray(eva.criteres)) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Critères :', 10, y);
+        doc.setFont('helvetica', 'normal');
+        y += 6;
+        eva.criteres.forEach((crit, i) => {
+          // Couleur selon résultat
+          if (crit.reussi) {
+            doc.setTextColor(0, 128, 0);
+          } else {
+            doc.setTextColor(200, 0, 0);
+          }
+          doc.text(`- ${crit.label} : ${crit.reussi ? 'Réussi' : 'Non réussi'}`, 16, y);
+          doc.setTextColor(0, 0, 0);
+          y += 6;
+          if (y > 270) { doc.addPage(); y = 20; }
+        });
+      }
+      y += 6;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+    doc.save('evaluations.pdf');
+  };
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
@@ -156,14 +231,16 @@ export default function EvaluationPage() {
             <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Évaluations</h1>
             <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           </div>
-          {user?.role === 'siege' && (
-            <Link
-              href="/evaluation/creer"
-              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
-            >
-              ➕ Nouvelle évaluation
-            </Link>
-          )}
+          <div className="flex flex-col gap-2 items-end">
+            {user?.role === 'siege' && (
+              <Link
+                href="/evaluation/creer"
+                className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition mb-2"
+              >
+                ➕ Nouvelle évaluation
+              </Link>
+            )}
+          </div>
         </header>
 
         {error && <p className="text-red-600">Erreur : {error}</p>}
@@ -228,6 +305,13 @@ export default function EvaluationPage() {
                 className="border px-3 py-2 rounded w-full md:w-1/4"
                 placeholder="Date fin"
               />
+              <button
+                onClick={handleExportPDF}
+                className="text-sm bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#800d30] transition border border-[#9F0F3A]"
+                type="button"
+              >
+                Exporter en PDF
+              </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredEvaluations.length === 0 ? (
