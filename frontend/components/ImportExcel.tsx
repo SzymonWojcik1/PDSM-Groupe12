@@ -164,6 +164,14 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
         if (formatted.length > 0) {
           console.log(t('imported_data') + ':', formatted);
           onPreview?.(formatted);
+
+          if (errors.length > 0) {
+            alert('Some lines were invalid. A CSV file with errors has been downloaded.');
+          } else {
+            alert('No error while importing.');
+          }
+        } else {
+          alert('No lines are valid. All rows were invalid and skipped.');
         }
       };
 
