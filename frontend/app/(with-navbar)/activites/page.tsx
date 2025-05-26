@@ -113,84 +113,86 @@ export default function ActivitesPage() {
   };
 
   const handleImport = async (rows: Record<string, unknown>[]) => {
-  let imported = 0;
-  let ignored = 0;
-  let failed = 0;
+    let imported = 0;
+    let ignored = 0;
+    let failed = 0;
 
-  for (const [index, row] of rows.entries()) {
-    try {
-      const partenaireNom = row['Partenaire'];
-      const projetNom = row['Projet'];
-
-      if (
-        typeof partenaireNom !== 'string' ||
-        partenaireNom.trim() === '' ||
-        typeof projetNom !== 'string' ||
-        projetNom.trim() === ''
-      ) {
-        console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet vide ou manquant`, {
-          partenaire: partenaireNom,
-          projet: projetNom,
-        });
-        ignored++;
-        continue;
-      }
-
-      const partenaire = partenaires.find(p => p.part_nom === partenaireNom.trim());
-      const projet = projets.find(p => p.pro_nom === projetNom.trim());
-
-      if (!partenaire || !projet) {
-        console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet introuvable`, {
-          partenaire: partenaireNom,
-          projet: projetNom,
-        });
-        ignored++;
-        continue;
-      }
-
-      const finalRow = {
-        act_nom: row['Nom de l’activité'],
-        act_dateDebut: row['Date de début'],
-        act_dateFin: row['Date de fin'],
-        act_part_id: partenaire.part_id,
-        act_pro_id: projet.pro_id,
-      };
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalRow),
-      });
-
-      let json = {};
+    for (const [index, row] of rows.entries()) {
       try {
-        json = await response.json();
-      } catch (e) {
-        console.warn(`Ligne ${index + 1} : réponse non JSON ou vide`, e);
-      }
+        const partenaireNom = row['Partenaire'];
+        const projetNom = row['Projet'];
 
-      if (!response.ok) {
-        console.error(`Ligne ${index + 1} échouée :`, json);
+        if (
+          typeof partenaireNom !== 'string' ||
+          partenaireNom.trim() === '' ||
+          typeof projetNom !== 'string' ||
+          projetNom.trim() === ''
+        ) {
+          console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet vide ou manquant`, {
+            partenaire: partenaireNom,
+            projet: projetNom,
+          });
+          ignored++;
+          continue;
+        }
+
+        const partenaire = partenaires.find(p => p.part_nom === partenaireNom.trim());
+        const projet = projets.find(p => p.pro_nom === projetNom.trim());
+
+        if (!partenaire || !projet) {
+          console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet introuvable`, {
+            partenaire: partenaireNom,
+            projet: projetNom,
+          });
+          ignored++;
+          continue;
+        }
+
+        const finalRow = {
+          act_nom: row['Nom de l’activité'],
+          act_dateDebut: row['Date de début'],
+          act_dateFin: row['Date de fin'],
+          act_part_id: partenaire.part_id,
+          act_pro_id: projet.pro_id,
+        };
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalRow),
+        });
+
+        let json = {};
+        try {
+          json = await response.json();
+        } catch (e) {
+          console.warn(`Ligne ${index + 1} : réponse non JSON ou vide`, e);
+        }
+
+        if (!response.ok) {
+          console.error(`Ligne ${index + 1} échouée :`, json);
+          failed++;
+          continue;
+        }
+
+        console.log(`Ligne ${index + 1} importée avec succès :`, json);
+        imported++;
+
+      } catch (err) {
+        console.error(`Ligne ${index + 1} : erreur inattendue`, err);
         failed++;
         continue;
       }
-
-      console.log(`Ligne ${index + 1} importée avec succès :`, json);
-      imported++;
-
-    } catch (err) {
-      console.error(`Ligne ${index + 1} : erreur inattendue`, err);
-      failed++;
-      continue;
     }
-  }
-  alert(
-    `${imported} ligne(s) importée(s) avec succès.\n` +
-    `${ignored} ligne(s) ignorée(s) (projet ou partenaire vide/introuvable).\n` +
-    `${failed} ligne(s) échouée(s).`
-  );
-  location.reload();
-};
+
+    alert(
+      `${imported} ligne(s) importée(s) avec succès.\n` +
+      `${ignored} ligne(s) ignorée(s) (projet ou partenaire vide/introuvable).\n` +
+      `${failed} ligne(s) échouée(s).`
+    );
+
+    location.reload();
+  };
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -216,19 +218,13 @@ export default function ActivitesPage() {
             >
               {t('import_file')}
             </button>
+
             <ImportExcelActivite
               ref={importRef}
               fromCol={0}
               toCol={5}
               dateFields={['Date de début', 'Date de fin']}
               onPreview={handleImport}
-              extraValidation={(row) => {
-                const partenaire = partenaires.find(p => p.part_nom === row['Partenaire']);
-                const projet = projets.find(p => p.pro_nom === row['Projet']);
-                if (!partenaire) return `Partenaire introuvable : ${row['Partenaire']}`;
-                if (!projet) return `Projet introuvable : ${row['Projet']}`;
-                return null;
-              }}
             />
 
             <button
