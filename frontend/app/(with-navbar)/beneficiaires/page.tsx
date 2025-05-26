@@ -90,11 +90,33 @@ export default function BeneficiairesPage() {
   };
 
   const handleImport = async (rows: Record<string, unknown>[]) => {
-    let successCount = 0;
-    let errorCount = 0;
-
     for (const [index, row] of rows.entries()) {
       try {
+        // Step 1: Check for duplicates
+        const duplicateCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ben_nom: row.ben_nom,
+            ben_prenom: row.ben_prenom,
+            ben_date_naissance: row.ben_date_naissance,
+            ben_sexe: row.ben_sexe,
+          }),
+        });
+
+        const duplicateResult = await duplicateCheck.json();
+
+        if (duplicateResult.exists) {
+          const confirmAdd = window.confirm(
+            `Possible duplicate detected:\n\nNom : ${duplicateResult.beneficiaire.nom}\nPrénom : ${duplicateResult.beneficiaire.prenom}\nCréé le : ${duplicateResult.beneficiaire.created_at}\n\nDo you want to add anyway?`
+          );
+          if (!confirmAdd) {
+            console.log(`Ligne ${index + 1} ignorée (doublon refusé)`);
+            continue;
+          }
+        }
+
+        // Step 2: Create the beneficiaire if allowed
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
           method: 'POST',
           headers: {
@@ -106,19 +128,15 @@ export default function BeneficiairesPage() {
         const json = await response.json();
 
         if (!response.ok) {
-          errorCount++;
           console.error(`Ligne ${index + 1} échouée :`, json.errors || json.message || json);
         } else {
-          successCount++;
           console.log(`Ligne ${index + 1} importée avec succès :`, json);
         }
       } catch (err) {
-        errorCount++;
         console.error(`Ligne ${index + 1} : erreur inattendue`, err);
       }
     }
 
-    alert(t('import_completed', { success: successCount, error: errorCount }));
     location.reload();
   };
 
