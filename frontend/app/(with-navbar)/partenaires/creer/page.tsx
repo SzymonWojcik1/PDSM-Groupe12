@@ -1,42 +1,50 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { countriesByRegion } from '@/lib/countriesByRegion';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import { countriesByRegion } from '@/lib/countriesByRegion'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 export default function CreerPartenaire() {
-  const { t } = useTranslation();
-  const router = useRouter();
-  const [form, setForm] = useState({ part_nom: '', part_pays: '', part_region: '' });
-  const [errorMessage, setErrorMessage] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('');
+  useAuthGuard()
+  const { t } = useTranslation()
+  const router = useRouter()
+  const { callApi } = useApi()
+
+  const [form, setForm] = useState({ part_nom: '', part_pays: '', part_region: '' })
+  const [errorMessage, setErrorMessage] = useState('')
+  const [selectedRegion, setSelectedRegion] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrorMessage('');
-    if (e.target.name === 'part_region') setSelectedRegion(e.target.value);
-  };
+    setForm({ ...form, [e.target.name]: e.target.value })
+    setErrorMessage('')
+    if (e.target.name === 'part_region') setSelectedRegion(e.target.value)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      })
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
+      const data = await res.json()
 
-    const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.message || t('error_occurred'))
+        return
+      }
 
-    if (!res.ok) {
-      setErrorMessage(data.message || t('error_occurred'));
-      return;
+      router.push('/partenaires')
+    } catch (err: any) {
+      setErrorMessage(err.message || t('error_occurred'))
     }
-
-    router.push('/partenaires');
-  };
+  }
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -81,7 +89,7 @@ export default function CreerPartenaire() {
               required
             >
               <option value="">{t('select_region')}</option>
-              {Object.keys(countriesByRegion).map((region) => (
+              {Object.keys(countriesByRegion).map(region => (
                 <option key={region} value={region}>{region}</option>
               ))}
             </select>
@@ -95,9 +103,10 @@ export default function CreerPartenaire() {
               required
             >
               <option value="">{t('select_country')}</option>
-              {form.part_region && countriesByRegion[form.part_region as keyof typeof countriesByRegion]?.map((pays) => (
-                <option key={pays} value={pays}>{pays}</option>
-              ))}
+              {form.part_region &&
+                countriesByRegion[form.part_region as keyof typeof countriesByRegion]?.map(pays => (
+                  <option key={pays} value={pays}>{pays}</option>
+                ))}
             </select>
 
             <button
@@ -110,5 +119,5 @@ export default function CreerPartenaire() {
         </div>
       </div>
     </main>
-  );
+  )
 }

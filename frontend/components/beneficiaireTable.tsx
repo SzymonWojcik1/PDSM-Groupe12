@@ -32,6 +32,15 @@ interface BeneficiairesTableProps {
   onDelete?: (id: string) => void
   renderExtraColumn?: (b: Beneficiaire) => React.ReactNode
 }
+function formatDate(dateString: string, locale = 'en') {
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString // retourne la valeur originale si invalide
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date)
+}
 
 export default function BeneficiaireTable({
   beneficiaires,
@@ -43,7 +52,7 @@ export default function BeneficiaireTable({
   onDelete,
   renderExtraColumn,
 }: BeneficiairesTableProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const hasActions = onUpdate || onDelete || renderExtraColumn
 
   return (
@@ -89,7 +98,9 @@ export default function BeneficiaireTable({
               )}
               <td className="px-3 py-2 text-gray-800">{b.ben_prenom}</td>
               <td className="px-3 py-2 text-gray-800">{b.ben_nom}</td>
-              <td className="px-3 py-2 text-gray-800 min-w-[140px]">{b.ben_date_naissance}</td>
+              <td className="px-3 py-2 text-gray-800 min-w-[140px]">
+                {formatDate(b.ben_date_naissance, i18n.language)}
+              </td>
               <td className="px-3 py-2 text-gray-800">{b.ben_region}</td>
               <td className="px-3 py-2 text-gray-800">{b.ben_pays}</td>
               <td className="px-3 py-2 text-gray-800">

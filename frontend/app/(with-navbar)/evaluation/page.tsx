@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { jsPDF } from 'jspdf'
 import { useTranslation } from 'react-i18next';
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
 type Evaluation = {
   eva_id: number
@@ -38,6 +39,7 @@ function formatDate(dateStr?: string) {
 }
 
 export default function EvaluationPage() {
+  useAuthGuard();
   const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
   const [loading, setLoading] = useState(true)

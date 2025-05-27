@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 
 export default function LoginPage() {
+  useRedirectIfAuthenticated()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -40,18 +42,8 @@ export default function LoginPage() {
         throw new Error(data.message || data.errors?.email?.[0] || t('login_error_unknown'))
       }
 
-      localStorage.setItem('token', data.token)
-
-      const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-        },
-      })
-
-      const profile = await profileRes.json()
-      if (profileRes.ok && profile.role) {
-        localStorage.setItem('role', profile.role)
-      }
+      // Stocke le token de manière temporaire
+      sessionStorage.setItem('temp_token', data.token)
 
       router.push('/double-auth')
     } catch (err: any) {

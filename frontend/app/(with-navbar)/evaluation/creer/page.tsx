@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next';
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
 type Partenaire = { part_id: number; part_nom: string }
 
 export default function CreateEvaluationPage() {
+  useAuthGuard();
   const { t } = useTranslation();
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [selectedPartenaireId, setSelectedPartenaireId] = useState<number | null>(null)

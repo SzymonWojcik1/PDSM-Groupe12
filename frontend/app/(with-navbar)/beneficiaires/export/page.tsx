@@ -6,35 +6,67 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 export default function ExportBeneficiairesPage() {
+  useAuthGuard();
   const { t } = useTranslation();
+  const { callApi } = useApi();
+  const router = useRouter();
+
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
-  const [filters, setFilters] = useState({ region: '', pays: '', zone: '', type: '', sexe: '', genre: '', search: '' });
-
-  const router = useRouter();
+  const [filters, setFilters] = useState({
+    region: '',
+    pays: '',
+    zone: '',
+    type: '',
+    sexe: '',
+    genre: '',
+    search: '',
+  });
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
-      .then(res => res.json())
-      .then(setEnums);
+    const fetchEnums = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`);
+        const data = await res.json();
+        setEnums(data);
+      } catch (err) {
+        console.error('Erreur chargement enums', err);
+      }
+    };
+
+    fetchEnums();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const query = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) query.append(key, value);
-    });
+    const fetchBeneficiaires = async () => {
+      try {
+        const query = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) query.append(key, value);
+        });
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
-      .then(res => res.json())
-      .then(setBeneficiaires);
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`);
+        const data = await res.json();
+        setBeneficiaires(data);
+      } catch (err) {
+        console.error('Erreur chargement bénéficiaires', err);
+      }
+    };
+
+    fetchBeneficiaires();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const toggleSelection = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   };
 
   const toggleSelectAll = () => {
@@ -46,22 +78,26 @@ export default function ExportBeneficiairesPage() {
   };
 
   const exportSelected = () => {
-    const selectedBeneficiaires = beneficiaires.filter(b => selectedIds.includes(b.ben_id));
-    if (selectedBeneficiaires.length === 0) {
+    const selected = beneficiaires.filter(b => selectedIds.includes(b.ben_id));
+    if (selected.length === 0) {
       alert(t('no_beneficiaries_selected'));
       return;
     }
 
-    const headers = Object.keys(selectedBeneficiaires[0]);
-    const rows = selectedBeneficiaires.map(b => headers.map(h => JSON.stringify((b as Beneficiaire)[h as keyof Beneficiaire] ?? '')).join(','));
+    const headers = Object.keys(selected[0]);
+    const rows = selected.map(b =>
+      headers.map(h => JSON.stringify((b as any)[h] ?? '')).join(',')
+    );
     const csvContent = [headers.join(','), ...rows].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement('a');
     link.href = url;
     link.download = 'beneficiaires_selection.csv';
     link.click();
+
     URL.revokeObjectURL(url);
   };
 
@@ -101,18 +137,43 @@ export default function ExportBeneficiairesPage() {
             onClick={toggleSelectAll}
             className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
           >
-            {selectedIds.length === beneficiaires.length ? t('deselect_all') : t('select_all')}
+            {selectedIds.length === beneficiaires.length
+              ? t('deselect_all')
+              : t('select_all')}
           </button>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
+          <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">
+            {t('filter_beneficiaries')}
+          </h2>
           <BeneficiaireFilters
             filters={filters}
-            onChange={(e) => setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }))}
-            onRegionChange={(region) => setFilters(prev => ({ ...prev, region, pays: '' }))}
-            onReset={() => setFilters({ region: '', pays: '', zone: '', type: '', sexe: '', genre: '', search: '' })}
             enums={enums}
+            onChange={e =>
+              setFilters(prev => ({
+                ...prev,
+                [e.target.name]: e.target.value,
+              }))
+            }
+            onRegionChange={region =>
+              setFilters(prev => ({
+                ...prev,
+                region,
+                pays: '',
+              }))
+            }
+            onReset={() =>
+              setFilters({
+                region: '',
+                pays: '',
+                zone: '',
+                type: '',
+                sexe: '',
+                genre: '',
+                search: '',
+              })
+            }
           />
         </div>
 

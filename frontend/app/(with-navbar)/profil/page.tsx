@@ -1,71 +1,67 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
+
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 type UserData = {
-  id: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone?: string;
-  role: string;
-};
+  id: number
+  nom: string
+  prenom: string
+  email: string
+  telephone?: string
+  role: string
+}
 
 export default function ProfilPage() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const { t } = useTranslation();
+  useAuthGuard()
+  const { callApi } = useApi()
+  const { t } = useTranslation()
+  const router = useRouter()
+
+  const [user, setUser] = useState<UserData | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError(t('not_authenticated'));
-        return;
-      }
-
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) throw new Error(t('error_fetch'));
-
-        const data = await res.json();
-        setUser(data);
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/me`)
+        if (!res.ok) throw new Error(t('error_fetch'))
+        const data = await res.json()
+        setUser(data)
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || t('error_occurred'))
       }
-    };
+    }
 
-    fetchUser();
-  }, [t]);
+    fetchUser()
+  }, [t])
 
   const getTranslatedRole = (role: string) => {
     switch (role) {
       case 'siege':
-        return 'Siège';
+        return 'Siège'
       case 'cr':
-        return 'Coordinateur régional';
+        return 'Coordinateur régional'
       case 'cn':
-        return 'Coordinateur national';
+        return 'Coordinateur national'
       case 'partenaire':
-        return 'Partenaire local';
+        return 'Partenaire local'
       default:
-        return role;
+        return role
     }
-  };
+  }
 
   if (error) {
-    return <div className="p-6 text-red-600 text-base">{t('error_prefix')} {error}</div>;
+    return <div className="p-6 text-red-600 text-base">{t('error_prefix')} {error}</div>
   }
 
   if (!user) {
-    return <div className="p-6 text-gray-600 text-base">{t('loading')}</div>;
+    return <div className="p-6 text-gray-600 text-base">{t('loading')}</div>
   }
 
   return (
@@ -98,5 +94,5 @@ export default function ProfilPage() {
         </section>
       </div>
     </main>
-  );
+  )
 }

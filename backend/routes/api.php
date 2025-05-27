@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
@@ -17,164 +18,158 @@ use App\Http\Controllers\OutputController;
 use App\Http\Controllers\IndicateurController;
 use App\Http\Controllers\IndicateurActiviteController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ActivitesImportController;
 
-
-
-
+// Routes publiques
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
 
-
-// Beneficiaire
-Route::post('/beneficiaires', [BeneficiaireController::class, 'store']);
-Route::get('/beneficiaires', [BeneficiaireController::class, 'index']);
-Route::get('/beneficiaires/{id}', [BeneficiaireController::class, 'show']);
-Route::put('/beneficiaires/{id}', [BeneficiaireController::class, 'update']);
-Route::delete('/beneficiaires/{id}', [BeneficiaireController::class, 'destroy']);
-Route::post('/beneficiaires/check-duplicate', [BeneficiaireController::class, 'checkDuplicate']);
-//Route::post('/beneficiaires/doublon/valider', [BeneficiaireImportController::class, 'storeConfirmedDuplicate']);
-
-// Enums
-Route::get('/enums', [EnumController::class, 'enums']);
-
-
+// Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
-    // User
-    Route::post('/users', [UserController::class, 'store']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
-    Route::post('/users/{id}/partenaire', [UserController::class, 'assignPartenaire']);
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);   
-    Route::get('/me', [UserController::class, 'me']);
 
-
+    // Authentification
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/2fa/verify', [AuthController::class, 'verifyTwoFactorCode']);
 
-});
+    // Enums
+    Route::get('/enums', [EnumController::class, 'enums']);
 
-
-Route::controller(PartenaireController::class)->group(function(){
-    Route::get('/partenaires', [PartenaireController::class, 'index']);
-    Route::post('/partenaires', [PartenaireController::class, 'store']);
-    Route::delete('/partenaires/{id}', [PartenaireController::class, 'destroy']);
-    Route::put('/partenaires/{id}', [PartenaireController::class, 'update']);
-    Route::get('/partenaires/{id}', [PartenaireController::class, 'show']);
-    Route::get('/partenaires/{id}/users', [PartenaireController::class, 'users']);
-});
-
-
-Route::controller(ProjetController::class)->group(function(){
-    Route::get('/projets', [ProjetController::class, 'index']);
-    Route::post('/projets', [ProjetController::class, 'store']);
-    Route::get('/projets/{id}', [ProjetController::class, 'show']);
-    Route::put('/projets/{id}', [ProjetController::class, 'update']);
-    Route::delete('/projets/{id}', [ProjetController::class, 'destroy']);
-});
-
-
-Route::controller(ActivitesController::class)->group(function(){
-    Route::get('/activites', [ActivitesController::class, 'index']);
-    Route::post('/activites', [ActivitesController::class, 'store']);
-    Route::get('/activites/{id}', [ActivitesController::class, 'show']);
-    Route::put('/activites/{id}', [ActivitesController::class, 'update']);
-    Route::delete('/activites/{id}', [ActivitesController::class, 'destroy']);
-    Route::post('/activites/import', [ActivitesController::class, 'import']);
-    Route::get('/activites/template', function () {
-        $path = storage_path('app/public/modele_import_activites.csv');
-        if (!file_exists($path)) {
-            return response()->json(['message' => 'Fichier non trouvé'], 404);
-        }
-        return response()->download($path, 'modele_import_activites.csv');
+    // Utilisateurs
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/users', 'index');
+        Route::post('/users', 'store');
+        Route::get('/users/{id}', 'show');
+        Route::put('/users/{id}', 'update');
+        Route::delete('/users/{id}', 'destroy');
+        Route::post('/users/{id}/partenaire', 'assignPartenaire');
+        Route::get('/me', 'me');
     });
 
-});
+    // Bénéficiaires
+    Route::controller(BeneficiaireController::class)->group(function () {
+        Route::get('/beneficiaires', 'index');
+        Route::post('/beneficiaires', 'store');
+        Route::get('/beneficiaires/{id}', 'show');
+        Route::put('/beneficiaires/{id}', 'update');
+        Route::delete('/beneficiaires/{id}', 'destroy');
+        Route::post('/beneficiaires/check-duplicate', 'checkDuplicate');
+    });
 
-// Routes pour la gestion des bénéficiaires d'une activité
-Route::controller(ActiviteBeneficiaireController::class)->group(function(){
-    Route::get('/activites/{id}/beneficiaires', 'index');
-    Route::post('/activites/{id}/beneficiaires', 'store');
-    Route::delete('/activites/{id}/beneficiaires/{beneficiaireId}', 'destroy');
-});
+    // Partenaires
+    Route::controller(PartenaireController::class)->group(function () {
+        Route::get('/partenaires', 'index');
+        Route::post('/partenaires', 'store');
+        Route::get('/partenaires/{id}', 'show');
+        Route::put('/partenaires/{id}', 'update');
+        Route::delete('/partenaires/{id}', 'destroy');
+        Route::get('/partenaires/{id}/users', 'users');
+    });
 
-// Route pour le cadre logique
-Route::controller(CadreLogiqueController::class)->group(function(){
-    Route::get('/cadre-logique', [CadreLogiqueController::class, 'index']);
-    Route::post('/cadre-logique', [CadreLogiqueController::class, 'store']);
-    Route::get('/cadre-logique/{id}', [CadreLogiqueController::class, 'show']);
-    Route::put('/cadre-logique/{id}', [CadreLogiqueController::class, 'update']);
-    Route::delete('/cadre-logique/{id}', [CadreLogiqueController::class, 'destroy']);
-    Route::get('/cadre-logique/{id}/structure', [CadreLogiqueController::class, 'structure']);
-});
+    // Projets
+    Route::controller(ProjetController::class)->group(function () {
+        Route::get('/projets', 'index');
+        Route::post('/projets', 'store');
+        Route::get('/projets/{id}', 'show');
+        Route::put('/projets/{id}', 'update');
+        Route::delete('/projets/{id}', 'destroy');
+    });
 
-// Routes pour les objectifs généraux
-Route::controller(ObjectifGeneralController::class)->group(function(){
-    Route::get('/objectifs-generaux', [ObjectifGeneralController::class, 'index']);
-    Route::post('/objectifs-generaux', [ObjectifGeneralController::class, 'store']);
-    Route::get('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'show']);
-    Route::put('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'update']);
-    Route::delete('/objectifs-generaux/{id}', [ObjectifGeneralController::class, 'destroy']);
-});
+    // Activités
+    Route::controller(ActivitesController::class)->group(function () {
+        Route::get('/activites', 'index');
+        Route::post('/activites', 'store');
+        Route::get('/activites/{id}', 'show');
+        Route::put('/activites/{id}', 'update');
+        Route::delete('/activites/{id}', 'destroy');
+        Route::post('/activites/import', 'import');
+    });
 
-// Routes pour les outcomes
-Route::controller(OutcomeController::class)->group(function(){
-    Route::get('/outcomes', [OutcomeController::class, 'index']);
-    Route::post('/outcomes', [OutcomeController::class, 'store']);
-    Route::get('/outcomes/{id}', [OutcomeController::class, 'show']);
-    Route::put('/outcomes/{id}', [OutcomeController::class, 'update']);
-    Route::delete('/outcomes/{id}', [OutcomeController::class, 'destroy']);
-});
+    Route::post('/activites/import', [ActivitesImportController::class, 'import']);
 
-// Routes pour les outputs
-Route::controller(OutputController::class)->group(function(){
-    Route::get('/outputs', [OutputController::class, 'index']);
-    Route::post('/outputs', [OutputController::class, 'store']);
-    Route::get('/outputs/{id}', [OutputController::class, 'show']);
-    Route::put('/outputs/{id}', [OutputController::class, 'update']);
-    Route::delete('/outputs/{id}', [OutputController::class, 'destroy']);
-});
+    // Activités et bénéficiaires
+    Route::controller(ActiviteBeneficiaireController::class)->group(function () {
+        Route::get('/activites/{id}/beneficiaires', 'index');
+        Route::post('/activites/{id}/beneficiaires', 'store');
+        Route::delete('/activites/{id}/beneficiaires/{beneficiaireId}', 'destroy');
+    });
 
-// Routes pour les indicateurs
-Route::controller(IndicateurController::class)->group(function(){
-    Route::get('/indicateurs', [IndicateurController::class, 'index']);
-    Route::post('/indicateurs', [IndicateurController::class, 'store']);
-    Route::get('/indicateurs/{id}', [IndicateurController::class, 'show']);
-    Route::put('/indicateurs/{id}', [IndicateurController::class, 'update']);
-    Route::delete('/indicateurs/{id}', [IndicateurController::class, 'destroy']);
-});
+    // Cadre logique
+    Route::controller(CadreLogiqueController::class)->group(function () {
+        Route::get('/cadre-logique', 'index');
+        Route::post('/cadre-logique', 'store');
+        Route::get('/cadre-logique/{id}', 'show');
+        Route::put('/cadre-logique/{id}', 'update');
+        Route::delete('/cadre-logique/{id}', 'destroy');
+        Route::get('/cadre-logique/{id}/structure', 'structure');
+    });
 
-// Route pour les activités liées aux indicateurs
-Route::controller(IndicateurActiviteController::class)->group(function(){
-    Route::get('/indicateur-activite', 'index');
-    Route::post('/indicateur-activite', 'store');
-    Route::get('/indicateur-activite/{id}', 'show');
-    Route::delete('/indicateur-activite/{id}', 'destroy');
-    Route::post('/indicateur-activite/batch', 'storeBatch');
-});
+    // Objectifs généraux
+    Route::controller(ObjectifGeneralController::class)->group(function () {
+        Route::get('/objectifs-generaux', 'index');
+        Route::post('/objectifs-generaux', 'store');
+        Route::get('/objectifs-generaux/{id}', 'show');
+        Route::put('/objectifs-generaux/{id}', 'update');
+        Route::delete('/objectifs-generaux/{id}', 'destroy');
+    });
 
-// Route pour compter le nombre de bénéficiaires dans une activiteé
-Route::get('/indicateur/{id}/beneficiaires-count', function ($id) {
-    $count = DB::table('activite_indicateur')
-        ->join('activite_beneficiaire', 'activite_indicateur.act_id', '=', 'activite_beneficiaire.acb_act_id')
-        ->where('activite_indicateur.ind_id', $id)
-        ->distinct('activite_beneficiaire.acb_ben_id')
-        ->count('activite_beneficiaire.acb_ben_id');
+    // Outcomes
+    Route::controller(OutcomeController::class)->group(function () {
+        Route::get('/outcomes', 'index');
+        Route::post('/outcomes', 'store');
+        Route::get('/outcomes/{id}', 'show');
+        Route::put('/outcomes/{id}', 'update');
+        Route::delete('/outcomes/{id}', 'destroy');
+    });
 
-    return response()->json(['count' => $count]);
-});
+    // Outputs
+    Route::controller(OutputController::class)->group(function () {
+        Route::get('/outputs', 'index');
+        Route::post('/outputs', 'store');
+        Route::get('/outputs/{id}', 'show');
+        Route::put('/outputs/{id}', 'update');
+        Route::delete('/outputs/{id}', 'destroy');
+    });
 
+    // Indicateurs
+    Route::controller(IndicateurController::class)->group(function () {
+        Route::get('/indicateurs', 'index');
+        Route::post('/indicateurs', 'store');
+        Route::get('/indicateurs/{id}', 'show');
+        Route::put('/indicateurs/{id}', 'update');
+        Route::delete('/indicateurs/{id}', 'destroy');
+    });
 
-Route::controller(EvaluationController::class)->group(function () {
+    // Indicateurs liés à des activités
+    Route::controller(IndicateurActiviteController::class)->group(function () {
+        Route::get('/indicateur-activite', 'index');
+        Route::post('/indicateur-activite', 'store');
+        Route::get('/indicateur-activite/{id}', 'show');
+        Route::delete('/indicateur-activite/{id}', 'destroy');
+        Route::post('/indicateur-activite/batch', 'storeBatch');
+        Route::get('/indicateur-activite/{id}/activites-with-count', 'getActivitesWithCount');
+    });
+
+    // Compteur de bénéficiaires par indicateur
+    Route::get('/indicateur/{id}/beneficiaires-count', function ($id) {
+        $count = DB::table('activite_indicateur')
+            ->join('activite_beneficiaire', 'activite_indicateur.act_id', '=', 'activite_beneficiaire.acb_act_id')
+            ->where('activite_indicateur.ind_id', $id)
+            ->distinct('activite_beneficiaire.acb_ben_id')
+            ->count('activite_beneficiaire.acb_ben_id');
+
+        return response()->json(['count' => $count]);
+    });
+
+    // Évaluations
+    Route::controller(EvaluationController::class)->group(function () {
         Route::get('/evaluations', 'index');
         Route::post('/evaluations', 'store');
         Route::get('/evaluations/{id}', 'show');
         Route::patch('/evaluations/{id}/soumettre', 'updateStatut');
-        Route::get('/mes-evaluations','mesEvaluations');
-        Route::put('/evaluations/{id}','update');
+        Route::get('/mes-evaluations', 'mesEvaluations');
+        Route::put('/evaluations/{id}', 'update');
         Route::get('/mes-evaluations/count', 'countMesEvaluations');
-
+    });
 });
-

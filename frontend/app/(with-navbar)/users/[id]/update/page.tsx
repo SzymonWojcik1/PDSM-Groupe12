@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
+import { useApi } from '@/lib/hooks/useApi'
+
 type Partenaire = { part_id: number; part_nom: string }
 type EnumItem = { value: string; label: string }
 type User = { id: number; nom: string; prenom: string; role: string }
@@ -14,14 +17,14 @@ export default function EditUserPage() {
   const { t } = useTranslation()
   const { id } = useParams()
   const router = useRouter()
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const checked = useAdminGuard()
+  const { callApi } = useApi()
 
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
   const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState('')
   const [currentRole, setCurrentRole] = useState('')
-  const [userRole, setUserRole] = useState('')
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -36,22 +39,13 @@ export default function EditUserPage() {
   })
 
   useEffect(() => {
-    const storedRole = localStorage.getItem('role')
-    if (storedRole !== 'siege') {
-      router.push('/')
-      return
-    }
-    setUserRole(storedRole || '')
-  }, [])
+    if (!checked || !id || Array.isArray(id)) return
 
-  useEffect(() => {
-    if (!token || !id || Array.isArray(id)) return
+    const fetchData = async () => {
+      try {
+        const resUser = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`)
+        const data = await resUser.json()
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
         setFormData({
           nom: data.nom || '',
           prenom: data.prenom || '',
@@ -64,45 +58,34 @@ export default function EditUserPage() {
           superieur_id: data.superieur?.id?.toString() || ''
         })
         setCurrentRole(data.role)
-      })
-      .catch(() => setError(t('error_fetch_user')))
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setPartenaires)
-      .catch(() => setError(t('error_fetch_partners')))
+        const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+        const partenairesData = await resPartenaires.json()
+        setPartenaires(partenairesData)
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const rolesWithLabels = (data.role || []).map((role: any) => ({
+        const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
+        const enums = await resEnums.json()
+        const rolesFromApi = enums.role || []
+        const rolesWithLabels = rolesFromApi.map((role: any) => ({
           value: role.value,
           label:
-            role.value === 'cn'
-              ? 'Coordination nationale'
-              : role.value === 'cr'
-              ? 'Coordination régionale'
-              : role.value === 'siege'
-              ? 'Siège'
-              : role.value === 'utilisateur'
-              ? 'Utilisateur'
-              : role.label
+            role.value === 'cn' ? 'Coordination nationale' :
+            role.value === 'cr' ? 'Coordination régionale' :
+            role.value === 'siege' ? 'Siège' :
+            role.value === 'utilisateur' ? 'Utilisateur' : role.label
         }))
         setRoles(rolesWithLabels)
-      })
-      .catch(() => setError(t('error_fetch_roles')))
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setSuperieurs)
-      .catch(() => setError(t('error_fetch_users')))
-  }, [token, id, t])
+        const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
+        const usersData = await resUsers.json()
+        setSuperieurs(usersData)
+      } catch (err: any) {
+        setError(err.message || t('error_loading_data'))
+      }
+    }
+
+    fetchData()
+  }, [checked, id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -113,18 +96,14 @@ export default function EditUserPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!token || !id || Array.isArray(id)) return
+    if (!id || Array.isArray(id)) return
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || t('error_update_user'))
 
@@ -141,7 +120,7 @@ export default function EditUserPage() {
     return supIndex > roleIndex
   })
 
-  if (userRole !== 'siege') return null
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

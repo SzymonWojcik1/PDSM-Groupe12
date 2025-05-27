@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
+
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 type Partenaire = { part_id: number; part_nom: string }
 type EnumItem = { value: string; label: string }
@@ -13,9 +16,9 @@ type User = { id: number; nom: string; prenom: string; role: string }
 export default function CreateUserPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const checked = useAdminGuard()
+  const { callApi } = useApi()
 
-  const [hasAccess, setHasAccess] = useState(false)
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
   const [superieurs, setSuperieurs] = useState<User[]>([])
@@ -26,34 +29,17 @@ export default function CreateUserPage() {
   })
 
   useEffect(() => {
-    if (!token) return
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.role === 'siege') setHasAccess(true)
-        else router.push('/')
-      })
-      .catch(() => router.push('/'))
-  }, [token])
+    if (!checked) return
 
-  useEffect(() => {
-    if (!token || !hasAccess) return
+    const fetchMetaData = async () => {
+      try {
+        const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+        const partenairesData = await resPartenaires.json()
+        setPartenaires(partenairesData)
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setPartenaires)
-      .catch(() => setErrorMessage(t('error_fetch_partners')))
-
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const rolesFromApi = data.role || []
+        const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
+        const enums = await resEnums.json()
+        const rolesFromApi = enums.role || []
         const rolesWithLabels = rolesFromApi.map((role: any) => ({
           value: role.value,
           label:
@@ -63,16 +49,17 @@ export default function CreateUserPage() {
             role.value === 'utilisateur' ? 'Utilisateur' : role.label
         }))
         setRoles(rolesWithLabels)
-      })
-      .catch(() => setErrorMessage(t('error_fetch_roles')))
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setSuperieurs)
-      .catch(() => setErrorMessage(t('error_fetch_users')))
-  }, [token, hasAccess])
+        const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
+        const usersData = await resUsers.json()
+        setSuperieurs(usersData)
+      } catch (err: any) {
+        setErrorMessage(t('error_loading_data') || err.message)
+      }
+    }
+
+    fetchMetaData()
+  }, [checked])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -83,12 +70,9 @@ export default function CreateUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
       const data = await res.json()
@@ -106,7 +90,7 @@ export default function CreateUserPage() {
     return supIndex > roleIndex
   })
 
-  if (!hasAccess) return null
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

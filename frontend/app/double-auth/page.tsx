@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import '@/lib/i18n'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 
 export default function VerifyPage() {
+  useRedirectIfAuthenticated()
   const { t, i18n } = useTranslation('common', { useSuspense: false })
   const router = useRouter()
   const [code, setCode] = useState('')
@@ -16,7 +18,7 @@ export default function VerifyPage() {
 
   useEffect(() => {
     setMounted(true)
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('temp_token')
     if (!token) {
       router.replace('/login')
     }
@@ -27,7 +29,7 @@ export default function VerifyPage() {
     setLoading(true)
     setError(null)
 
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('temp_token')
     if (!token) {
       setError(t('2fa_error_no_token'))
       setLoading(false)
@@ -51,7 +53,11 @@ export default function VerifyPage() {
         throw new Error(data.message || t('2fa_error_invalid_code'))
       }
 
+      // Stocke le token définitivement après succès de la 2FA
+      localStorage.setItem('token', token)
       localStorage.setItem('2fa_validated', 'true')
+      sessionStorage.removeItem('temp_token')
+
       router.push('/home')
     } catch (err: any) {
       setError(err.message)

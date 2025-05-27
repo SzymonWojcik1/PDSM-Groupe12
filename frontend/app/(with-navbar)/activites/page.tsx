@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ActiviteFilters from '@/components/activiteFilters';
 import ActiviteTable, { Activite } from '@/components/ActiviteTable';
+import ImportExcelActivite from '@/components/ImportExcelActivite';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 type Partenaire = {
   part_id: number;
@@ -18,28 +21,44 @@ type Projet = {
 
 export default function ActivitesPage() {
   const { t } = useTranslation();
+  useAuthGuard();
+  const { callApi } = useApi();
+  const router = useRouter();
+  const importRef = useRef<HTMLInputElement>(null);
+
   const [activites, setActivites] = useState<Activite[]>([]);
   const [filtered, setFiltered] = useState<Activite[]>([]);
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
   const [projets, setProjets] = useState<Projet[]>([]);
   const [filters, setFilters] = useState({ search: '', partenaire: '', projet: '' });
 
-  const router = useRouter();
-
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`)
-      .then(res => res.json())
-      .then(data => {
-        setActivites(data);
-        setFiltered(data);
-      });
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-      .then(res => res.json())
-      .then(setPartenaires);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`)
-      .then(res => res.json())
-      .then(setProjets);
+    const fetchData = async () => {
+      try {
+        const [activitesRes, partenairesRes, projetsRes] = await Promise.all([
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets`),
+        ]);
+
+        const [activitesData, partenairesData, projetsData] = await Promise.all([
+          activitesRes.json(),
+          partenairesRes.json(),
+          projetsRes.json(),
+        ]);
+
+        setActivites(activitesData);
+        setFiltered(activitesData);
+        setPartenaires(partenairesData);
+        setProjets(projetsData);
+      } catch (err) {
+        console.error('Erreur chargement données', err);
+      }
+    };
+
+    fetchData();
   }, []);
+
 
   useEffect(() => {
     let result = [...activites];
@@ -59,7 +78,7 @@ export default function ActivitesPage() {
 
   const deleteActivite = async (id: number) => {
     if (!confirm(t('confirm_delete_activity'))) return;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
+    await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
     setActivites(prev => prev.filter(a => a.act_id !== id));
   };
 
@@ -73,7 +92,6 @@ export default function ActivitesPage() {
   };
 
   const exportToCSV = () => {
-    // Créer l'en-tête du CSV
     const headers = [
       t('table_name'),
       t('table_start'),
@@ -82,7 +100,6 @@ export default function ActivitesPage() {
       t('table_project')
     ].join(',');
 
-    // Convertir les données en lignes CSV
     const rows = filtered.map(activite => [
       activite.act_nom,
       activite.act_dateDebut,
@@ -91,21 +108,87 @@ export default function ActivitesPage() {
       activite.projet?.pro_nom || ''
     ].map(field => `"${field}"`).join(','));
 
-    // Combiner l'en-tête et les données
     const csvContent = [headers, ...rows].join('\n');
 
-    // Créer un blob et un lien de téléchargement
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', `activites_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const triggerImport = () => {
+    importRef.current?.click();
+  };
+
+  const handleImport = async (rows: Record<string, unknown>[]) => {
+    let imported = 0;
+    let ignored = 0;
+    let failed = 0;
+
+    for (const [index, row] of rows.entries()) {
+      try {
+        const partenaireNom = row['Partenaire'];
+        const projetNom = row['Projet'];
+
+        if (
+          typeof partenaireNom !== 'string' ||
+          partenaireNom.trim() === '' ||
+          typeof projetNom !== 'string' ||
+          projetNom.trim() === ''
+        ) {
+          ignored++;
+          continue;
+        }
+
+        const partenaire = partenaires.find(p => p.part_nom === partenaireNom.trim());
+        const projet = projets.find(p => p.pro_nom === projetNom.trim());
+
+        if (!partenaire || !projet) {
+          ignored++;
+          continue;
+        }
+
+        const finalRow = {
+          act_nom: row['Nom de l’activité'],
+          act_dateDebut: row['Date de début'],
+          act_dateFin: row['Date de fin'],
+          act_part_id: partenaire.part_id,
+          act_pro_id: projet.pro_id,
+        };
+
+        const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalRow),
+        });
+
+        if (!response.ok) {
+          failed++;
+          continue;
+        }
+
+        imported++;
+
+      } catch (err) {
+        failed++;
+        continue;
+      }
+    }
+
+    alert(
+      `${imported} ligne(s) importée(s) avec succès.\n` +
+      `${ignored} ligne(s) ignorée(s).\n` +
+      `${failed} ligne(s) échouée(s).`
+    );
+
+    location.reload();
   };
 
   return (
@@ -127,11 +210,19 @@ export default function ActivitesPage() {
             </button>
 
             <button
-              onClick={() => router.push('/activites/import')}
+              onClick={triggerImport}
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
               {t('import_file')}
             </button>
+
+            <ImportExcelActivite
+              ref={importRef}
+              fromCol={0}
+              toCol={5}
+              dateFields={['Date de début', 'Date de fin']}
+              onPreview={handleImport}
+            />
 
             <button
               onClick={exportToCSV}
@@ -141,7 +232,7 @@ export default function ActivitesPage() {
             </button>
 
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}modele-import-activites`}
+              href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}activites/template`}
               download
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >

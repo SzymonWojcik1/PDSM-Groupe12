@@ -1,13 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import ActiviteForm from '@/components/ActiviteForm';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
+import ActiviteForm from '@/components/ActiviteForm';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import { useApi } from '@/lib/hooks/useApi';
 
 export default function CreateActivitePage() {
-  const router = useRouter();
+  useAuthGuard();
+  const { callApi } = useApi();
   const { t } = useTranslation();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        router.push('/activites');
+      } else {
+        const err = await res.json();
+        alert(err.message || t('error_creating_activity'));
+      }
+    } catch (err) {
+      console.error('Erreur création activité', err);
+      alert(t('error_creating_activity'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -30,21 +59,9 @@ export default function CreateActivitePage() {
 
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           <ActiviteForm
-            submitLabel={t('create_activity_button')}
-            onSubmit={async (data) => {
-              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-              });
-
-              if (res.ok) {
-                router.push('/activites');
-              } else {
-                const err = await res.json();
-                alert(err.message || 'Erreur lors de la création');
-              }
-            }}
+            submitLabel={loading ? t('creating') + '...' : t('create_activity_button')}
+            onSubmit={handleSubmit}
+            callApi={callApi}
           />
         </div>
       </div>

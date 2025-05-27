@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import RegionCountrySelector from '@/components/regionCountrySelector';
 import EnumSelect from '@/components/enumsSelect';
 import { validateAgeByType } from '@/lib/validateAgeByType';
+import { useApi } from '@/lib/hooks/useApi';
 
 export type BeneficiaireFormData = {
   ben_prenom: string;
@@ -34,6 +35,7 @@ type Props = {
 
 export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }: Props) {
   const { t } = useTranslation();
+  const { callApi } = useApi();
   const [form, setForm] = useState<BeneficiaireFormData>(
     initialData || {
       ben_prenom: '', ben_nom: '', ben_date_naissance: '', ben_region: '', ben_pays: '',
@@ -46,18 +48,24 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
   const [ethniciteFocused, setEthniciteFocused] = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
-      .then((res) => res.json())
-      .then(setEnums)
-      .catch((err) => console.error('Erreur enums:', err));
-  }, []);
+    const fetchEnums = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`);
+        if (!res.ok) throw new Error(`Erreur serveur enums : ${res.status}`);
+        const data = await res.json();
+        setEnums(data);
+      } catch (err) {
+        console.error('Erreur enums:', err);
+      }
+    };
+
+    fetchEnums();
+  }, [callApi]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
     const lowercaseFields = ['ben_nom', 'ben_prenom', 'ben_ethnicite'];
     const newValue = lowercaseFields.includes(name) ? value.toLowerCase() : value;
-
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
@@ -105,10 +113,10 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
     const isRequired = requiredCondition ?? label.includes('*');
     const value = form[name] || '';
     const isEmpty = isRequired && showErrors && !value.trim();
-
     const isNameField = ['ben_prenom', 'ben_nom', 'ben_type_autre', 'ben_sexe_autre', 'ben_genre_autre'].includes(name);
     const nameRegex = /^[a-zA-ZÀ-ÿ' -]+$/;
     const isInvalidName = isNameField && (!!value && (!nameRegex.test(value) || value.length > 50));
+
     return (
       <div className="flex flex-col gap-1">
         <label htmlFor={name} className="text-sm font-medium text-left">{label}</label>
@@ -119,9 +127,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
           value={value}
           placeholder={placeholder || label}
           maxLength={50}
-          className={`border p-2 rounded ${
-            isEmpty || isInvalidName ? 'border-red-500' : ''
-          }`}
+          className={`border p-2 rounded ${isEmpty || isInvalidName ? 'border-red-500' : ''}`}
           onChange={handleChange}
           onFocus={name === 'ben_ethnicite' ? () => setEthniciteFocused(true) : undefined}
           onBlur={name === 'ben_ethnicite' ? () => setEthniciteFocused(false) : undefined}
@@ -129,9 +135,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
         {isEmpty && <p className="text-xs text-red-600">{t('field_required')}</p>}
         {isInvalidName && (
           <p className="text-xs text-red-600">
-            {value.length > 50
-              ? t('max_chars')
-              : t('invalid_chars')}
+            {value.length > 50 ? t('max_chars') : t('invalid_chars')}
           </p>
         )}
       </div>
@@ -148,12 +152,12 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
         <DatePicker
           selected={form.ben_date_naissance ? new Date(form.ben_date_naissance) : null}
           onChange={(date: Date | null) =>
-            setForm((prev) => ({ ...prev,
+            setForm((prev) => ({
+              ...prev,
               ben_date_naissance: date
-                ? `${date.getFullYear()}-${(date.getMonth() + 1)
-                    .toString()
-                    .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-                : '' }))
+                ? `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+                : ''
+            }))
           }
           dateFormat="yyyy-MM-dd"
           className={`border p-2 rounded w-full ${showErrors && !form.ben_date_naissance ? 'border-red-500' : ''}`}
@@ -176,54 +180,19 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
         initialCountry={form.ben_pays}
       />
 
-      <EnumSelect 
-        name="ben_type" 
-        label={t('type')} 
-        options={enums.type || []} 
-        value={form.ben_type} 
-        onChange={handleChange} 
-        error={!form.ben_type && showErrors} 
-        errorMessage={t('select_type')} 
-      />
+      <EnumSelect name="ben_type" label={t('type')} options={enums.type || []} value={form.ben_type} onChange={handleChange} error={!form.ben_type && showErrors} errorMessage={t('select_type')} />
       {form.ben_type === 'other' && renderField(t('other_type'), 'ben_type_autre', 'text', undefined, true)}
 
-      <EnumSelect 
-        name="ben_zone" 
-        label={t('zone')} 
-        options={enums.zone || []} 
-        value={form.ben_zone} 
-        onChange={handleChange} 
-        error={!form.ben_zone && showErrors} 
-        errorMessage={t('select_zone')} 
-      />
-
-      <EnumSelect 
-        name="ben_sexe" 
-        label={t('sex')} 
-        options={enums.sexe || []} 
-        value={form.ben_sexe} 
-        onChange={handleChange} 
-        error={!form.ben_sexe && showErrors} 
-        errorMessage={t('select_sex')} 
-      />
+      <EnumSelect name="ben_zone" label={t('zone')} options={enums.zone || []} value={form.ben_zone} onChange={handleChange} error={!form.ben_zone && showErrors} errorMessage={t('select_zone')} />
+      <EnumSelect name="ben_sexe" label={t('sex')} options={enums.sexe || []} value={form.ben_sexe} onChange={handleChange} error={!form.ben_sexe && showErrors} errorMessage={t('select_sex')} />
       {form.ben_sexe === 'other' && renderField(t('other_sex'), 'ben_sexe_autre', 'text', undefined, true)}
 
-      <EnumSelect 
-        name="ben_genre" 
-        label={t('gender')} 
-        options={enums.genre || []} 
-        value={form.ben_genre} 
-        onChange={handleChange} 
-      />
+      <EnumSelect name="ben_genre" label={t('gender')} options={enums.genre || []} value={form.ben_genre} onChange={handleChange} />
       {form.ben_genre === 'other' && renderField(t('other_gender'), 'ben_genre_autre')}
 
       <div className="flex flex-col gap-1 relative">
         {renderField(t('ethnicity'), 'ben_ethnicite')}
-        {ethniciteFocused && (
-          <p className="text-xs text-gray-600 mt-1">
-            {t('ethnicity_help')}
-          </p>
-        )}
+        {ethniciteFocused && <p className="text-xs text-gray-600 mt-1">{t('ethnicity_help')}</p>}
       </div>
 
       <button

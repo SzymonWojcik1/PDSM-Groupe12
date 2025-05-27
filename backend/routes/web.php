@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BeneficiaireExportTemplateController;
+use App\Http\Controllers\ActiviteExportTemplateController;
 
 
 Route::get('/modele-import-activites', function () {
@@ -15,4 +16,5 @@ Route::get('/modele-import-activites', function () {
 });
 
 Route::get('/beneficiaires/template', [BeneficiaireExportTemplateController::class, 'downloadTemplate']);
+Route::get('/activites/template', [ActiviteExportTemplateController::class, 'downloadTemplate']);
 //Route::post('/beneficiaires/import', [\App\Http\Controllers\BeneficiaireImportController::class, 'import']);

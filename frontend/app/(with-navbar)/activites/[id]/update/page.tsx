@@ -5,11 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import ActiviteForm from '@/components/ActiviteForm';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import { useApi } from '@/lib/hooks/useApi';
 
 export default function UpdateActivitePage() {
+  useAuthGuard();
   const { t } = useTranslation();
   const { id } = useParams();
   const router = useRouter();
+  const { callApi } = useApi();
 
   const [initialData, setInitialData] = useState<null | {
     act_nom: string;
@@ -21,19 +25,51 @@ export default function UpdateActivitePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`);
-      const data = await res.json();
-      setInitialData({
-        act_nom: data.act_nom,
-        act_dateDebut: data.act_dateDebut,
-        act_dateFin: data.act_dateFin,
-        act_part_id: data.act_part_id,
-        act_pro_id: data.act_pro_id,
-      });
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText);
+        }
+
+        const data = await res.json();
+        setInitialData({
+          act_nom: data.act_nom,
+          act_dateDebut: data.act_dateDebut,
+          act_dateFin: data.act_dateFin,
+          act_part_id: data.act_part_id,
+          act_pro_id: data.act_pro_id,
+        });
+      } catch (err) {
+        console.error('Erreur chargement activité', err);
+        alert(t('load_error') || 'Erreur lors du chargement de l’activité.');
+      }
     };
 
     fetchData();
+    // ⚠️ Ne surtout pas inclure `callApi` ou `t` ici pour éviter les appels en boucle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const handleUpdate = async (data: any) => {
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        router.push('/activites');
+      } else {
+        const err = await res.json();
+        alert(err.message || t('update_error'));
+      }
+    } catch (err) {
+      console.error('Erreur modification activité', err);
+      alert(t('update_error'));
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -59,20 +95,8 @@ export default function UpdateActivitePage() {
             <ActiviteForm
               initialData={initialData}
               submitLabel={t('save_changes')}
-              onSubmit={async (data) => {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(data),
-                });
-
-                if (res.ok) {
-                  router.push('/activites');
-                } else {
-                  const err = await res.json();
-                  alert(err.message || t('update_error'));
-                }
-              }}
+              onSubmit={handleUpdate}
+              callApi={callApi}
             />
           )}
         </div>

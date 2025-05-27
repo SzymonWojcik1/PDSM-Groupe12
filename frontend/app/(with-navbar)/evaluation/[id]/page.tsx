@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next';
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
 type Critere = {
   label: string
@@ -21,6 +22,7 @@ type User = {
 }
 
 export default function EvaluationDetailPage() {
+  useAuthGuard();
   const { t } = useTranslation();
   const { id } = useParams()
   const router = useRouter()

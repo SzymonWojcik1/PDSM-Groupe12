@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 export type Activite = {
   act_id: number
@@ -20,11 +22,13 @@ type ActiviteWithCount = Activite & {
 }
 
 export default function LierActivitesPage() {
+  useAuthGuard()
   const { id } = useParams()
   const searchParams = useSearchParams()
   const indicateurId = searchParams.get('ind')
   const router = useRouter()
   const { t } = useTranslation()
+  const { callApi } = useApi()
 
   const [activites, setActivites] = useState<Activite[]>([])
   const [linkedActivites, setLinkedActivites] = useState<ActiviteWithCount[]>([])
@@ -34,41 +38,62 @@ export default function LierActivitesPage() {
   const [searchLinked, setSearchLinked] = useState('')
 
   const fetchActivites = async () => {
-    const [allRes, linksRes] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`).then(res => res.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur/${indicateurId}/activites-with-count`).then(res => res.json()),
-    ])
-
-    setActivites(allRes)
-    setLinkedActivites(linksRes)
+    try {
+      const [allRes, linksRes] = await Promise.all([
+        callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`).then(async res => {
+          if (!res.ok) throw new Error('Erreur chargement activités')
+          return res.json()
+        }),
+        callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/${indicateurId}/activites-with-count`).then(async res => {
+          if (!res.ok) throw new Error('Erreur chargement activités liées')
+          return res.json()
+        }),
+      ])
+      setActivites(allRes)
+      setLinkedActivites(linksRes)
+    } catch (err) {
+      console.error('Erreur fetch activités:', err)
+    }
   }
 
   const handleLinkMany = async () => {
+    if (!indicateurId) return
     setIsLoading(true)
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/batch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ind_id: indicateurId, act_ids: selectedIds })
-    })
-
-    setSelectedIds([])
-    await fetchActivites()
-    setIsLoading(false)
+    try {
+      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ind_id: indicateurId, act_ids: selectedIds })
+      })
+      setSelectedIds([])
+      await fetchActivites()
+    } catch (err) {
+      console.error('Erreur lors du lien:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleUnlink = async (actId: number) => {
+    if (!indicateurId) return
     setIsLoading(true)
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite`)
-    const data = await res.json()
-    const link = data.find((item: any) => item.ind_id == indicateurId && item.act_id == actId)
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite`)
+      if (!res.ok) throw new Error('Erreur récupération des liens')
+      const data = await res.json()
+      const link = data.find((item: any) => item.ind_id == indicateurId && item.act_id == actId)
 
-    if (link) {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/${link.id}`, {
-        method: 'DELETE'
-      })
-      await fetchActivites()
+      if (link) {
+        await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/${link.id}`, {
+          method: 'DELETE'
+        })
+        await fetchActivites()
+      }
+    } catch (err) {
+      console.error('Erreur lors de la suppression du lien:', err)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {

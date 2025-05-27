@@ -1,89 +1,102 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 type Partenaire = {
-  part_id: number;
-  part_nom: string;
-};
+  part_id: number
+  part_nom: string
+}
 
 export default function UpdateProjetPage() {
-  const { t } = useTranslation();
-  const { id } = useParams();
-  const router = useRouter();
+  const { t } = useTranslation()
+  const { id } = useParams()
+  const router = useRouter()
+
+  useAuthGuard()
+  const { callApi } = useApi()
 
   const [formData, setFormData] = useState({
     pro_nom: '',
     pro_dateDebut: '',
     pro_dateFin: '',
     pro_part_id: '',
-  });
+  })
 
-  const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [partenaires, setPartenaires] = useState<Partenaire[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    const fetchPartenaires = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
-      const data = await res.json();
-      setPartenaires(data);
-    };
+    if (!id || Array.isArray(id)) return
 
-    const fetchProjet = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`);
-      const data = await res.json();
-      setFormData({
-        pro_nom: data.pro_nom,
-        pro_dateDebut: data.pro_dateDebut,
-        pro_dateFin: data.pro_dateFin,
-        pro_part_id: data.pro_part_id,
-      });
-    };
+    const fetchData = async () => {
+      try {
+        const resProjet = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`)
+        const dataProjet = await resProjet.json()
+        setFormData({
+          pro_nom: dataProjet.pro_nom,
+          pro_dateDebut: dataProjet.pro_dateDebut,
+          pro_dateFin: dataProjet.pro_dateFin,
+          pro_part_id: dataProjet.pro_part_id,
+        })
 
-    fetchPartenaires();
-    fetchProjet();
-  }, [id]);
+        const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+        const dataPartenaires = await resPartenaires.json()
+        setPartenaires(dataPartenaires)
+      } catch (err) {
+        setErrorMessage(t('error_occurred'))
+      }
+    }
+
+    fetchData()
+  }, [id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrorMessage('');
-  };
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+    setErrorMessage('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const debut = new Date(formData.pro_dateDebut);
-    const fin = new Date(formData.pro_dateFin);
-    const now = new Date();
+    const debut = new Date(formData.pro_dateDebut)
+    const fin = new Date(formData.pro_dateFin)
+    const now = new Date()
 
     if (debut > fin) {
-      setErrorMessage(t('date_start_after_end'));
-      return;
+      setErrorMessage(t('date_start_after_end'))
+      return
     }
 
     if (debut < now || fin < now) {
-      setErrorMessage(t('date_in_past'));
-      return;
+      setErrorMessage(t('date_in_past'))
+      return
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
 
-    const data = await res.json();
+      const data = await res.json()
 
-    if (!res.ok) {
-      setErrorMessage(data.message || t('error_occurred'));
-      return;
+      if (!res.ok) {
+        setErrorMessage(data.message || t('error_occurred'))
+        return
+      }
+
+      router.push('/projets')
+    } catch (err: any) {
+      setErrorMessage(err.message || t('error_occurred'))
     }
-
-    router.push('/projets');
-  };
+  }
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -179,5 +192,5 @@ export default function UpdateProjetPage() {
         </div>
       </div>
     </main>
-  );
+  )
 }

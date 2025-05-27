@@ -4,11 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import '@/lib/i18n';
 
 export default function CreateCadreLogique() {
+  useAuthGuard();
   const { t } = useTranslation();
   const router = useRouter();
+  const { callApi } = useApi();
+
   const [cadNom, setCadNom] = useState('');
   const [cadDateDebut, setCadDateDebut] = useState('');
   const [cadDateFin, setCadDateFin] = useState('');
@@ -22,7 +27,7 @@ export default function CreateCadreLogique() {
     }
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -32,6 +37,7 @@ export default function CreateCadreLogique() {
         }),
       });
 
+      if (!res.ok) throw new Error('Erreur lors de la création');
       router.push('/cadre-logique');
     } catch (err) {
       console.error(t('create_failed'), err);
