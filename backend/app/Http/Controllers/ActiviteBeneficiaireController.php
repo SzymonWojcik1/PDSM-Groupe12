@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Activite;
-use App\Models\Beneficiaire;
 use App\Models\ActiviteBeneficiaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\Logger;
 
 class ActiviteBeneficiaireController extends Controller
 {
@@ -50,6 +49,17 @@ class ActiviteBeneficiaireController extends Controller
         $activiteBeneficiaire->acb_ben_id = $request->ben_id;
         $activiteBeneficiaire->save();
 
+        /*Logger::log(
+            'info',
+            'Ajout bénéficiaire à activité',
+            'Un bénéficiaire a été inscrit à une activité',
+            [
+                'activite_id' => $id,
+                'beneficiaire_id' => $request->ben_id
+            ],
+            auth()->id()
+        );*/
+
         return response()->json([
             'message' => 'Bénéficiaire ajouté avec succès'
         ], 201);
@@ -70,39 +80,19 @@ class ActiviteBeneficiaireController extends Controller
             ], 404);
         }
 
+        /*Logger::log(
+            'warning',
+            'Retrait bénéficiaire d\'activité',
+            'Un bénéficiaire a été retiré d\'une activité',
+            [
+                'activite_id' => $id,
+                'beneficiaire_id' => $beneficiaireId
+            ],
+            auth()->id()
+        );*/
+
         return response()->json([
             'message' => 'Bénéficiaire retiré avec succès'
         ]);
     }
-
-    public function batchStore(Request $request, $id)
-    {
-        $request->validate([
-            'ben_ids' => 'required|array',
-            'ben_ids.*' => 'exists:beneficiaires,ben_id',
-        ]);
-
-        $added = [];
-
-        foreach ($request->ben_ids as $benId) {
-            // Vérifie que l'association n'existe pas déjà
-            $exists = ActiviteBeneficiaire::where('acb_act_id', $id)
-                ->where('acb_ben_id', $benId)
-                ->exists();
-
-            if (!$exists) {
-                $activiteBeneficiaire = new ActiviteBeneficiaire();
-                $activiteBeneficiaire->acb_act_id = $id;
-                $activiteBeneficiaire->acb_ben_id = $benId;
-                $activiteBeneficiaire->save();
-
-                $added[] = $benId;
-            }
-        }
-
-        return response()->json([
-            'message' => 'Ajout terminé',
-            'ajoutes' => $added,
-        ], 201);
-    }
-} 
+}
