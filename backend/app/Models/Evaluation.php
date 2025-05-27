@@ -24,6 +24,6 @@ class Evaluation extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(User::class, 'eva_use_id');
+        return $this->belongsTo(User::class, 'eva_use_id', 'id');
     }
 }

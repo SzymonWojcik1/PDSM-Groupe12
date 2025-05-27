@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { jsPDF } from 'jspdf'
 import { useTranslation } from 'react-i18next';
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 type Evaluation = {
   eva_id: number
@@ -40,6 +41,7 @@ function formatDate(dateStr?: string) {
 
 export default function EvaluationPage() {
   useAuthGuard();
+  const { callApi } = useApi()
   const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
   const [loading, setLoading] = useState(true)
@@ -54,50 +56,46 @@ export default function EvaluationPage() {
   const [dateFin, setDateFin] = useState('');
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        setError('Utilisateur non connecté')
-        setLoading(false)
-        return
+  const token = localStorage.getItem('token')
+  if (!token) {
+    setError('Utilisateur non connecté')
+    setLoading(false)
+    return
+  }
+
+  const fetchData = async () => {
+    try {
+      const [userRes, partenairesRes] = await Promise.all([
+        callApi(`${process.env.NEXT_PUBLIC_API_URL}/me`),
+        callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
+      ]);
+
+      const [userData, partenairesData] = await Promise.all([
+        userRes.json(),
+        partenairesRes.json(),
+      ]);
+
+      setUser(userData)
+      setPartenaires(partenairesData)
+
+      if (userData.role === 'siege') {
+        await fetchAllEvaluations()
+      } else {
+        await fetchUserEvaluations(userData.id)
       }
-
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (!res.ok) throw new Error('Échec de la récupération de l\'utilisateur')
-
-        const userData: User = await res.json()
-        setUser(userData)
-
-        if (userData.role === 'siege') {
-          fetchAllEvaluations()
-        } else {
-          fetchUserEvaluations(userData.id)
-        }
-      } catch (err: any) {
-        console.error(err)
-        setError(err.message)
-        setLoading(false)
-      }
+    } catch (err: any) {
+      console.error('Erreur chargement utilisateur ou partenaires :', err)
+      setError(err.message || 'Erreur de chargement')
+      setLoading(false)
     }
+  }
 
-    fetchUser()
-
-    // Récupération des partenaires pour le filtre
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-      .then(res => res.json())
-      .then(data => setPartenaires(data))
-      .catch(err => console.error('Erreur chargement partenaires :', err))
-  }, [])
+  fetchData()
+}, [])
 
   const fetchAllEvaluations = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/evaluations`)
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/evaluations`)
       const data: Evaluation[] = await res.json()
       setEvaluations(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -107,9 +105,10 @@ export default function EvaluationPage() {
     }
   }
 
+
   const fetchUserEvaluations = async (userId: number) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mes-evaluations?user_id=${userId}`)
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/mes-evaluations?user_id=${userId}`)
       const data: Evaluation[] = await res.json()
       setEvaluations(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -118,6 +117,7 @@ export default function EvaluationPage() {
       setLoading(false)
     }
   }
+
 
   // Filtrage des évaluations selon la recherche, le statut et le partenaire
   let filteredEvaluations = evaluations.filter(eva => {
