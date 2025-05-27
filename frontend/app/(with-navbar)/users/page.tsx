@@ -64,7 +64,10 @@ export default function UsersPage() {
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
       })
       if (!res.ok) throw new Error(t('error_loading_users'))
       const data: User[] = await res.json()
@@ -88,7 +91,10 @@ export default function UsersPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
       })
       if (!res.ok) throw new Error(t('error_delete_user'))
       fetchUsers()
@@ -113,7 +119,10 @@ export default function UsersPage() {
     if (!token) return
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
     })
       .then(res => res.json())
       .then(data => {
@@ -129,19 +138,25 @@ export default function UsersPage() {
               ? t('siege')
               : role.value === 'utilisateur'
               ? t('utilisateur')
-              : role.label
+              : role.label,
         }))
         setRoles(rolesWithLabels)
       })
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
     })
       .then(res => res.json())
       .then(setPartenaires)
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
     })
       .then(res => res.json())
       .then(setSuperieurs)

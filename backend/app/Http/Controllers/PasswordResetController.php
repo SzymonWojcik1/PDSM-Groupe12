@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
+use App\Helpers\Logger;
 
 class PasswordResetController extends Controller
 {
@@ -18,9 +19,27 @@ class PasswordResetController extends Controller
             $request->only('email')
         );
 
-        return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => 'Lien envoyé par e-mail.'])
-            : response()->json(['message' => 'Impossible d’envoyer le lien.'], 400);
+        if ($status === Password::RESET_LINK_SENT) {
+            Logger::log(
+                'info',
+                'Envoi lien réinitialisation',
+                'Lien de réinitialisation envoyé par email',
+                ['email' => $request->email],
+                $user->id
+            );
+
+            return response()->json(['message' => 'Lien envoyé par e-mail.']);
+        } else {
+            Logger::log(
+                'warning',
+                'Échec envoi lien réinitialisation',
+                'Échec de l’envoi du lien de réinitialisation',
+                ['email' => $request->email],
+                $user->id
+            );
+
+            return response()->json(['message' => 'Impossible d’envoyer le lien.'], 400);
+        }
     }
 
     public function resetPassword(Request $request)
@@ -39,18 +58,36 @@ class PasswordResetController extends Controller
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use ($request) {
                 $user->forceFill([
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                Logger::log(
+                    'info',
+                    'Mot de passe réinitialisé',
+                    'Réinitialisation réussie',
+                    ['email' => $user->email],
+                    $user->id
+                );
+
                 event(new PasswordReset($user));
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => 'Mot de passe réinitialisé avec succès.'])
-            : response()->json(['message' => 'Échec de la réinitialisation.'], 400);
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+        } else {
+            Logger::log(
+                'warning',
+                'Échec réinitialisation mot de passe',
+                'La réinitialisation a échoué',
+                ['email' => $request->email],
+                $user->id
+            );
+
+            return response()->json(['message' => 'Échec de la réinitialisation.'], 400);
+        }
     }
 }
