@@ -74,4 +74,35 @@ class ActiviteBeneficiaireController extends Controller
             'message' => 'Bénéficiaire retiré avec succès'
         ]);
     }
+
+    public function batchStore(Request $request, $id)
+    {
+        $request->validate([
+            'ben_ids' => 'required|array',
+            'ben_ids.*' => 'exists:beneficiaires,ben_id',
+        ]);
+
+        $added = [];
+
+        foreach ($request->ben_ids as $benId) {
+            // Vérifie que l'association n'existe pas déjà
+            $exists = ActiviteBeneficiaire::where('acb_act_id', $id)
+                ->where('acb_ben_id', $benId)
+                ->exists();
+
+            if (!$exists) {
+                $activiteBeneficiaire = new ActiviteBeneficiaire();
+                $activiteBeneficiaire->acb_act_id = $id;
+                $activiteBeneficiaire->acb_ben_id = $benId;
+                $activiteBeneficiaire->save();
+
+                $added[] = $benId;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Ajout terminé',
+            'ajoutes' => $added,
+        ], 201);
+    }
 } 

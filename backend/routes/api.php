@@ -93,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/activites/{id}/beneficiaires', 'index');
         Route::post('/activites/{id}/beneficiaires', 'store');
         Route::delete('/activites/{id}/beneficiaires/{beneficiaireId}', 'destroy');
+        Route::post('/activites/{id}/beneficiaires/batch', 'batchStore');
     });
 
     // Cadre logique
