@@ -6,9 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import { useApi } from '@/lib/hooks/useApi';
 
 export default function SupprimerBeneficiairesPage() {
+  useAuthGuard();
   const { t } = useTranslation();
+  const { callApi } = useApi();
+  const router = useRouter();
+
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
@@ -16,26 +22,37 @@ export default function SupprimerBeneficiairesPage() {
     region: '', pays: '', zone: '', type: '', sexe: '', genre: '', search: ''
   });
 
-  const router = useRouter();
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`);
+        const data = await res.json();
+        setEnums(data);
+      } catch (err) {
+        console.error('Erreur fetch enums:', err);
+      }
+    };
+    fetchEnums();
+  }, [callApi]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
-      .then(res => res.json())
-      .then(setEnums)
-      .catch(err => console.error('Erreur fetch enums:', err));
-  }, []);
+    const fetchBeneficiaires = async () => {
+      try {
+        const query = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) query.append(key, value);
+        });
 
-  useEffect(() => {
-    const query = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) query.append(key, value);
-    });
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`);
+        const data = await res.json();
+        setBeneficiaires(data);
+      } catch (err) {
+        console.error('Erreur fetch bénéficiaires:', err);
+      }
+    };
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
-      .then(res => res.json())
-      .then(setBeneficiaires)
-      .catch(err => console.error('Erreur fetch bénéficiaires:', err));
-  }, [filters]);
+    fetchBeneficiaires();
+  }, [filters, callApi]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,7 +85,7 @@ export default function SupprimerBeneficiairesPage() {
     const confirmed = confirm(t('confirm_delete_beneficiary'));
     if (!confirmed) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
+      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
       setBeneficiaires(prev => prev.filter(b => b.ben_id !== id));
       setSelectedIds(prev => prev.filter(x => x !== id));
     } catch (err) {
@@ -80,11 +97,16 @@ export default function SupprimerBeneficiairesPage() {
   const deleteSelected = async () => {
     const confirmed = confirm(t('confirm_delete_selection'));
     if (!confirmed) return;
-    for (const id of selectedIds) {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
+    try {
+      for (const id of selectedIds) {
+        await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, { method: 'DELETE' });
+      }
+      setBeneficiaires(prev => prev.filter(b => !selectedIds.includes(b.ben_id)));
+      setSelectedIds([]);
+    } catch (err) {
+      console.error('Erreur suppression multiple:', err);
+      alert(t('error_occurred'));
     }
-    setBeneficiaires(prev => prev.filter(b => !selectedIds.includes(b.ben_id)));
-    setSelectedIds([]);
   };
 
   return (

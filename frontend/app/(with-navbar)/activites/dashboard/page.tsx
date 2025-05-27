@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer
 } from 'recharts';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 type Activite = {
   act_id: number;
@@ -21,6 +23,9 @@ type Partenaire = {
 
 export default function DashboardActivitesPage() {
   const { t } = useTranslation();
+  useAuthGuard();
+  const { callApi } = useApi();
+
   const [activites, setActivites] = useState<Activite[]>([]);
   const [filteredActivites, setFilteredActivites] = useState<Activite[]>([]);
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
@@ -32,22 +37,26 @@ export default function DashboardActivitesPage() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const [actRes, partRes] = await Promise.all([
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
+        ]);
+        const [actData, partData] = await Promise.all([
+          actRes.json(),
+          partRes.json(),
+        ]);
+        setActivites(actData);
+        setPartenaires(partData);
+        setFilteredActivites(actData);
+      } catch (error) {
+        console.error('Erreur chargement données', error);
+      }
+    };
 
-  const fetchData = async () => {
-    const [actRes, partRes] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-    ]);
-    const [actData, partData] = await Promise.all([
-      actRes.json(),
-      partRes.json()
-    ]);
-    setActivites(actData);
-    setPartenaires(partData);
-    setFilteredActivites(actData);
-  };
+    fetchData();
+  }, [callApi]);
 
   useEffect(() => {
     let result = [...activites];

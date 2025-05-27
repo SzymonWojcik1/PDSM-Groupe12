@@ -7,8 +7,11 @@ import '@/lib/i18n';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
-  LineChart, Line, CartesianGrid, AreaChart, Area
+  LineChart, Line, CartesianGrid
 } from 'recharts';
+
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import { useApi } from '@/lib/hooks/useApi';
 
 type RegionData = { name: string; value: number };
 type MoisData = { mois: string; inscrits: number };
@@ -24,7 +27,10 @@ type GenreData = { genre: string; nombre: number };
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9F0F3A', '#8884d8'];
 
 export default function DashboardBeneficiaires() {
+  useAuthGuard();
   const { t } = useTranslation();
+  const { callApi } = useApi();
+
   const [stats, setStats] = useState({ total: 0, actifs: 0, nouveaux: 0, participants: 0 });
   const [dataRegion, setDataRegion] = useState<RegionData[]>([]);
   const [dataMois, setDataMois] = useState<MoisData[]>([]);
@@ -38,9 +44,11 @@ export default function DashboardBeneficiaires() {
   const [dataGenre, setDataGenre] = useState<GenreData[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`)
-      .then(res => res.json())
-      .then((data) => {
+    const fetchData = async () => {
+      try {
+        const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`);
+        const data = await response.json();
+
         const now = new Date();
         const monthNow = now.getMonth();
         const total = data.length;
@@ -78,11 +86,8 @@ export default function DashboardBeneficiaires() {
         data.forEach((b: any) => {
           const region = b.ben_region;
           const current = genreRegionMap.get(region) || { hommes: 0, femmes: 0 };
-          if (b.ben_genre === 'M') {
-            current.hommes++;
-          } else {
-            current.femmes++;
-          }
+          if (b.ben_genre === 'M') current.hommes++;
+          else current.femmes++;
           genreRegionMap.set(region, current);
         });
         const dataGenreRegion = Array.from(genreRegionMap.entries()).map(([region, counts]) => ({
@@ -90,7 +95,6 @@ export default function DashboardBeneficiaires() {
           ...counts
         }));
 
-        // Données par tranche d'âge
         const ageMap = new Map<string, number>();
         data.forEach((b: any) => {
           const age = new Date().getFullYear() - new Date(b.ben_date_naissance).getFullYear();
@@ -100,87 +104,66 @@ export default function DashboardBeneficiaires() {
           else if (age < 35) tranche = '25-34 ans';
           else if (age < 50) tranche = '35-49 ans';
           else tranche = '50+ ans';
-          
           ageMap.set(tranche, (ageMap.get(tranche) || 0) + 1);
         });
-        const dataAge = Array.from(ageMap.entries()).map(([tranche, nombre]) => ({
-          tranche,
-          nombre
-        }));
-
-        // Tri des tranches d'âge par ordre croissant
         const tranchesOrdre = ['0-17 ans', '18-24 ans', '25-34 ans', '35-49 ans', '50+ ans'];
-        const dataAgeSorted = [...dataAge].sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
+        const dataAgeSorted = Array.from(ageMap.entries())
+          .map(([tranche, nombre]) => ({ tranche, nombre }))
+          .sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
 
-        // Données par statut
         const statutMap = new Map<string, number>();
         data.forEach((b: any) => {
           const statut = b.ben_statut || 'Non spécifié';
           statutMap.set(statut, (statutMap.get(statut) || 0) + 1);
         });
-        const dataStatut = Array.from(statutMap.entries()).map(([statut, nombre]) => ({
-          statut,
-          nombre
-        }));
+        const dataStatut = Array.from(statutMap.entries()).map(([statut, nombre]) => ({ statut, nombre }));
 
-        // Données par type de bénéficiaire
         const typeMap = new Map<string, number>();
         data.forEach((b: any) => {
           const type = b.ben_type || 'Non spécifié';
           typeMap.set(type, (typeMap.get(type) || 0) + 1);
         });
-        const dataTypeBeneficiaire = Array.from(typeMap.entries()).map(([type, nombre]) => ({
-          type,
-          nombre
-        }));
+        const dataTypeBeneficiaire = Array.from(typeMap.entries()).map(([type, nombre]) => ({ type, nombre }));
 
-        // Données par zone
         const zoneMap = new Map<string, number>();
         data.forEach((b: any) => {
           const zone = b.ben_zone || 'Non spécifié';
           zoneMap.set(zone, (zoneMap.get(zone) || 0) + 1);
         });
-        const dataZone = Array.from(zoneMap.entries()).map(([zone, nombre]) => ({
-          zone,
-          nombre
-        }));
+        const dataZone = Array.from(zoneMap.entries()).map(([zone, nombre]) => ({ zone, nombre }));
 
-        // Données par sexe
         const sexeMap = new Map<string, number>();
         data.forEach((b: any) => {
           const sexe = b.ben_sexe || 'Non spécifié';
           sexeMap.set(sexe, (sexeMap.get(sexe) || 0) + 1);
         });
-        const dataSexe = Array.from(sexeMap.entries()).map(([sexe, nombre]) => ({
-          sexe,
-          nombre
-        }));
+        const dataSexe = Array.from(sexeMap.entries()).map(([sexe, nombre]) => ({ sexe, nombre }));
 
-        // Données par genre
         const genreMap = new Map<string, number>();
         data.forEach((b: any) => {
           const genre = b.ben_genre || 'Non spécifié';
           genreMap.set(genre, (genreMap.get(genre) || 0) + 1);
         });
-        const dataGenre = Array.from(genreMap.entries()).map(([genre, nombre]) => ({
-          genre,
-          nombre
-        }));
+        const dataGenre = Array.from(genreMap.entries()).map(([genre, nombre]) => ({ genre, nombre }));
 
         setStats({ total, actifs: total, nouveaux, participants: 0 });
         setDataRegion(dataRegion);
         setDataMois(dataMois);
         setDataEvolution(evolutionData);
         setDataGenreRegion(dataGenreRegion);
-        setDataAge(dataAge);
+        setDataAge(dataAgeSorted);
         setDataStatut(dataStatut);
         setDataTypeBeneficiaire(dataTypeBeneficiaire);
         setDataZone(dataZone);
         setDataSexe(dataSexe);
         setDataGenre(dataGenre);
-      })
-      .catch(err => console.error('Erreur chargement dashboard:', err));
-  }, []);
+      } catch (err) {
+        console.error('Erreur chargement dashboard:', err);
+      }
+    };
+
+    fetchData();
+  }, [callApi]);
 
   // Tri des tranches d'âge par ordre croissant (juste avant le return)
   const tranchesOrdre = ['0-17 ans', '18-24 ans', '25-34 ans', '35-49 ans', '50+ ans'];

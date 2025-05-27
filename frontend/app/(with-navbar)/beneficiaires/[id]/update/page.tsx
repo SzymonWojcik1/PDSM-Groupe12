@@ -6,39 +6,55 @@ import { useTranslation } from 'react-i18next';
 import BeneficiaireForm from '@/components/beneficiaireForm';
 import type { BeneficiaireFormData } from '@/components/beneficiaireForm';
 import { useParams, useRouter } from 'next/navigation';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 export default function UpdateBeneficiairePage() {
+  useAuthGuard();
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { callApi } = useApi();
 
   const [initialData, setInitialData] = useState<BeneficiaireFormData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`)
-      .then((res) => res.json())
-      .then(setInitialData)
-      .catch((err) => {
+    const fetchData = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`);
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const data = await res.json();
+        setInitialData(data);
+      } catch (err) {
         console.error('Erreur fetch bénéficiaire:', err);
         alert(t('error_loading_beneficiary'));
-      })
-      .finally(() => setLoading(false));
-  }, [id, t]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, t, callApi]);
 
   const handleSubmit = async (formData: BeneficiaireFormData) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-    if (response.ok) {
-      router.push('/beneficiaires');
-    } else {
-      const errorData = await response.json();
-      console.error('Erreur lors de la mise à jour', errorData);
+      if (response.ok) {
+        router.push('/beneficiaires');
+      } else {
+        const errorData = await response.json();
+        console.error('Erreur lors de la mise à jour', errorData);
+        alert(t('error_updating_beneficiary'));
+      }
+    } catch (err) {
+      console.error('Erreur réseau ou serveur:', err);
       alert(t('error_updating_beneficiary'));
     }
   };
@@ -66,7 +82,6 @@ export default function UpdateBeneficiairePage() {
 
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           <BeneficiaireForm
-            mode="edit"
             initialData={initialData}
             onSubmit={handleSubmit}
             submitLabel={t('update_beneficiary_button')}

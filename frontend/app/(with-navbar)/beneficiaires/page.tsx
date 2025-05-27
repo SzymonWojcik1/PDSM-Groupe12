@@ -1,15 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ImportExcel from '@/components/ImportExcel';
-import { useRouter } from 'next/navigation';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 export default function BeneficiairesPage() {
+  useAuthGuard();
   const { t } = useTranslation();
+  const { callApi } = useApi();
+  const router = useRouter();
+
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
   const [enums, setEnums] = useState<EnumMap>({});
   const [filters, setFilters] = useState({
@@ -22,25 +27,41 @@ export default function BeneficiairesPage() {
     search: '',
   });
 
-  const router = useRouter();
+  const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`)
-      .then(res => res.json())
-      .then(setEnums)
-      .catch(err => console.error('Erreur fetch enums:', err));
+    const fetchEnums = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums?locale=en`);
+        const data = await res.json();
+        setEnums(data);
+      } catch (err) {
+        console.error('Erreur fetch enums:', err);
+      }
+    };
+
+    fetchEnums();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const query = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) query.append(key, value);
-    });
+    const fetchBeneficiaires = async () => {
+      try {
+        const query = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) query.append(key, value);
+        });
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`)
-      .then(res => res.json())
-      .then(setBeneficiaires)
-      .catch(err => console.error('Erreur fetch bénéficiaires:', err));
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?${query.toString()}`);
+        const data = await res.json();
+        setBeneficiaires(data);
+      } catch (err) {
+        console.error('Erreur fetch bénéficiaires:', err);
+      }
+    };
+
+    fetchBeneficiaires();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -69,11 +90,10 @@ export default function BeneficiairesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = confirm(t('confirm_delete_beneficiary'));
-    if (!confirmed) return;
+    if (!confirm(t('confirm_delete_beneficiary'))) return;
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
+      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
         method: 'DELETE',
       });
       setBeneficiaires(prev => prev.filter(b => b.ben_id !== id));
@@ -83,8 +103,6 @@ export default function BeneficiairesPage() {
     }
   };
 
-  const importRef = useRef<HTMLInputElement>(null);
-
   const triggerImport = () => {
     importRef.current?.click();
   };
@@ -92,8 +110,7 @@ export default function BeneficiairesPage() {
   const handleImport = async (rows: Record<string, unknown>[]) => {
     for (const [index, row] of rows.entries()) {
       try {
-        // Step 1: Check for duplicates
-        const duplicateCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
+        const duplicateCheck = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -116,12 +133,9 @@ export default function BeneficiairesPage() {
           }
         }
 
-        // Step 2: Create the beneficiaire if allowed
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
+        const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(row),
         });
 
@@ -171,6 +185,7 @@ export default function BeneficiairesPage() {
             >
               {t('import_file')}
             </button>
+
             <ImportExcel
               ref={importRef}
               fromCol={0}

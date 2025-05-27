@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { useApi } from '@/lib/hooks/useApi'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import '@/lib/i18n'
 
 type Cadre = {
@@ -14,16 +16,42 @@ type Cadre = {
 }
 
 export default function CadreLogiquePage() {
+  useAuthGuard()
   const { t } = useTranslation()
+  const { callApi } = useApi()
   const [cadres, setCadres] = useState<Cadre[]>([])
   const router = useRouter()
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`)
-      .then(res => res.json())
-      .then(setCadres)
-      .catch(err => console.error('Erreur fetch cadres logiques:', err))
-  }, [])
+    const fetchCadres = async () => {
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique`)
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`)
+        const data = await res.json()
+        setCadres(data)
+      } catch (err) {
+        console.error('Erreur fetch cadres logiques:', err)
+      }
+    }
+
+    fetchCadres()
+  }, [callApi])
+
+  const handleDelete = async (cadre: Cadre) => {
+    const confirmed = confirm(t('confirm_delete_logframe', { name: cadre.cad_nom }))
+    if (!confirmed) return
+
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) throw new Error('Erreur lors de la suppression')
+      setCadres(prev => prev.filter(c => c.cad_id !== cadre.cad_id))
+    } catch (err) {
+      console.error('Erreur suppression cadre logique:', err)
+      alert(t('error_deleting_logframe'))
+    }
+  }
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString)
@@ -89,15 +117,7 @@ export default function CadreLogiquePage() {
                           Dashboard
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm(t('confirm_delete_logframe', { name: cadre.cad_nom }))) {
-                              fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${cadre.cad_id}`, {
-                                method: 'DELETE'
-                              }).then(() =>
-                                setCadres(prev => prev.filter(c => c.cad_id !== cadre.cad_id))
-                              )
-                            }
-                          }}
+                          onClick={() => handleDelete(cadre)}
                           className="text-sm text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-50 transition"
                         >
                           {t('delete')}

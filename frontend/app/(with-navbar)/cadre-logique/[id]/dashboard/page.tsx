@@ -4,11 +4,15 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
+import { useApi } from '@/lib/hooks/useApi'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
 export default function DashboardCadreLogique() {
+  useAuthGuard()
   const { id } = useParams()
   const router = useRouter()
   const { t } = useTranslation()
+  const { callApi } = useApi()
 
   const [objectifs, setObjectifs] = useState<any[]>([])
   const [stats, setStats] = useState({
@@ -21,32 +25,34 @@ export default function DashboardCadreLogique() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`)
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`)
         const data = await res.json()
         setObjectifs(data)
 
-        const allIndicateurs = []
         let totalCible = 0
         let totalValeur = 0
+        let totalIndicateurs = 0
 
         for (const obj of data) {
           for (const out of obj.outcomes || []) {
             for (const op of out.outputs || []) {
               for (const ind of op.indicateurs || []) {
-                const valeur = ind.valeurReelle || 0
-                const cible = ind.ind_valeurCible
-                allIndicateurs.push({ nom: ind.ind_nom, code: ind.ind_code, cible, valeur })
-                totalCible += cible
+                const valeur = Number(ind.valeurReelle || 0)
+                const cible = Number(ind.ind_valeurCible || 0)
                 totalValeur += valeur
+                totalCible += cible
+                totalIndicateurs++
               }
             }
           }
         }
 
-        const progressionGlobale = totalCible > 0 ? Math.round((totalValeur / totalCible) * 100) : 0
+        const progressionGlobale = totalCible > 0
+          ? Math.round((totalValeur / totalCible) * 100)
+          : 0
 
         setStats({
-          total: allIndicateurs.length,
+          total: totalIndicateurs,
           totalCible,
           totalValeur,
           progressionGlobale
@@ -76,7 +82,6 @@ export default function DashboardCadreLogique() {
           <div className="h-1 w-20 bg-[#9F0F3A] mt-2 rounded" />
         </div>
 
-
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <div className="bg-white shadow border rounded-xl p-4">
             <p className="text-sm text-gray-500">{t('dashboard_total_indicators')}</p>
@@ -99,7 +104,7 @@ export default function DashboardCadreLogique() {
         {objectifs.map((obj, i) => (
           <div key={obj.obj_id} className="mb-10">
             <h2 className="text-2xl font-bold text-[#9F0F3A] mb-4">
-              {t('dashboard_objective', { number: i + 1, name: obj.obj_nom })}
+              Objectif {i + 1} : {obj.obj_nom}
             </h2>
             <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200">
               <table className="w-full text-sm">
@@ -118,15 +123,17 @@ export default function DashboardCadreLogique() {
                   {obj.outcomes.map((out: any) =>
                     out.outputs.map((op: any) =>
                       op.indicateurs.map((ind: any) => {
-                        const percent = ind.ind_valeurCible ? Math.round((ind.valeurReelle / ind.ind_valeurCible) * 100) : 0
+                        const valeur = Number(ind.valeurReelle || 0)
+                        const cible = Number(ind.ind_valeurCible || 0)
+                        const percent = cible > 0 ? Math.round((valeur / cible) * 100) : 0
                         return (
                           <tr key={ind.ind_id} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-gray-700">{out.out_nom}</td>
                             <td className="px-4 py-3 text-gray-700">{op.opu_nom}</td>
                             <td className="px-4 py-3 font-mono text-xs text-gray-700">{ind.ind_code}</td>
                             <td className="px-4 py-3 text-gray-800">{ind.ind_nom}</td>
-                            <td className="px-4 py-3 text-center text-gray-700">{ind.ind_valeurCible}</td>
-                            <td className="px-4 py-3 text-center text-gray-700">{ind.valeurReelle || 0}</td>
+                            <td className="px-4 py-3 text-center text-gray-700">{cible}</td>
+                            <td className="px-4 py-3 text-center text-gray-700">{valeur}</td>
                             <td className="px-4 py-3">
                               <div className="relative w-full h-5 bg-gray-200 rounded-full overflow-hidden">
                                 <div

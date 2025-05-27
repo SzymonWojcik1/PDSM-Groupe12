@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Pencil, Trash } from 'lucide-react';
 import ModalInput from '@/components/ModalInput';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 type Indicateur = {
   ind_id: number;
@@ -100,6 +102,9 @@ function ModalIndicateurInput({
 }
 
 export default function UpdateCadreLogiquePage() {
+  useAuthGuard();
+  const { callApi } = useApi();
+
   const { id } = useParams();
   const [cadNom, setCadNom] = useState('');
   const [annee, setAnnee] = useState<number | ''>('');
@@ -120,7 +125,7 @@ export default function UpdateCadreLogiquePage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`);
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`);
         const data = await res.json();
         setCadNom(data.cad_nom || '');
         setCadDateDebut(data.cad_dateDebut || '');
@@ -136,7 +141,7 @@ export default function UpdateCadreLogiquePage() {
 
   const fetchObjectifs = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
       const data: Objectif[] = await res.json();
       setObjectifs(data);
     } catch (err) {
@@ -145,29 +150,43 @@ export default function UpdateCadreLogiquePage() {
   };
 
   const modifierNom = async (url: string, payload: any) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) fetchObjectifs();
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) fetchObjectifs();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const supprimerElement = async (url: string) => {
     if (!confirm('Supprimer cet élément ?')) return;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, { method: 'DELETE' });
-    if (res.ok) fetchObjectifs();
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, { method: 'DELETE' });
+      if (res.ok) fetchObjectifs();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cadNom || !cadDateDebut || !cadDateFin) return alert('Tous les champs sont requis.');
+
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cad_nom: cadNom, cad_dateDebut: cadDateDebut, cad_dateFin: cadDateFin }),
+        body: JSON.stringify({
+          cad_nom: cadNom,
+          cad_dateDebut: cadDateDebut,
+          cad_dateFin: cadDateFin,
+        }),
       });
+      if (!res.ok) throw new Error('Erreur lors de la mise à jour');
       alert('Cadre logique mis à jour.');
     } catch (err) {
       console.error(err);

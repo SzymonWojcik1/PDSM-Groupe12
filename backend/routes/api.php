@@ -148,6 +148,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/indicateur-activite/{id}', 'show');
         Route::delete('/indicateur-activite/{id}', 'destroy');
         Route::post('/indicateur-activite/batch', 'storeBatch');
+        Route::get('/indicateur-activite/{id}/activites-with-count', 'getActivitesWithCount');
     });
 
     // Compteur de bénéficiaires par indicateur

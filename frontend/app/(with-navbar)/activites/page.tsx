@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import ActiviteFilters from '@/components/activiteFilters';
 import ActiviteTable, { Activite } from '@/components/ActiviteTable';
 import ImportExcelActivite from '@/components/ImportExcelActivite';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 type Partenaire = {
   part_id: number;
@@ -19,31 +21,44 @@ type Projet = {
 
 export default function ActivitesPage() {
   const { t } = useTranslation();
+  useAuthGuard();
+  const { callApi } = useApi();
+  const router = useRouter();
+  const importRef = useRef<HTMLInputElement>(null);
+
   const [activites, setActivites] = useState<Activite[]>([]);
   const [filtered, setFiltered] = useState<Activite[]>([]);
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
   const [projets, setProjets] = useState<Projet[]>([]);
   const [filters, setFilters] = useState({ search: '', partenaire: '', projet: '' });
 
-  const router = useRouter();
-  const importRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`)
-      .then(res => res.json())
-      .then(data => {
-        setActivites(data);
-        setFiltered(data);
-      });
+    const fetchData = async () => {
+      try {
+        const [activitesRes, partenairesRes, projetsRes] = await Promise.all([
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets`),
+        ]);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-      .then(res => res.json())
-      .then(setPartenaires);
+        const [activitesData, partenairesData, projetsData] = await Promise.all([
+          activitesRes.json(),
+          partenairesRes.json(),
+          projetsRes.json(),
+        ]);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`)
-      .then(res => res.json())
-      .then(setProjets);
+        setActivites(activitesData);
+        setFiltered(activitesData);
+        setPartenaires(partenairesData);
+        setProjets(projetsData);
+      } catch (err) {
+        console.error('Erreur chargement données', err);
+      }
+    };
+
+    fetchData();
   }, []);
+
 
   useEffect(() => {
     let result = [...activites];
@@ -63,7 +78,7 @@ export default function ActivitesPage() {
 
   const deleteActivite = async (id: number) => {
     if (!confirm(t('confirm_delete_activity'))) return;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
+    await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
     setActivites(prev => prev.filter(a => a.act_id !== id));
   };
 
@@ -128,10 +143,6 @@ export default function ActivitesPage() {
           typeof projetNom !== 'string' ||
           projetNom.trim() === ''
         ) {
-          console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet vide ou manquant`, {
-            partenaire: partenaireNom,
-            projet: projetNom,
-          });
           ignored++;
           continue;
         }
@@ -140,10 +151,6 @@ export default function ActivitesPage() {
         const projet = projets.find(p => p.pro_nom === projetNom.trim());
 
         if (!partenaire || !projet) {
-          console.warn(`Ligne ${index + 1} ignorée : partenaire ou projet introuvable`, {
-            partenaire: partenaireNom,
-            projet: projetNom,
-          });
           ignored++;
           continue;
         }
@@ -156,30 +163,20 @@ export default function ActivitesPage() {
           act_pro_id: projet.pro_id,
         };
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
+        const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(finalRow),
         });
 
-        let json = {};
-        try {
-          json = await response.json();
-        } catch (e) {
-          console.warn(`Ligne ${index + 1} : réponse non JSON ou vide`, e);
-        }
-
         if (!response.ok) {
-          console.error(`Ligne ${index + 1} échouée :`, json);
           failed++;
           continue;
         }
 
-        console.log(`Ligne ${index + 1} importée avec succès :`, json);
         imported++;
 
       } catch (err) {
-        console.error(`Ligne ${index + 1} : erreur inattendue`, err);
         failed++;
         continue;
       }
@@ -187,7 +184,7 @@ export default function ActivitesPage() {
 
     alert(
       `${imported} ligne(s) importée(s) avec succès.\n` +
-      `${ignored} ligne(s) ignorée(s) (projet ou partenaire vide/introuvable).\n` +
+      `${ignored} ligne(s) ignorée(s).\n` +
       `${failed} ligne(s) échouée(s).`
     );
 

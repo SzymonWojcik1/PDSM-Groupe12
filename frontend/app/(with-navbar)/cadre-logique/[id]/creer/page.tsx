@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ModalInput from '@/components/ModalInput';
+import { useApi } from '@/lib/hooks/useApi';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
 type Indicateur = {
   ind_id: number;
@@ -87,7 +89,10 @@ function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps)
 }
 
 export default function CadreLogiqueDetailPage() {
+  useAuthGuard();
   const { id } = useParams();
+  const { callApi } = useApi();
+
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [nouveauObjectif, setNouveauObjectif] = useState('');
   const [error, setError] = useState('');
@@ -95,7 +100,7 @@ export default function CadreLogiqueDetailPage() {
 
   const fetchObjectifs = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
       const data: Objectif[] = await res.json();
       setObjectifs(data);
     } catch (err) {
@@ -110,19 +115,37 @@ export default function CadreLogiqueDetailPage() {
   const ajouterObjectif = async () => {
     if (!nouveauObjectif.trim()) return;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ obj_nom: nouveauObjectif, cad_id: id }),
-    });
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/objectifs-generaux`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ obj_nom: nouveauObjectif, cad_id: id }),
+      });
 
-    if (res.ok) {
-      setNouveauObjectif('');
-      setError('');
+      if (res.ok) {
+        setNouveauObjectif('');
+        setError('');
+        fetchObjectifs();
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Erreur lors de l’ajout');
+      }
+    } catch (err) {
+      console.error('Erreur serveur:', err);
+      setError('Erreur serveur');
+    }
+  };
+
+  const ajouterElement = async (url: string, payload: any) => {
+    try {
+      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       fetchObjectifs();
-    } else {
-      const data = await res.json();
-      setError(data.message || 'Erreur lors de l’ajout');
+    } catch (err) {
+      console.error(`Erreur ajout ${url} :`, err);
     }
   };
 
@@ -318,7 +341,7 @@ export default function CadreLogiqueDetailPage() {
           onConfirm={async (nom) => {
             const { objId, count } = modalContext;
             const code = `${count + 1}`;
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outcomes`, {
+            await callApi(`${process.env.NEXT_PUBLIC_API_URL}/outcomes`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ out_nom: nom, out_code: code, obj_id: objId }),
@@ -337,7 +360,7 @@ export default function CadreLogiqueDetailPage() {
           onConfirm={async (nom) => {
             const { outId, count, outcomeIndex } = modalContext;
             const code = `${outcomeIndex + 1}.${count + 1}`;
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/outputs`, {
+            await callApi(`${process.env.NEXT_PUBLIC_API_URL}/outputs`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ opu_nom: nom, opu_code: code, out_id: outId }),
@@ -354,7 +377,7 @@ export default function CadreLogiqueDetailPage() {
           onConfirm={async (nom, valeur) => {
             const { outId, opuId, count, outcomeIndex, outputIndex } = modalContext;
             const code = `${outcomeIndex + 1}.${outputIndex + 1}.${count + 1}`;
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs`, {
+            await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateurs`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

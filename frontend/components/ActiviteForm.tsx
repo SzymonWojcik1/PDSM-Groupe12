@@ -22,12 +22,14 @@ interface ActiviteFormProps {
     act_pro_id: string;
   }) => Promise<void>;
   submitLabel: string;
+  callApi: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
 export default function ActiviteForm({
   initialData,
   onSubmit,
   submitLabel,
+  callApi,
 }: ActiviteFormProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
@@ -48,16 +50,35 @@ export default function ActiviteForm({
 
   useEffect(() => {
     const fetchData = async () => {
-      const [partsRes, projetsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/projets`),
-      ]);
-      const [parts, projets] = await Promise.all([partsRes.json(), projetsRes.json()]);
-      setPartenaires(parts);
-      setProjets(projets);
+      try {
+        const partRes = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`);
+        if (!partRes.ok) {
+          const text = await partRes.text();
+          console.error('Erreur partenaires:', text);
+          throw new Error(text);
+        }
+        const partData = await partRes.json();
+        setPartenaires(partData);
+      } catch (err) {
+        console.error('Erreur chargement partenaires', err);
+      }
+
+      try {
+        const projRes = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets`);
+        if (!projRes.ok) {
+          const text = await projRes.text();
+          console.error('Erreur projets:', text);
+          throw new Error(text);
+        }
+        const projData = await projRes.json();
+        setProjets(projData);
+      } catch (err) {
+        console.error('Erreur chargement projets', err);
+      }
     };
+
     fetchData();
-  }, []);
+  }, [callApi]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
