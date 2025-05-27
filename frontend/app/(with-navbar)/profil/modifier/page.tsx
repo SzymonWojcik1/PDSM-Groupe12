@@ -1,98 +1,83 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
-import { Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
+import { Eye, EyeOff } from 'lucide-react'
+
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 type UserData = {
-  id: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone?: string;
-};
+  id: number
+  nom: string
+  prenom: string
+  email: string
+  telephone?: string
+}
 
 export default function ModifierProfilPage() {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const [user, setUser] = useState<UserData | null>(null);
-  const [nom, setNom] = useState('');
-  const [prenom, setPrenom] = useState('');
-  const [telephone, setTelephone] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  useAuthGuard()
+  const router = useRouter()
+  const { t } = useTranslation()
+  const { callApi } = useApi()
+
+  const [user, setUser] = useState<UserData | null>(null)
+  const [nom, setNom] = useState('')
+  const [prenom, setPrenom] = useState('')
+  const [telephone, setTelephone] = useState('')
+  const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError(t('not_authenticated'));
-        return;
-      }
-
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error(t('error_fetch'));
-
-        const data = await res.json();
-        setUser(data);
-        setNom(data.nom);
-        setPrenom(data.prenom);
-        setTelephone(data.telephone || '');
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/me`)
+        const data = await res.json()
+        setUser(data)
+        setNom(data.nom)
+        setPrenom(data.prenom)
+        setTelephone(data.telephone || '')
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || t('error_fetch'))
       }
-    };
+    }
 
-    fetchUser();
-  }, [t]);
+    fetchUser()
+  }, [t])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
 
-    const token = localStorage.getItem('token');
-    if (!token || !user) return;
+    if (!user) return
 
-    const payload: any = {
-      nom,
-      prenom,
-      telephone,
-    };
+    const payload: any = { nom, prenom, telephone }
 
     if (password) {
       if (password !== passwordConfirm) {
-        setError(t('password_mismatch'));
-        setLoading(false);
-        return;
+        setError(t('password_mismatch'))
+        setLoading(false)
+        return
       }
-      payload.password = password;
-      payload.password_confirmation = passwordConfirm;
+      payload.password = password
+      payload.password_confirmation = passwordConfirm
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
       if (!res.ok) {
         throw new Error(
@@ -101,19 +86,19 @@ export default function ModifierProfilPage() {
           data.errors?.prenom?.[0] ||
           data.errors?.password?.[0] ||
           t('error_fetch')
-        );
+        )
       }
 
-      router.push('/profil');
+      router.push('/profil')
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  if (error) return <div className="p-6 text-red-600">{t('error_prefix')} {error}</div>;
-  if (!user) return <div className="p-6">{t('loading')}</div>;
+  if (error) return <div className="p-6 text-red-600">{t('error_prefix')} {error}</div>
+  if (!user) return <div className="p-6">{t('loading')}</div>
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -220,5 +205,5 @@ export default function ModifierProfilPage() {
         </section>
       </div>
     </main>
-  );
+  )
 }

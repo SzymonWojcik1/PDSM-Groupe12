@@ -1,18 +1,19 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
 export default function HomePage() {
-  const { t } = useTranslation();
-  const [role, setRole] = useState<string | null>(null);
+  useAuthGuard()
+  const { t } = useTranslation()
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setRole(localStorage.getItem('role'));
-    }
-  }, []);
+    const r = localStorage.getItem('role')
+    setRole(r)
+  }, [])
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
@@ -49,10 +50,10 @@ export default function HomePage() {
             href="/cadre-logique"
             description={t('card_logframe_desc')}
           />
-          <Card 
-            title={t('card_evaluations_title', 'Évaluations')} 
-            href="/evaluation" 
-            description={t('card_evaluations_desc', 'Consulter ou créer des évaluations des partenaires.')} 
+          <Card
+            title={t('card_evaluations_title', 'Évaluations')}
+            href="/evaluation"
+            description={t('card_evaluations_desc', 'Consulter ou créer des évaluations des partenaires.')}
           />
           {role === 'siege' && (
             <Card
@@ -69,7 +70,7 @@ export default function HomePage() {
         </section>
       </div>
     </main>
-  );
+  )
 }
 
 function Card({
@@ -77,9 +78,9 @@ function Card({
   description,
   href,
 }: {
-  title: string;
-  description: string;
-  href: string;
+  title: string
+  description: string
+  href: string
 }) {
   return (
     <a
@@ -89,5 +90,5 @@ function Card({
       <h2 className="text-xl font-semibold text-[#9F0F3A] mb-2">{title}</h2>
       <p className="text-gray-600 text-sm">{description}</p>
     </a>
-  );
+  )
 }

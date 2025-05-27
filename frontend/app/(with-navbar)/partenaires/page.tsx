@@ -4,10 +4,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 import { countriesByRegion } from '@/lib/countriesByRegion'
 
 export default function PartenairesPage() {
+  useAuthGuard()
+  const { callApi } = useApi()
   const { t } = useTranslation()
+
   const [partenaires, setPartenaires] = useState<any[]>([])
   const [filtered, setFiltered] = useState<any[]>([])
   const [filters, setFilters] = useState({
@@ -16,13 +21,19 @@ export default function PartenairesPage() {
     region: '',
   })
 
+  const fetchPartenaires = async () => {
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+      const data = await res.json()
+      setPartenaires(data)
+      setFiltered(data)
+    } catch (err) {
+      console.error('Erreur chargement partenaires', err)
+    }
+  }
+
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-      .then(res => res.json())
-      .then(data => {
-        setPartenaires(data)
-        setFiltered(data)
-      })
+    fetchPartenaires()
   }, [])
 
   useEffect(() => {
@@ -56,15 +67,14 @@ export default function PartenairesPage() {
 
   const deletePartenaire = async (id: number) => {
     if (!confirm(t('confirm_delete'))) return
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
-      method: 'DELETE',
-    })
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
-      .then(res => res.json())
-      .then(data => {
-        setPartenaires(data)
-        setFiltered(data)
+    try {
+      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
+        method: 'DELETE',
       })
+      await fetchPartenaires()
+    } catch (err) {
+      console.error('Erreur suppression partenaire', err)
+    }
   }
 
   return (
@@ -79,12 +89,11 @@ export default function PartenairesPage() {
         </header>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-6">
-          <button
-            onClick={() => window.location.href = '/partenaires/creer'}
-            className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium"
-          >
-            {t('create_partner')}
-          </button>
+          <Link href="/partenaires/creer">
+            <button className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium">
+              {t('create_partner')}
+            </button>
+          </Link>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">

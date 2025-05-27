@@ -5,8 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { countriesByRegion } from '@/lib/countriesByRegion'
+import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
 
 export default function UpdatePartenaire() {
+  useAuthGuard()
+  const { callApi } = useApi()
   const { t } = useTranslation()
   const { id } = useParams()
   const router = useRouter()
@@ -16,16 +20,26 @@ export default function UpdatePartenaire() {
     part_pays: '',
     part_region: '',
   })
+
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`)
-      const data = await res.json()
-      setForm(data)
+      try {
+        const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`)
+        const data = await res.json()
+        setForm({
+          part_nom: data.part_nom || '',
+          part_pays: data.part_pays || '',
+          part_region: data.part_region || '',
+        })
+      } catch (err) {
+        setErrorMessage(t('error_occurred'))
+      }
     }
+
     fetchData()
-  }, [id])
+  }, [id, t])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -39,20 +53,24 @@ export default function UpdatePartenaire() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
+    try {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (!res.ok) {
-      setErrorMessage(data.message || t('error_occurred'))
-      return
+      if (!res.ok) {
+        setErrorMessage(data.message || t('error_occurred'))
+        return
+      }
+
+      router.push('/partenaires')
+    } catch (err: any) {
+      setErrorMessage(err.message || t('error_occurred'))
     }
-
-    router.push('/partenaires')
   }
 
   return (

@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
+import { useApi } from '@/lib/hooks/useApi'
+
 type User = {
   id: number
   nom: string
@@ -29,43 +32,32 @@ type Partenaire = {
 
 export default function UsersPage() {
   const { t } = useTranslation()
+  const router = useRouter()
+  const checked = useAdminGuard()
+  const { callApi } = useApi()
+
   const [users, setUsers] = useState<User[]>([])
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [roles, setRoles] = useState<EnumItem[]>([])
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [superieurs, setSuperieurs] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
+
   const [filters, setFilters] = useState({
     role: '',
     partenaire_id: '',
     superieur_id: '',
     search: '',
   })
-  const [userRole, setUserRole] = useState('')
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  const router = useRouter()
-
-  useEffect(() => {
-    const role = localStorage.getItem('role')
-    if (role !== 'siege') {
-      router.push('/')
-      return
-    }
-    setUserRole(role || '')
-  }, [])
 
   const fetchUsers = async () => {
-    if (!token) return
-
     const params = new URLSearchParams()
     if (filters.role) params.append('role', filters.role)
     if (filters.partenaire_id) params.append('partenaire_id', filters.partenaire_id)
     if (filters.superieur_id) params.append('superieur_id', filters.superieur_id)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users?${params.toString()}`)
       if (!res.ok) throw new Error(t('error_loading_users'))
       const data: User[] = await res.json()
       setUsers(data)
@@ -86,9 +78,8 @@ export default function UsersPage() {
   const deleteUser = async (id: number) => {
     if (!confirm(t('confirm_delete_user'))) return
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+        method: 'DELETE'
       })
       if (!res.ok) throw new Error(t('error_delete_user'))
       fetchUsers()
@@ -110,14 +101,11 @@ export default function UsersPage() {
   }, [users, filters.search])
 
   useEffect(() => {
-    if (!token) return
-
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/enums`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const rolesFromApi = data.role || []
+    const fetchMetaData = async () => {
+      try {
+        const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
+        const enums = await resEnums.json()
+        const rolesFromApi = enums.role || []
         const rolesWithLabels = rolesFromApi.map((role: any) => ({
           value: role.value,
           label:
@@ -132,22 +120,23 @@ export default function UsersPage() {
               : role.label
         }))
         setRoles(rolesWithLabels)
-      })
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setPartenaires)
+        const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
+        const partenairesData = await resPartenaires.json()
+        setPartenaires(partenairesData)
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(setSuperieurs)
-  }, [token])
+        const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
+        const usersData = await resUsers.json()
+        setSuperieurs(usersData)
+      } catch (err: any) {
+        setError(err.message)
+      }
+    }
 
-  if (userRole !== 'siege') return null
+    fetchMetaData()
+  }, [])
+
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
