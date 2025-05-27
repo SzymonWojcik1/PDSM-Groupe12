@@ -12,6 +12,9 @@ return new class extends Migration
     {
         Schema::create('evaluation', function (Blueprint $table) {
             $table->id('eva_id'); // Clé primaire
+            $table->string('eva_statut'); // Statut de l'évaluation (en cours, soumise, validée, etc.)
+            $table->timestamp('eva_date_soumission')->nullable(); // Date de soumission de l'évaluation
+            $table->json('criteres'); // Critères d'évaluation, stockés en JSON pour flexibilité
             $table->unsignedBigInteger('eva_use_id'); // Référence vers la table users
 
             

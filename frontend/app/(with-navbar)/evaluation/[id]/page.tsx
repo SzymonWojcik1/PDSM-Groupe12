@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import { useApi } from '@/lib/hooks/useApi'
+import Link from 'next/link'
 
 type Critere = {
   label: string
@@ -13,6 +15,7 @@ type Critere = {
 type Evaluation = {
   eva_id: number
   eva_statut: string
+  eva_use_id: number
   criteres: Critere[]
 }
 
@@ -22,10 +25,12 @@ type User = {
 }
 
 export default function EvaluationDetailPage() {
-  useAuthGuard();
-  const { t } = useTranslation();
+  useAuthGuard()
+  const { t } = useTranslation()
   const { id } = useParams()
   const router = useRouter()
+  const { callApi } = useApi()
+
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [reponses, setReponses] = useState<{ [index: number]: string }>({})
@@ -34,33 +39,27 @@ export default function EvaluationDetailPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        setError('Non authentifié')
-        return
-      }
-
       try {
-        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const userData = await userRes.json()
-        setUser(userData)
+        const [userRes, evalRes] = await Promise.all([
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/me`),
+          callApi(`${process.env.NEXT_PUBLIC_API_URL}/evaluations/${id}`)
+        ])
 
-        const evalRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/evaluations/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const evalData = await evalRes.json()
+        if (!userRes.ok || !evalRes.ok) throw new Error('Échec requête API')
+
+        const userData: User = await userRes.json()
+        const evalData: Evaluation = await evalRes.json()
+
+        setUser(userData)
         setEvaluation(evalData)
 
-        // Ne cocher que si soumis et utilisateur siege
         if (
           evalData.criteres &&
           userData.role === 'siege' &&
           evalData.eva_statut === 'soumis'
         ) {
           const initial: { [index: number]: string } = {}
-          evalData.criteres.forEach((c: Critere, i: number) => {
+          evalData.criteres.forEach((c, i) => {
             initial[i] = c.reussi ? 'reussi' : 'non_reussi'
           })
           setReponses(initial)
@@ -79,29 +78,26 @@ export default function EvaluationDetailPage() {
   }
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem('token')
-    if (!token) return
+    console.log('User:', user, 'Évaluation pour:', evaluation?.eva_use_id, 'Statut:', evaluation?.eva_statut)
 
     const formatted = evaluation?.criteres.map((c, i) => ({
       label: c.label,
-      reussi: reponses[i] === 'reussi',
+      reussi: reponses[i] === 'reussi'
     }))
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/evaluations/${id}`, {
+      const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/evaluations/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reponses: formatted }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reponses: formatted })
       })
 
-      if (!res.ok) throw new Error("Erreur lors de la soumission")
+      if (!res.ok) throw new Error('Erreur lors de la soumission')
 
       setSuccess(true)
       setTimeout(() => router.push('/evaluation'), 1500)
     } catch (err) {
+      console.error(err)
       setError('Une erreur est survenue')
     }
   }
@@ -115,59 +111,76 @@ export default function EvaluationDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded">
-      <h1 className="text-2xl font-bold text-[#9F0F3A] mb-6">
-        {t('fill_evaluation_title', 'Remplir l\'évaluation')} #{evaluation.eva_id}
-      </h1>
+    <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-[#9F0F3A] mb-2">
+              {t('fill_evaluation_title', "Remplir l'évaluation")} #{evaluation.eva_id}
+            </h1>
+            <Link
+              href="/evaluation"
+              className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
+            >
+              ← {t('back_to_list', 'Retour à la liste')}
+            </Link>
+          </div>
+        </header>
 
-      {/* Si besoin d'afficher le statut, ajouter :
-      <p>{t('status', 'Statut')} : {t('status_' + evaluation.eva_statut, evaluation.eva_statut)}</p> */}
+        <div className="bg-white shadow rounded p-6">
+          {evaluation.criteres.map((critere, index) => (
+            <div key={index} className="mb-4 p-4 border rounded bg-gray-50">
+              <p className="text-gray-700 mb-2">{critere.label}</p>
 
-      {evaluation.criteres.map((critere, index) => (
-        <div key={index} className="mb-4 p-4 border rounded bg-gray-50">
-          <p className="text-gray-700 mb-2">{critere.label}</p>
-
-          {user.role === 'siege' && evaluation.eva_statut === 'soumis' ? (
-            <p className={`text-sm font-semibold ${critere.reussi ? 'text-green-600' : 'text-red-600'}`}>
-              {critere.reussi ? t('result_success', '✅ Réussi') : t('result_fail', '❌ Non réussi')}
-            </p>
-          ) : (
-            <div className="flex items-center gap-4 text-sm">
-              <label className="flex items-center gap-1 text-green-700">
-                <input
-                  type="radio"
-                  name={`critere-${index}`}
-                  value="reussi"
-                  checked={reponses[index] === 'reussi'}
-                  onChange={() => handleChange(index, 'reussi')}
-                />
-                {t('result_success', '✅ Réussi')}
-              </label>
-              <label className="flex items-center gap-1 text-red-700">
-                <input
-                  type="radio"
-                  name={`critere-${index}`}
-                  value="non_reussi"
-                  checked={reponses[index] === 'non_reussi'}
-                  onChange={() => handleChange(index, 'non_reussi')}
-                />
-                {t('result_fail', '❌ Non réussi')}
-              </label>
+              {user.role === 'siege' && evaluation.eva_statut === 'soumis' ? (
+                <p className={`text-sm font-semibold ${critere.reussi ? 'text-green-600' : 'text-red-600'}`}>
+                  {critere.reussi ? t('result_success', 'Réussi') : t('result_fail', 'Non réussi')}
+                </p>
+              ) : (
+                <div className="flex items-center gap-4 text-sm">
+                  <label className="flex items-center gap-1 text-green-700">
+                    <input
+                      type="radio"
+                      name={`critere-${index}`}
+                      value="reussi"
+                      checked={reponses[index] === 'reussi'}
+                      onChange={() => handleChange(index, 'reussi')}
+                    />
+                    {t('result_success', 'Réussi')}
+                  </label>
+                  <label className="flex items-center gap-1 text-red-700">
+                    <input
+                      type="radio"
+                      name={`critere-${index}`}
+                      value="non_reussi"
+                      checked={reponses[index] === 'non_reussi'}
+                      onChange={() => handleChange(index, 'non_reussi')}
+                    />
+                    {t('result_fail', 'Non réussi')}
+                  </label>
+                </div>
+              )}
             </div>
+          ))}
+
+          {user.role !== 'siege' &&
+            evaluation.eva_statut === 'en_attente' &&
+            user.id === evaluation.eva_use_id && (
+              <button
+                onClick={handleSubmit}
+                className="mt-4 bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#7e0c2f]"
+              >
+                {t('submit', 'Soumettre')}
+              </button>
+          )}
+
+          {success && (
+            <p className="text-green-600 mt-4">
+              {t('evaluation_submitted_success', 'Évaluation soumise avec succès !')}
+            </p>
           )}
         </div>
-      ))}
-
-      {user.role !== 'siege' && evaluation.eva_statut === 'en_attente' && (
-        <button
-          onClick={handleSubmit}
-          className="mt-4 bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#7e0c2f]"
-        >
-          {t('submit', 'Soumettre')}
-        </button>
-      )}
-
-      {success && <p className="text-green-600 mt-4">{t('evaluation_submitted_success', '✅ Évaluation soumise avec succès !')}</p>}
-    </div>
+      </div>
+    </main>
   )
 }

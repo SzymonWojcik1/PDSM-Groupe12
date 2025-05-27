@@ -48,7 +48,7 @@ class EvaluationController extends Controller
 
     public function show($id)
     {
-        return Evaluation::with('utilisateur')->findOrFail($id);
+        return Evaluation::with('utilisateur')->findOrFail($id)->makeHidden([]);;
     }
 
     public function updateStatut(Request $request, $id)
