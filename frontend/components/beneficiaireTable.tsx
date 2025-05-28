@@ -3,6 +3,9 @@
 import { useTranslation } from 'react-i18next'
 import { enumsShow } from '@/lib/enumsShow'
 
+/**
+ * Type representing a beneficiary row in the table.
+ */
 export type Beneficiaire = {
   ben_id: string
   ben_prenom: string
@@ -20,8 +23,14 @@ export type Beneficiaire = {
   ben_ethnicite: string
 }
 
+/**
+ * Type for enums used in dropdowns and display.
+ */
 export type EnumMap = Record<string, { value: string; label: string }[]>
 
+/**
+ * Props for the BeneficiaireTable component.
+ */
 interface BeneficiairesTableProps {
   beneficiaires: Beneficiaire[]
   enums: EnumMap
@@ -32,6 +41,11 @@ interface BeneficiairesTableProps {
   onDelete?: (id: string) => void
   renderExtraColumn?: (b: Beneficiaire) => React.ReactNode
 }
+
+/**
+ * Format a date string to a readable format for the current locale.
+ * Returns the original string if invalid.
+ */
 function formatDate(dateString: string, locale = 'en') {
   const date = new Date(dateString)
   if (isNaN(date.getTime())) return dateString // retourne la valeur originale si invalide
@@ -42,6 +56,10 @@ function formatDate(dateString: string, locale = 'en') {
   }).format(date)
 }
 
+/**
+ * Table component to display a list of beneficiaries.
+ * Supports selection, update, delete, and custom extra columns.
+ */
 export default function BeneficiaireTable({
   beneficiaires,
   enums,
@@ -57,6 +75,7 @@ export default function BeneficiaireTable({
 
   return (
     <div className="overflow-x-auto">
+      {/* Display selected count if selection is enabled */}
       {selectable && selectedIds.length > 0 && (
         <div className="mb-3 text-sm text-gray-600">
           {t('beneficiaries_selected', { count: selectedIds.length })}
@@ -86,6 +105,7 @@ export default function BeneficiaireTable({
               key={b.ben_id}
               className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100 transition'}
             >
+              {/* Selection checkbox */}
               {selectable && (
                 <td className="px-3 py-2">
                   <input
@@ -96,32 +116,44 @@ export default function BeneficiaireTable({
                   />
                 </td>
               )}
+              {/* First name */}
               <td className="px-3 py-2 text-gray-800">{b.ben_prenom}</td>
+              {/* Last name */}
               <td className="px-3 py-2 text-gray-800">{b.ben_nom}</td>
+              {/* Birth date */}
               <td className="px-3 py-2 text-gray-800 min-w-[140px]">
                 {formatDate(b.ben_date_naissance, i18n.language)}
               </td>
+              {/* Region */}
               <td className="px-3 py-2 text-gray-800">{b.ben_region}</td>
+              {/* Country */}
               <td className="px-3 py-2 text-gray-800">{b.ben_pays}</td>
+              {/* Type (with "other" support) */}
               <td className="px-3 py-2 text-gray-800">
                 {b.ben_type === 'other'
                   ? b.ben_type_autre || '-'
                   : enumsShow(enums, 'type', b.ben_type)}
               </td>
+              {/* Zone */}
               <td className="px-3 py-2 text-gray-800">{enumsShow(enums, 'zone', b.ben_zone)}</td>
+              {/* Sex (with "other" support) */}
               <td className="px-3 py-2 text-gray-800">
                 {b.ben_sexe === 'other'
                   ? b.ben_sexe_autre || '-'
                   : enumsShow(enums, 'sexe', b.ben_sexe)}
               </td>
+              {/* Gender (with "other" support) */}
               <td className="px-3 py-2 text-gray-800">
                 {b.ben_genre === 'other'
                   ? b.ben_genre_autre || '-'
                   : enumsShow(enums, 'genre', b.ben_genre || '')}
               </td>
+              {/* Ethnicity */}
               <td className="px-3 py-2 text-gray-800">{b.ben_ethnicite}</td>
+              {/* Actions column */}
               {hasActions && (
                 <td className="px-3 py-2 text-center space-x-2 whitespace-nowrap">
+                  {/* Update button */}
                   {onUpdate && (
                     <button
                       onClick={() => onUpdate(b.ben_id)}
@@ -130,6 +162,7 @@ export default function BeneficiaireTable({
                       {t('modify')}
                     </button>
                   )}
+                  {/* Delete button with confirmation */}
                   {onDelete && (
                     <button
                       onClick={() => {
@@ -144,6 +177,7 @@ export default function BeneficiaireTable({
                       {t('delete')}
                     </button>
                   )}
+                  {/* Extra custom column if provided */}
                   {renderExtraColumn && renderExtraColumn(b)}
                 </td>
               )}

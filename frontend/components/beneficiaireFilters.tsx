@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { countriesByRegion } from '@/lib/countriesByRegion';
 
+// Props for the BeneficiaireFilters component
 type FilterProps = {
   filters: {
     region: string;
@@ -19,11 +20,19 @@ type FilterProps = {
   enums: Record<string, { value: string; label: string }[]>;
 };
 
+/**
+ * Filter form for beneficiaries.
+ * Allows filtering by region, country, zone, type, sexe, genre, and search string.
+ * - Uses enums for dropdowns (zone, type, sexe, genre).
+ * - Uses countriesByRegion for region/country linkage.
+ * - Calls onChange/onRegionChange/onReset handlers from parent.
+ */
 export default function BeneficiaireFilters({ filters, onChange, onRegionChange, onReset, enums }: FilterProps) {
   const { t } = useTranslation();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Search input for name or firstname */}
       <input
         type="text"
         name="search"
@@ -33,6 +42,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         className="h-10 px-3 rounded-lg border border-gray-300 bg-white text-sm"
       />
 
+      {/* Region dropdown */}
       <select
         name="region"
         value={filters.region}
@@ -45,6 +55,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         ))}
       </select>
 
+      {/* Country dropdown, enabled only if region is selected */}
       <select
         name="pays"
         value={filters.pays}
@@ -58,6 +69,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         ))}
       </select>
 
+      {/* Dropdowns for zone, type, sexe, genre using enums */}
       {['zone', 'type', 'sexe', 'genre'].map((field) => (
         <select
           key={field}
@@ -73,6 +85,7 @@ export default function BeneficiaireFilters({ filters, onChange, onRegionChange,
         </select>
       ))}
 
+      {/* Reset filters button */}
       <div className="md:col-span-3 lg:col-span-4 text-right">
         <button
           type="button"

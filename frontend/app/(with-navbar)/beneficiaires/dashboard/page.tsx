@@ -1,3 +1,5 @@
+// Dashboard page for beneficiaries statistics and charts
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,12 +15,10 @@ import {
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
+// Types for chart data
 type RegionData = { name: string; value: number };
 type MoisData = { mois: string; inscrits: number };
-type EvolutionData = { date: string; actifs: number };
-type GenreRegionData = { region: string; hommes: number; femmes: number };
 type AgeData = { tranche: string; nombre: number };
-type StatutData = { statut: string; nombre: number };
 type TypeBeneficiaireData = { type: string; nombre: number };
 type ZoneData = { zone: string; nombre: number };
 type SexeData = { sexe: string; nombre: number };
@@ -27,44 +27,63 @@ type GenreData = { genre: string; nombre: number };
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9F0F3A', '#8884d8'];
 
 export default function DashboardBeneficiaires() {
+  // Protect the page with authentication guard
   useAuthGuard();
   const { t } = useTranslation();
   const { callApi } = useApi();
 
+  // State for various statistics and chart data
   const [stats, setStats] = useState({ total: 0, actifs: 0, nouveaux: 0, participants: 0 });
   const [dataRegion, setDataRegion] = useState<RegionData[]>([]);
   const [dataMois, setDataMois] = useState<MoisData[]>([]);
-  const [dataEvolution, setDataEvolution] = useState<EvolutionData[]>([]);
-  const [dataGenreRegion, setDataGenreRegion] = useState<GenreRegionData[]>([]);
+  // const [dataGenreRegion, setDataGenreRegion] = useState<GenreRegionData[]>([]);
   const [dataAge, setDataAge] = useState<AgeData[]>([]);
-  const [dataStatut, setDataStatut] = useState<StatutData[]>([]);
+  // const [dataStatut, setDataStatut] = useState<StatutData[]>([]);
   const [dataTypeBeneficiaire, setDataTypeBeneficiaire] = useState<TypeBeneficiaireData[]>([]);
   const [dataZone, setDataZone] = useState<ZoneData[]>([]);
   const [dataSexe, setDataSexe] = useState<SexeData[]>([]);
   const [dataGenre, setDataGenre] = useState<GenreData[]>([]);
 
+  // Type for a beneficiary
+  type Beneficiaire = {
+    id: number;
+    ben_region: string;
+    ben_pays: string;
+    ben_date_naissance: string;
+    ben_genre: string;
+    ben_type: string;
+    ben_zone: string;
+    ben_sexe: string;
+    ben_statut?: string;
+    created_at: string;
+  };
+
+  // Fetch and process data for dashboard charts and stats
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`);
-        const data = await response.json();
+        const data: Beneficiaire[] = await response.json();
 
         const now = new Date();
         const monthNow = now.getMonth();
         const total = data.length;
 
-        const nouveaux = data.filter((b: any) =>
+        // Count new beneficiaries this month
+        const nouveaux = data.filter(b =>
           new Date(b.created_at).getMonth() === monthNow
         ).length;
 
+        // Distribution by region
         const regionMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           regionMap.set(b.ben_region, (regionMap.get(b.ben_region) || 0) + 1);
         });
         const dataRegion = Array.from(regionMap.entries()).map(([name, value]) => ({ name, value }));
 
+        // Monthly registration trend
         const moisMap = new Array(12).fill(0);
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const m = new Date(b.created_at).getMonth();
           moisMap[m]++;
         });
@@ -73,30 +92,19 @@ export default function DashboardBeneficiaires() {
           inscrits: val
         }));
 
-        const evolutionData = Array.from({ length: 6 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - i);
-          return {
-            date: date.toLocaleString('fr-FR', { month: 'short', year: 'numeric' }),
-            actifs: Math.floor(Math.random() * 50) + 20
-          };
-        }).reverse();
-
+        // Distribution by gender and region (not used in charts)
         const genreRegionMap = new Map<string, { hommes: number; femmes: number }>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const region = b.ben_region;
           const current = genreRegionMap.get(region) || { hommes: 0, femmes: 0 };
           if (b.ben_genre === 'M') current.hommes++;
           else current.femmes++;
           genreRegionMap.set(region, current);
         });
-        const dataGenreRegion = Array.from(genreRegionMap.entries()).map(([region, counts]) => ({
-          region,
-          ...counts
-        }));
 
+        // Distribution by age group
         const ageMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const age = new Date().getFullYear() - new Date(b.ben_date_naissance).getFullYear();
           let tranche = '';
           if (age < 18) tranche = '0-17 ans';
@@ -111,48 +119,53 @@ export default function DashboardBeneficiaires() {
           .map(([tranche, nombre]) => ({ tranche, nombre }))
           .sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
 
+        // Distribution by status (not used in charts)
         const statutMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const statut = b.ben_statut || 'Non spécifié';
           statutMap.set(statut, (statutMap.get(statut) || 0) + 1);
         });
-        const dataStatut = Array.from(statutMap.entries()).map(([statut, nombre]) => ({ statut, nombre }));
+        // const dataStatut = Array.from(statutMap.entries()).map(([statut, nombre]) => ({ statut, nombre }));
 
+        // Distribution by beneficiary type
         const typeMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const type = b.ben_type || 'Non spécifié';
           typeMap.set(type, (typeMap.get(type) || 0) + 1);
         });
         const dataTypeBeneficiaire = Array.from(typeMap.entries()).map(([type, nombre]) => ({ type, nombre }));
 
+        // Distribution by zone
         const zoneMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const zone = b.ben_zone || 'Non spécifié';
           zoneMap.set(zone, (zoneMap.get(zone) || 0) + 1);
         });
         const dataZone = Array.from(zoneMap.entries()).map(([zone, nombre]) => ({ zone, nombre }));
 
+        // Distribution by sex
         const sexeMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const sexe = b.ben_sexe || 'Non spécifié';
           sexeMap.set(sexe, (sexeMap.get(sexe) || 0) + 1);
         });
         const dataSexe = Array.from(sexeMap.entries()).map(([sexe, nombre]) => ({ sexe, nombre }));
 
+        // Distribution by gender
         const genreMap = new Map<string, number>();
-        data.forEach((b: any) => {
+        data.forEach(b => {
           const genre = b.ben_genre || 'Non spécifié';
           genreMap.set(genre, (genreMap.get(genre) || 0) + 1);
         });
         const dataGenre = Array.from(genreMap.entries()).map(([genre, nombre]) => ({ genre, nombre }));
 
+        // Set all computed data to state
         setStats({ total, actifs: total, nouveaux, participants: 0 });
         setDataRegion(dataRegion);
         setDataMois(dataMois);
-        setDataEvolution(evolutionData);
-        setDataGenreRegion(dataGenreRegion);
+        // setDataGenreRegion(dataGenreRegion);
         setDataAge(dataAgeSorted);
-        setDataStatut(dataStatut);
+        // setDataStatut(dataStatut);
         setDataTypeBeneficiaire(dataTypeBeneficiaire);
         setDataZone(dataZone);
         setDataSexe(dataSexe);
@@ -165,13 +178,14 @@ export default function DashboardBeneficiaires() {
     fetchData();
   }, [callApi]);
 
-  // Tri des tranches d'âge par ordre croissant (juste avant le return)
+  // Sort age groups before rendering
   const tranchesOrdre = ['0-17 ans', '18-24 ans', '25-34 ans', '35-49 ans', '50+ ans'];
   const dataAgeSorted = [...dataAge].sort((a, b) => tranchesOrdre.indexOf(a.tranche) - tranchesOrdre.indexOf(b.tranche));
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Dashboard header */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -187,13 +201,16 @@ export default function DashboardBeneficiaires() {
           </div>
         </header>
 
+        {/* Statistic cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 justify-center mx-auto w-fit">
           <StatCard label={t('total_beneficiaries')} value={stats.total} />
           <StatCard label={t('active')} value={stats.actifs} />
           <StatCard label={t('new_this_month')} value={stats.nouveaux} />
         </div>
 
+        {/* Charts grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Distribution by region */}
           <ChartCard title={t('distribution_by_region')}>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -216,6 +233,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Monthly registration trend */}
           <ChartCard title={t('monthly_registration_trend')}>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={dataMois}>
@@ -224,10 +242,10 @@ export default function DashboardBeneficiaires() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="inscrits" 
-                  stroke="#9F0F3A" 
+                <Line
+                  type="monotone"
+                  dataKey="inscrits"
+                  stroke="#9F0F3A"
                   strokeWidth={2}
                   dot={{ fill: "#9F0F3A", strokeWidth: 2 }}
                   activeDot={{ r: 8 }}
@@ -237,6 +255,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Distribution by age group */}
           <ChartCard title={t('distribution_by_age_group')}>
             <div className="flex justify-center items-center w-full h-full">
               <ResponsiveContainer width={"90%"} height={250}>
@@ -245,8 +264,8 @@ export default function DashboardBeneficiaires() {
                   <XAxis dataKey="tranche" />
                   <YAxis />
                   <Tooltip />
-                  <Bar 
-                    dataKey="nombre" 
+                  <Bar
+                    dataKey="nombre"
                     name={t('number_of_beneficiaries')}
                     radius={[4, 4, 0, 0]}
                   >
@@ -259,6 +278,7 @@ export default function DashboardBeneficiaires() {
             </div>
           </ChartCard>
 
+          {/* Distribution by beneficiary type */}
           <ChartCard title={t('distribution_by_beneficiary_type')}>
             <ResponsiveContainer width="100%" height={380}>
               <PieChart>
@@ -281,6 +301,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Distribution by zone */}
           <ChartCard title={t('distribution_by_zone')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -303,6 +324,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Distribution by sex */}
           <ChartCard title={t('distribution_by_sex')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -325,6 +347,7 @@ export default function DashboardBeneficiaires() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Distribution by gender */}
           <ChartCard title={t('distribution_by_gender')}>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -352,6 +375,7 @@ export default function DashboardBeneficiaires() {
   );
 }
 
+// Card component for displaying a statistic
 function StatCard({ label, value }: { label: string, value: number }) {
   return (
     <div className="bg-white shadow-sm rounded-2xl p-4 text-center">
@@ -361,6 +385,7 @@ function StatCard({ label, value }: { label: string, value: number }) {
   );
 }
 
+// Card component for displaying a chart
 function ChartCard({ title, children }: { title: string, children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">

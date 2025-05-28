@@ -9,7 +9,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
+// Page component for updating a beneficiary
 export default function UpdateBeneficiairePage() {
+  // Protect the page with authentication guard
   useAuthGuard();
   const { t } = useTranslation();
   const router = useRouter();
@@ -17,9 +19,12 @@ export default function UpdateBeneficiairePage() {
   const id = params.id as string;
   const { callApi } = useApi();
 
+  // State for initial form data
   const [initialData, setInitialData] = useState<BeneficiaireFormData | undefined>(undefined);
+  // State for loading indicator
   const [loading, setLoading] = useState(true);
 
+  // Fetch beneficiary data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,6 +43,7 @@ export default function UpdateBeneficiairePage() {
     fetchData();
   }, [id, t, callApi]);
 
+  // Handle form submission for updating beneficiary
   const handleSubmit = async (formData: BeneficiaireFormData) => {
     try {
       const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
@@ -59,6 +65,7 @@ export default function UpdateBeneficiairePage() {
     }
   };
 
+  // Show loading indicator while fetching data
   if (loading) return <p className="text-center mt-10">{t('loading')}</p>;
 
   return (
@@ -71,6 +78,7 @@ export default function UpdateBeneficiairePage() {
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('update_beneficiary_description')}</p>
             </div>
+            {/* Link to go back to the beneficiaries list */}
             <Link
               href="/beneficiaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
@@ -80,6 +88,7 @@ export default function UpdateBeneficiairePage() {
           </div>
         </header>
 
+        {/* Beneficiary form for editing */}
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           <BeneficiaireForm
             initialData={initialData}

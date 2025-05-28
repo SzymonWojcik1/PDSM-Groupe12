@@ -3,19 +3,29 @@
 import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+//import { saveAs } from 'file-saver';
 
+// Props for the ImportExcelActivite component
 type ImportExcelProps = {
-  fromCol?: number;
-  toCol?: number;
-  dateFields?: string[];
-  onPreview?: (rows: Record<string, unknown>[]) => void;
+  fromCol?: number; // Index of first column (default 0)
+  toCol?: number;   // Index of last column (default 5)
+  dateFields?: string[]; // Array of column names to treat as dates
+  onPreview?: (rows: Record<string, unknown>[]) => void; // Callback with parsed rows
 };
 
+/**
+ * ImportExcelActivite component
+ * - Allows importing and parsing Excel files for activities.
+ * - Converts date fields to 'yyyy-mm-dd' format.
+ * - Calls onPreview with valid rows.
+ */
 const ImportExcelActivite = forwardRef<HTMLInputElement, ImportExcelProps>(
   ({ fromCol = 0, toCol = 5, dateFields = ['Date de début', 'Date de fin'], onPreview }, ref) => {
     const { t } = useTranslation();
 
+    /**
+     * Handles reading and processing the selected Excel file.
+     */
     const handleExcelFile = (file: File) => {
       const reader = new FileReader();
 
@@ -33,21 +43,24 @@ const ImportExcelActivite = forwardRef<HTMLInputElement, ImportExcelProps>(
           blankrows: false,
         });
 
+        // Skip if not enough rows
         if (rawRows.length <= 3) {
           console.warn(t('not_enough_rows'));
           return;
         }
 
+        // Extract header and data rows
         const headerRow = (rawRows[0] as unknown[]).slice(fromCol, toCol) as string[];
         const dataRows = rawRows.slice(3);
 
         const formatted: Record<string, unknown>[] = [];
 
+        // Process each data row
         for (const row of dataRows) {
           const rowArray = row as unknown[];
           const sliced = rowArray.slice(fromCol, toCol);
 
-          // Vérifie si la ligne est totalement vide
+          // Skip totally empty rows
           const isTotallyEmpty = sliced.every(
             (cell) => cell === undefined || cell === null || String(cell).trim() === ''
           );
@@ -55,10 +68,12 @@ const ImportExcelActivite = forwardRef<HTMLInputElement, ImportExcelProps>(
 
           const rowObj: Record<string, unknown> = {};
 
+          // Map each column to its header, format dates if needed
           for (let i = fromCol; i < toCol; i++) {
             const key = headerRow[i - fromCol];
             let value = rowArray[i];
 
+            // Format date fields to yyyy-mm-dd
             if (dateFields.includes(key)) {
               if (typeof value === 'number') {
                 const jsDate = XLSX.SSF.parse_date_code(value);
@@ -82,6 +97,7 @@ const ImportExcelActivite = forwardRef<HTMLInputElement, ImportExcelProps>(
           formatted.push(rowObj);
         }
 
+        // If there are valid rows, call onPreview and show alert
         if (formatted.length > 0) {
           console.log(t('imported_data') + ':', formatted);
           onPreview?.(formatted);
@@ -94,6 +110,9 @@ const ImportExcelActivite = forwardRef<HTMLInputElement, ImportExcelProps>(
       reader.readAsArrayBuffer(file);
     };
 
+    /**
+     * Handles file input change event.
+     */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleExcelFile(file);

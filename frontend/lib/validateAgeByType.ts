@@ -1,3 +1,5 @@
+// Utility to validate age constraints based on beneficiary type.
+
 export function validateAgeByType(type: string, birthDateStr: string): string | null {
   if (!type || !birthDateStr) return null;
 

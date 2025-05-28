@@ -7,12 +7,15 @@ import { useRouter } from 'next/navigation';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
+// Page component for adding a new beneficiary
 export default function AddBeneficiaire() {
+  // Protect the page with authentication guard
   useAuthGuard();
   const router = useRouter();
   const { t } = useTranslation();
   const { callApi } = useApi();
 
+  // Interface for beneficiary form data
   interface BeneficiaireData {
     ben_nom: string;
     ben_prenom: string;
@@ -28,6 +31,7 @@ export default function AddBeneficiaire() {
     ben_pays?: string;
   }
 
+  // Check for duplicate beneficiary before creation
   const checkDuplicate = async (data: BeneficiaireData) => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
@@ -49,9 +53,11 @@ export default function AddBeneficiaire() {
     }
   };
 
+  // Handle form submission for creating a beneficiary
   const handleSubmit = async (data: BeneficiaireData) => {
     const result = await checkDuplicate(data);
 
+    // If duplicate exists, ask user for confirmation
     if (result.exists) {
       const confirm = window.confirm(
         t('duplicate_beneficiary_message', {
@@ -88,6 +94,7 @@ export default function AddBeneficiaire() {
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('add_beneficiary_description')}</p>
             </div>
+            {/* Link to go back to the beneficiaries list */}
             <Link
               href="/beneficiaires"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
@@ -97,6 +104,7 @@ export default function AddBeneficiaire() {
           </div>
         </header>
 
+        {/* Beneficiary form for creation */}
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           <BeneficiaireForm
             onSubmit={handleSubmit}

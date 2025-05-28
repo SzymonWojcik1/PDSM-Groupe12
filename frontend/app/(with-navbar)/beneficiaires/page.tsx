@@ -9,14 +9,19 @@ import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficia
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
+// Main page component for managing beneficiaries
 export default function BeneficiairesPage() {
+  // Protect the page with authentication guard
   useAuthGuard();
   const { t } = useTranslation();
   const { callApi } = useApi();
   const router = useRouter();
 
+  // State for beneficiaries list
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
+  // State for enums (type, zone, etc.)
   const [enums, setEnums] = useState<EnumMap>({});
+  // State for filter fields
   const [filters, setFilters] = useState({
     region: '',
     pays: '',
@@ -27,8 +32,10 @@ export default function BeneficiairesPage() {
     search: '',
   });
 
+  // Ref for triggering file input in ImportExcel
   const importRef = useRef<HTMLInputElement>(null);
 
+  // Fetch enums (type, zone, sexe, genre, etc.) on mount
   useEffect(() => {
     const fetchEnums = async () => {
       try {
@@ -41,9 +48,9 @@ export default function BeneficiairesPage() {
     };
 
     fetchEnums();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [callApi]);
 
+  // Fetch beneficiaries list when filters change
   useEffect(() => {
     const fetchBeneficiaires = async () => {
       try {
@@ -64,15 +71,18 @@ export default function BeneficiairesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  // Handle change for filter fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
+  // Handle region change and reset country filter
   const handleRegionChange = (region: string) => {
     setFilters(prev => ({ ...prev, region, pays: '' }));
   };
 
+  // Reset all filters to default values
   const resetFilters = () => {
     setFilters({
       region: '',
@@ -85,10 +95,12 @@ export default function BeneficiairesPage() {
     });
   };
 
+  // Navigate to update page for a beneficiary
   const handleUpdate = (id: string) => {
     router.push(`/beneficiaires/${id}/update`);
   };
 
+  // Delete a beneficiary after confirmation
   const handleDelete = async (id: string) => {
     if (!confirm(t('confirm_delete_beneficiary'))) return;
 
@@ -103,13 +115,16 @@ export default function BeneficiairesPage() {
     }
   };
 
+  // Trigger the file input for importing beneficiaries
   const triggerImport = () => {
     importRef.current?.click();
   };
 
+  // Handle import of beneficiaries from Excel
   const handleImport = async (rows: Record<string, unknown>[]) => {
     for (const [index, row] of rows.entries()) {
       try {
+        // Check for duplicate beneficiary before import
         const duplicateCheck = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/check-duplicate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -123,6 +138,7 @@ export default function BeneficiairesPage() {
 
         const duplicateResult = await duplicateCheck.json();
 
+        // If duplicate found, ask user for confirmation
         if (duplicateResult.exists) {
           const confirmAdd = window.confirm(
             `Possible duplicate detected:\n\nNom : ${duplicateResult.beneficiaire.nom}\nPrénom : ${duplicateResult.beneficiaire.prenom}\nCréé le : ${duplicateResult.beneficiaire.created_at}\n\nDo you want to add anyway?`
@@ -133,6 +149,7 @@ export default function BeneficiairesPage() {
           }
         }
 
+        // Import the beneficiary
         const response = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,6 +168,7 @@ export default function BeneficiairesPage() {
       }
     }
 
+    // Reload the page after import
     location.reload();
   };
 
@@ -163,6 +181,7 @@ export default function BeneficiairesPage() {
           <p className="text-gray-600">{t('beneficiaries_management_description')}</p>
         </header>
 
+        {/* Action buttons for add, delete, import, export, template download, dashboard */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
           <div className="flex flex-wrap gap-3">
             <button
@@ -186,6 +205,7 @@ export default function BeneficiairesPage() {
               {t('import_file')}
             </button>
 
+            {/* ImportExcel component for importing beneficiaries from Excel */}
             <ImportExcel
               ref={importRef}
               fromCol={0}
@@ -201,6 +221,7 @@ export default function BeneficiairesPage() {
               {t('export_data')}
             </button>
 
+            {/* Download Excel template for beneficiaries */}
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}beneficiaires/template`}
               download
@@ -218,6 +239,7 @@ export default function BeneficiairesPage() {
           </div>
         </div>
 
+        {/* Filters for beneficiaries */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
           <BeneficiaireFilters
@@ -229,6 +251,7 @@ export default function BeneficiairesPage() {
           />
         </div>
 
+        {/* Table of beneficiaries */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('beneficiaries_list')}</h2>
 
