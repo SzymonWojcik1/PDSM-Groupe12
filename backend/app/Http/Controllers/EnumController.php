@@ -11,11 +11,14 @@ use App\Enums\Genre;
 
 class EnumController extends Controller
 {
+    // Returns all enum values and their translated labels for the frontend
     public function enums(Request $request)
     {
-        $locale = $request->query('locale', 'en'); // par défaut 'en'
+        // Get the locale from the query string, default to 'en'
+        $locale = $request->query('locale', 'en');
         App::setLocale($locale);
 
+        // Return all enums as arrays of value/label pairs
         return response()->json([
             'type' => collect(\App\Enums\Type::cases())->map(fn($e) => [
                 'value' => $e->value,

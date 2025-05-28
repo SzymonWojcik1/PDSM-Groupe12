@@ -7,12 +7,13 @@ use Maatwebsite\Excel\Excel as ExcelFormat;
 
 class BeneficiaireExportTemplateController extends Controller
 {
-  public function downloadTemplate()
-  {
-    return Excel::download(
-        new BeneficiaireTemplateExport,
-        'template_beneficiaires.xlsx',
-        ExcelFormat::XLSX
-    );
-  }
+    // Downloads the beneficiary Excel template using the BeneficiaireTemplateExport export class
+    public function downloadTemplate()
+    {
+        return Excel::download(
+            new BeneficiaireTemplateExport,
+            'template_beneficiaires.xlsx',
+            ExcelFormat::XLSX
+        );
+    }
 }
