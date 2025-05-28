@@ -34,7 +34,7 @@ const navItems = [
   { key: 'logframe', href: '/cadre-logique', icon: ChartLine },
   { key: 'users', href: '/users', icon: Users },
   { key: 'card_evaluations_title', href: '/evaluation', icon: ClipboardList },
-  { key: 'logs', href: '/logs', icon: FileText },
+  { key: 'Logs', href: '/logs', icon: FileText },
 
 ]
 
