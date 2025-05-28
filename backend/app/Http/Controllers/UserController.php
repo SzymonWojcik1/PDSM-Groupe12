@@ -9,62 +9,68 @@ use Illuminate\Validation\Rule;
 use App\Enums\Role;
 use Illuminate\Support\Str;
 use App\Notifications\UserCreatedNotification;
+use App\Helpers\Logger;
 
 class UserController extends Controller
-{
-    public function store(Request $request)
-    {
-        if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
-            return response()->json(['message' => 'Accès interdit'], 403);
-        }
-
-        $request->validate([
-            'nom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
-            'prenom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
-            'email' => ['required', 'string', 'email', 'unique:users,email'],
-            'role' => ['nullable', Rule::in(array_column(Role::cases(), 'value'))],
-            'telephone' => ['nullable', 'string', 'max:20'],
-            'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
-            'superieur_id' => ['nullable', 'exists:users,id'],
-        ]);
-
-        if ($request->filled('superieur_id') && $request->filled('role')) {
-            $superieur = User::find($request->superieur_id);
-            if (!$superieur || !Role::isSuperior($superieur->role, $request->role)) {
-                return response()->json([
-                    'message' => 'Erreur de validation',
-                    'errors' => [
-                        'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
-                    ]
-                ], 422);
-            }
-        }
-
-        // Génère un mot de passe aléatoire sécurisé
-        $plainPassword = Str::random(12);
-
-        $user = User::create([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'email' => $request->email,
-            'password' => Hash::make($plainPassword),
-            'role' => $request->role ?? 'utilisateur',
-            'telephone' => $request->telephone,
-            'partenaire_id' => $request->partenaire_id,
-            'superieur_id' => $request->superieur_id,
-        ]);
-
-        // Envoie un e-mail multilingue avec les identifiants
-        $user->notify(new UserCreatedNotification($user->email, $plainPassword));
-
-        return response()->json(['user' => $user], 201);
-    }
-
-    public function update(Request $request, $id)
+  {
+      public function store(Request $request)
+      {
+          if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
+              return response()->json(['message' => 'Accès interdit'], 403);
+          }
+  
+          $request->validate([
+              'nom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
+              'prenom' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
+              'email' => ['required', 'string', 'email', 'unique:users,email'],
+              'role' => ['nullable', Rule::in(array_column(Role::cases(), 'value'))],
+              'telephone' => ['nullable', 'string', 'max:20'],
+              'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
+              'superieur_id' => ['nullable', 'exists:users,id'],
+          ]);
+  
+          if ($request->filled('superieur_id') && $request->filled('role')) {
+              $superieur = User::find($request->superieur_id);
+              if (!$superieur || !Role::isSuperior($superieur->role, $request->role)) {
+                  return response()->json([
+                      'message' => 'Erreur de validation',
+                      'errors' => [
+                          'superieur_id' => ['Le rôle du supérieur doit être hiérarchiquement supérieur.']
+                      ]
+                  ], 422);
+              }
+          }
+  
+          $plainPassword = Str::random(12);
+  
+          $user = User::create([
+              'nom' => $request->nom,
+              'prenom' => $request->prenom,
+              'email' => $request->email,
+              'password' => Hash::make($plainPassword),
+              'role' => $request->role ?? 'utilisateur',
+              'telephone' => $request->telephone,
+              'partenaire_id' => $request->partenaire_id,
+              'superieur_id' => $request->superieur_id,
+          ]);
+  
+          $user->notify(new UserCreatedNotification($user->email, $plainPassword));
+  
+          Logger::log(
+              'info',
+              'Création utilisateur',
+              'Un utilisateur a été créé',
+              ['nouvel_utilisateur_id' => $user->id, 'email' => $user->email],
+              auth()->id()
+          );
+  
+          return response()->json(['user' => $user], 201);
+      }
+  
+      public function update(Request $request, $id)
     {
         $authUser = $request->user();
 
-        // Autorise l'utilisateur à modifier lui-même OU un admin SIEGE à tout modifier
         if (!$authUser || ($authUser->role !== Role::SIEGE->value && $authUser->id != $id)) {
             return response()->json(['message' => 'Accès interdit'], 403);
         }
@@ -85,7 +91,6 @@ class UserController extends Controller
             'superieur_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        // Vérification hiérarchique uniquement si le champ 'role' ou 'superieur_id' est modifié
         $newRole = $request->role ?? $user->role;
         $newSuperieurId = $request->superieur_id ?? $user->superieur_id;
 
@@ -112,9 +117,16 @@ class UserController extends Controller
             'superieur_id' => $newSuperieurId,
         ]);
 
+        Logger::log(
+            'info',
+            'Mise à jour utilisateur',
+            'Un utilisateur a été modifié',
+            ['modifié_id' => $user->id, 'email' => $user->email],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Utilisateur mis à jour avec succès', 'user' => $user]);
     }
-
 
     public function destroy(Request $request, $id)
     {
@@ -124,6 +136,14 @@ class UserController extends Controller
 
         $user = User::findOrFail($id);
         $user->delete();
+
+        Logger::log(
+            'info',
+            'Suppression utilisateur',
+            'Un utilisateur a été supprimé',
+            ['supprimé_id' => $user->id, 'email' => $user->email],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Utilisateur supprimé avec succès']);
     }

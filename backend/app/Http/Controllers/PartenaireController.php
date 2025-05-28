@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Partenaire;
+use App\Helpers\Logger;
 
 class PartenaireController extends Controller
 {
@@ -30,6 +31,15 @@ class PartenaireController extends Controller
         }
 
         $partenaire = Partenaire::create($validated);
+
+        Logger::log(
+            'info',
+            'Création partenaire',
+            'Un nouveau partenaire a été créé.',
+            ['id' => $partenaire->part_id, 'nom' => $partenaire->part_nom],
+            auth()->id()
+        );
+
         return response()->json($partenaire, 201);
     }
 
@@ -68,6 +78,15 @@ class PartenaireController extends Controller
         }
 
         $partenaire->update($validated);
+
+        Logger::log(
+            'info',
+            'Mise à jour partenaire',
+            'Un partenaire a été mis à jour.',
+            ['id' => $partenaire->part_id, 'nom' => $partenaire->part_nom],
+            auth()->id()
+        );
+
         return response()->json($partenaire);
     }
 
@@ -80,6 +99,15 @@ class PartenaireController extends Controller
         }
 
         $partenaire->delete();
+
+        Logger::log(
+            'info',
+            'Suppression partenaire',
+            'Un partenaire a été supprimé.',
+            ['id' => $partenaire->part_id, 'nom' => $partenaire->part_nom],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Partenaire supprimé']);
     }
 
@@ -96,5 +124,4 @@ class PartenaireController extends Controller
             'users' => $partenaire->users,
         ]);
     }
-
 }

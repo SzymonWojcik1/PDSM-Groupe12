@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Evaluation;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class EvaluationController extends Controller
 {
@@ -29,6 +30,7 @@ class EvaluationController extends Controller
         }
 
         $evaluations = [];
+        $userIds = [];
 
         foreach ($users as $user) {
             $evaluations[] = Evaluation::create([
@@ -37,7 +39,21 @@ class EvaluationController extends Controller
                 'eva_statut' => 'en_attente',
                 'eva_date_soumission' => now(),
             ]);
+
+            $userIds[] = $user->id;
         }
+
+        Logger::log(
+            'info',
+            'Création évaluation',
+            'Des évaluations ont été créées pour tous les utilisateurs du partenaire.',
+            [
+                'partenaire_nom' => $request->part_nom,
+                'nb_evaluations' => count($evaluations),
+                'user_ids' => $userIds
+            ],
+            auth()->id()
+        );
 
         return response()->json([
             'message' => count($evaluations) . ' évaluation(s) créée(s)',
@@ -48,7 +64,7 @@ class EvaluationController extends Controller
 
     public function show($id)
     {
-        return Evaluation::with('utilisateur')->findOrFail($id)->makeHidden([]);;
+        return Evaluation::with('utilisateur')->findOrFail($id)->makeHidden([]);
     }
 
     public function updateStatut(Request $request, $id)
@@ -62,6 +78,17 @@ class EvaluationController extends Controller
             'eva_statut' => $request->eva_statut,
             'eva_date_soumission' => now(),
         ]);
+
+        Logger::log(
+            'info',
+            'Changement de statut d\'évaluation',
+            'Le statut d\'une évaluation a été modifié.',
+            [
+                'evaluation_id' => $evaluation->eva_id,
+                'nouveau_statut' => $request->eva_statut
+            ],
+            auth()->id()
+        );
 
         return response()->json($evaluation);
     }
@@ -99,6 +126,17 @@ class EvaluationController extends Controller
         $evaluation->eva_date_soumission = now();
         $evaluation->save();
 
+        Logger::log(
+            'info',
+            'Soumission d\'évaluation',
+            'Une évaluation a été remplie par l\'utilisateur.',
+            [
+                'evaluation_id' => $evaluation->eva_id,
+                'reponses' => $reponses
+            ],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Évaluation mise à jour']);
     }
 
@@ -106,15 +144,10 @@ class EvaluationController extends Controller
     {
         $userId = $request->query('user_id');
 
-        $count = \App\Models\Evaluation::where('eva_use_id', $userId)
+        $count = Evaluation::where('eva_use_id', $userId)
             ->where('eva_statut', 'en_attente')
             ->count();
 
         return response()->json(['count' => $count]);
     }
-
-
-
-
-
 }

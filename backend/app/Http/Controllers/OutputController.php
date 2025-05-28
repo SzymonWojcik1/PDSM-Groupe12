@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Output;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class OutputController extends Controller
 {
@@ -24,7 +25,17 @@ class OutputController extends Controller
             'out_id' => 'required|exists:outcome,out_id',
         ]);
 
-        return response()->json(Output::create($validated), 201);
+        $output = Output::create($validated);
+
+        Logger::log(
+            'info',
+            'Création output',
+            'Un nouvel output a été créé.',
+            ['id' => $output->opu_id, 'nom' => $output->opu_nom, 'code' => $output->opu_code],
+            auth()->id()
+        );
+
+        return response()->json($output, 201);
     }
 
     public function show($id)
@@ -44,12 +55,29 @@ class OutputController extends Controller
 
         $output->update($validated);
 
+        Logger::log(
+            'info',
+            'Mise à jour output',
+            'Un output a été mis à jour.',
+            ['id' => $output->opu_id, 'nom' => $output->opu_nom],
+            auth()->id()
+        );
+
         return response()->json($output);
     }
 
     public function destroy($id)
     {
-        Output::findOrFail($id)->delete();
+        $output = Output::findOrFail($id);
+        $output->delete();
+
+        Logger::log(
+            'info',
+            'Suppression output',
+            'Un output a été supprimé.',
+            ['id' => $output->opu_id, 'nom' => $output->opu_nom],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Output supprimé']);
     }

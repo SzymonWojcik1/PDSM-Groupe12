@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\IndicateurActivite;
 use App\Models\Activite;
+use App\Helpers\Logger;
 
 class IndicateurActiviteController extends Controller
 {
@@ -20,7 +21,17 @@ class IndicateurActiviteController extends Controller
             'ind_id' => 'required|exists:indicateur,ind_id',
         ]);
 
-        return IndicateurActivite::create($validated);
+        $item = IndicateurActivite::create($validated);
+
+        Logger::log(
+            'info',
+            'Lien indicateur-activité créé',
+            'Un lien a été créé entre une activité et un indicateur',
+            ['act_id' => $item->act_id, 'ind_id' => $item->ind_id],
+            auth()->id()
+        );
+
+        return $item;
     }
 
     public function show($id)
@@ -33,10 +44,16 @@ class IndicateurActiviteController extends Controller
         $item = IndicateurActivite::findOrFail($id);
         $item->delete();
 
+        Logger::log(
+            'info',
+            'Lien indicateur-activité supprimé',
+            'Le lien entre une activité et un indicateur a été supprimé',
+            ['act_id' => $item->act_id, 'ind_id' => $item->ind_id],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Lien supprimé avec succès']);
     }
-
-
 
     public function getActivitesWithCount($id)
     {
@@ -89,8 +106,14 @@ class IndicateurActiviteController extends Controller
 
         IndicateurActivite::insert($data->toArray());
 
+        Logger::log(
+            'info',
+            'Liens indicateur-activités créés en lot',
+            'Des liens ont été créés entre un indicateur et plusieurs activités',
+            ['ind_id' => $indId, 'act_ids' => array_values($newLinks)],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Activités liées avec succès', 'count' => count($data)]);
     }
-
-
 }

@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Models\Log;
+use App\Helpers\Logger;
 
 class ActivitesController extends Controller
 {
@@ -49,6 +51,15 @@ class ActivitesController extends Controller
         }
 
         $activites = Activites::create($validated);
+
+        Logger::log(
+            'info',
+            'Création activité',
+            'Une nouvelle activité a été créée',
+            ['id' => $activites->act_id, "nom" => $activites->act_nom, "debut" => $activites->act_dateDebut],
+            auth()->id()
+        );
+
         return response()->json($activites, 201);
     }
 
@@ -110,6 +121,15 @@ class ActivitesController extends Controller
         }
 
         $activites->update($validated);
+
+        Logger::log(
+            'info',
+            'Création activité',
+            'Une nouvelle activité a été créée',
+            ['id' => $activites->act_id, "nom" => $activites->act_nom, "debut" => $activites->act_dateDebut],
+            auth()->id()
+        );
+
         return response()->json($activites);
     }
 
@@ -122,6 +142,15 @@ class ActivitesController extends Controller
         }
 
         $activites->delete();
+
+        Logger::log(
+            'info',
+            'Supression activité',
+            'Une activité a été supprimée',
+            ['id' => $activites->act_id, "nom" => $activites->act_nom, "debut" => $activites->act_dateDebut],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Activité supprimée']);
     }
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\IndicateurController;
 use App\Http\Controllers\IndicateurActiviteController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ActivitesImportController;
+use App\Http\Controllers\LogController;
 
 // Routes publiques
 Route::post('/login', [AuthController::class, 'login']);
@@ -173,4 +174,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/evaluations/{id}', 'update');
         Route::get('/mes-evaluations/count', 'countMesEvaluations');
     });
+
+    Route::get('/logs', [LogController::class, 'index']);
+
 });

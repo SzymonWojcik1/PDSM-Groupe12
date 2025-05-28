@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Projet;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Helpers\Logger;
 
 class ProjetController extends Controller
 {
@@ -44,6 +45,15 @@ class ProjetController extends Controller
         }
 
         $projet = Projet::create($validated);
+
+        Logger::log(
+            'info',
+            'Création projet',
+            'Un nouveau projet a été créé.',
+            ['id' => $projet->pro_id, 'nom' => $projet->pro_nom],
+            auth()->id()
+        );
+
         return response()->json($projet, 201);
     }
 
@@ -103,6 +113,15 @@ class ProjetController extends Controller
         }
 
         $projet->update($validated);
+
+        Logger::log(
+            'info',
+            'Mise à jour projet',
+            'Un projet a été modifié.',
+            ['id' => $projet->pro_id, 'nom' => $projet->pro_nom],
+            auth()->id()
+        );
+
         return response()->json($projet);
     }
 
@@ -115,6 +134,15 @@ class ProjetController extends Controller
         }
 
         $projet->delete();
+
+        Logger::log(
+            'info',
+            'Suppression projet',
+            'Un projet a été supprimé.',
+            ['id' => $projet->pro_id, 'nom' => $projet->pro_nom],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Projet supprimé']);
     }
 }

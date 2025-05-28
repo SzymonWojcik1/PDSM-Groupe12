@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CadreLogique;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class CadreLogiqueController extends Controller
 {
@@ -25,7 +26,7 @@ class CadreLogiqueController extends Controller
                 ->orWhereBetween('cad_dateFin', [$validated['cad_dateDebut'], $validated['cad_dateFin']])
                 ->orWhere(function ($query) use ($validated) {
                     $query->where('cad_dateDebut', '<=', $validated['cad_dateDebut'])
-                            ->where('cad_dateFin', '>=', $validated['cad_dateFin']);
+                        ->where('cad_dateFin', '>=', $validated['cad_dateFin']);
                 });
         })->exists();
 
@@ -35,11 +36,22 @@ class CadreLogiqueController extends Controller
             ], 409);
         }
 
-        return response()->json(CadreLogique::create($validated), 201);
+        $cadre = CadreLogique::create($validated);
+
+        Logger::log(
+            'info',
+            'Création cadre logique',
+            'Un nouveau cadre logique a été créé',
+            ['cadre_id' => $cadre->cad_id, 'nom' => $cadre->cad_nom],
+            auth()->id()
+        );
+
+        return response()->json($cadre, 201);
     }
 
     public function show($id)
     {
+
         return CadreLogique::findOrFail($id);
     }
 
@@ -62,7 +74,7 @@ class CadreLogiqueController extends Controller
                     ->orWhereBetween('cad_dateFin', [$debut, $fin])
                     ->orWhere(function ($query) use ($debut, $fin) {
                         $query->where('cad_dateDebut', '<=', $debut)
-                                ->where('cad_dateFin', '>=', $fin);
+                            ->where('cad_dateFin', '>=', $fin);
                     });
             })->exists();
 
@@ -78,6 +90,14 @@ class CadreLogiqueController extends Controller
             'cad_dateFin' => $validated['cad_dateFin'] ?? $cadre->cad_dateFin,
         ]);
 
+        Logger::log(
+            'info',
+            'Mise à jour cadre logique',
+            'Cadre logique modifié',
+            ['cadre_id' => $cadre->cad_id],
+            auth()->id()
+        );
+
         return response()->json($cadre);
     }
 
@@ -86,16 +106,24 @@ class CadreLogiqueController extends Controller
         $cadre = CadreLogique::findOrFail($id);
         $cadre->delete();
 
+        Logger::log(
+            'info',
+            'Suppression cadre logique',
+            'Un cadre logique a été supprimé',
+            ['cadre_id' => $id, 'nom' => $cadre->cad_nom],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Cadre logique supprimé']);
     }
 
     public function structure($id)
     {
         $cadre = CadreLogique::with([
-            'objectifsGeneraux.outcomes.outputs.indicateurs.activites' 
+            'objectifsGeneraux.outcomes.outputs.indicateurs.activites'
         ])->findOrFail($id);
 
-        // Calculer valeurReelle côté PHP
+        // Calcul valeurReelle
         foreach ($cadre->objectifsGeneraux as $objectif) {
             foreach ($objectif->outcomes as $outcome) {
                 foreach ($outcome->outputs as $output) {
@@ -114,6 +142,4 @@ class CadreLogiqueController extends Controller
 
         return response()->json($cadre->objectifsGeneraux);
     }
-
-
 }
