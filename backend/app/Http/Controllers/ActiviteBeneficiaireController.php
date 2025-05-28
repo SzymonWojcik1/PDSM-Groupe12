@@ -7,10 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\Logger;
 
+/**
+ * Controller for managing the relationship between Activities and Beneficiaries
+ * Handles operations like listing beneficiaries of an activity,
+ * adding a beneficiary to an activity, and removing a beneficiary from an activity
+ */
 class ActiviteBeneficiaireController extends Controller
 {
     /**
-     * Récupérer tous les bénéficiaires d'une activité
+     * Get all beneficiaries associated with a specific activity
+     * 
+     * @param int $id The ID of the activity
+     * @return \Illuminate\Http\JsonResponse List of beneficiaries
      */
     public function index($id)
     {
@@ -24,15 +32,21 @@ class ActiviteBeneficiaireController extends Controller
     }
 
     /**
-     * Ajouter un bénéficiaire à une activité
+     * Add a beneficiary to an activity
+     * 
+     * @param Request $request The HTTP request containing beneficiary ID
+     * @param int $id The ID of the activity
+     * @return \Illuminate\Http\JsonResponse Success or error message
+     * @throws \Illuminate\Validation\ValidationException If validation fails
      */
     public function store(Request $request, $id)
     {
+        // Validate that the beneficiary exists
         $request->validate([
             'ben_id' => 'required|exists:beneficiaires,ben_id'
         ]);
 
-        // Vérifier si l'association n'existe pas déjà
+        // Check if the association already exists
         $exists = ActiviteBeneficiaire::where('acb_act_id', $id)
             ->where('acb_ben_id', $request->ben_id)
             ->exists();
@@ -43,12 +57,13 @@ class ActiviteBeneficiaireController extends Controller
             ], 409);
         }
 
-        // Créer l'association
+        // Create the association between activity and beneficiary
         $activiteBeneficiaire = new ActiviteBeneficiaire();
         $activiteBeneficiaire->acb_act_id = $id;
         $activiteBeneficiaire->acb_ben_id = $request->ben_id;
         $activiteBeneficiaire->save();
 
+        // Log the action
         Logger::log(
             'info',
             'Ajout bénéficiaire à activité',
@@ -66,10 +81,15 @@ class ActiviteBeneficiaireController extends Controller
     }
 
     /**
-     * Retirer un bénéficiaire d'une activité
+     * Remove a beneficiary from an activity
+     * 
+     * @param int $id The ID of the activity
+     * @param int $beneficiaireId The ID of the beneficiary to remove
+     * @return \Illuminate\Http\JsonResponse Success or error message
      */
     public function destroy($id, $beneficiaireId)
     {
+        // Delete the association between activity and beneficiary
         $deleted = ActiviteBeneficiaire::where('acb_act_id', $id)
             ->where('acb_ben_id', $beneficiaireId)
             ->delete();
@@ -80,6 +100,7 @@ class ActiviteBeneficiaireController extends Controller
             ], 404);
         }
 
+        // Log the action
         Logger::log(
             'warning',
             'Retrait bénéficiaire d\'activité',

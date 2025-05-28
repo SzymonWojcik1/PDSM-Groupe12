@@ -3,23 +3,46 @@
 import { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Props interface for the ActiviteFilters component
+ * Defines the structure of filters and callbacks
+ */
 type Props = {
-  filters: {
-    search: string;
-    partenaire: string;
-    projet: string;
+  filters: {                        // Current filter values
+    search: string;                 // Search term for activity name
+    partenaire: string;            // Selected partner filter
+    projet: string;                // Selected project filter
   };
-  partenaires: { part_id: number; part_nom: string }[];
-  projets: { pro_id: number; pro_nom: string }[];
-  onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  onReset: () => void;
+  partenaires: {                    // List of available partners
+    part_id: number;               // Partner identifier
+    part_nom: string;              // Partner name
+  }[];
+  projets: {                        // List of available projects
+    pro_id: number;                // Project identifier
+    pro_nom: string;               // Project name
+  }[];
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;  // Filter change handler
+  onReset: () => void;             // Filter reset handler
 };
 
+/**
+ * Activity Filters Component
+ * 
+ * A component that provides filtering capabilities for activities.
+ * Features include:
+ * - Text search by activity name
+ * - Partner filtering
+ * - Project filtering
+ * - Filter reset functionality
+ * - Responsive design
+ * - Internationalization support
+ */
 export default function ActiviteFilters({ filters, partenaires, projets, onChange, onReset }: Props) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-wrap gap-3">
+      {/* Search input for activity name */}
       <input
         type="text"
         name="search"
@@ -29,6 +52,7 @@ export default function ActiviteFilters({ filters, partenaires, projets, onChang
         className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
       />
 
+      {/* Partner filter dropdown */}
       <select
         name="partenaire"
         value={filters.partenaire}
@@ -43,6 +67,7 @@ export default function ActiviteFilters({ filters, partenaires, projets, onChang
         ))}
       </select>
 
+      {/* Project filter dropdown */}
       <select
         name="projet"
         value={filters.projet}
@@ -57,6 +82,7 @@ export default function ActiviteFilters({ filters, partenaires, projets, onChang
         ))}
       </select>
 
+      {/* Reset filters button */}
       <button
         onClick={onReset}
         className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition text-sm"

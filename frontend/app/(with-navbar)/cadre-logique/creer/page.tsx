@@ -9,6 +9,22 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import useAdminGuard from '@/lib/hooks/useAdminGuard';
 import '@/lib/i18n';
 
+/**
+ * Create Logical Framework Page Component
+ * 
+ * This component provides a form interface for creating new logical frameworks.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - Form validation
+ * - Automatic date range calculation based on year
+ * - Internationalization support
+ * 
+ * The form includes:
+ * - Framework name input
+ * - Year selection for automatic date range
+ * - Read-only date fields (start and end dates)
+ * - Submit and back buttons
+ */
 export default function CreateCadreLogique() {
   useAuthGuard();
   const { t } = useTranslation();
@@ -17,10 +33,18 @@ export default function CreateCadreLogique() {
 
   const checked = useAdminGuard()
 
+  // Form state management
   const [cadNom, setCadNom] = useState('');
   const [cadDateDebut, setCadDateDebut] = useState('');
   const [cadDateFin, setCadDateFin] = useState('');
 
+  /**
+   * Handles form submission
+   * Validates required fields and creates new logical framework
+   * Redirects to framework list on success
+   * 
+   * @param e - Form event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -48,6 +72,14 @@ export default function CreateCadreLogique() {
     }
   };
 
+  /**
+   * Handles year input change
+   * Automatically calculates start and end dates for a 4-year period
+   * Start date: January 1st of selected year
+   * End date: December 31st of year + 3
+   * 
+   * @param e - Input change event
+   */
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const year = parseInt(e.target.value);
     if (!isNaN(year)) {
@@ -58,11 +90,13 @@ export default function CreateCadreLogique() {
     }
   };
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-4xl mx-auto">
+        {/* Page header with title and back button */}
         <header className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('create_logframe')}</h1>
@@ -76,8 +110,10 @@ export default function CreateCadreLogique() {
           </Link>
         </header>
 
+        {/* Form container */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 w-full">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Framework name input */}
             <div>
               <label className="block font-semibold mb-1">{t('logframe_name')}</label>
               <input
@@ -89,6 +125,7 @@ export default function CreateCadreLogique() {
               />
             </div>
 
+            {/* Year selection input */}
             <div>
               <label className="block font-semibold mb-1">{t('start_year')}</label>
               <input
@@ -100,6 +137,7 @@ export default function CreateCadreLogique() {
               />
             </div>
 
+            {/* Read-only start date display */}
             <div>
               <label className="block font-semibold mb-1">{t('auto_start_date')}</label>
               <input
@@ -110,6 +148,7 @@ export default function CreateCadreLogique() {
               />
             </div>
 
+            {/* Read-only end date display */}
             <div>
               <label className="block font-semibold mb-1">{t('auto_end_date')}</label>
               <input
@@ -120,6 +159,7 @@ export default function CreateCadreLogique() {
               />
             </div>
 
+            {/* Submit button */}
             <button
               type="submit"
               className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"

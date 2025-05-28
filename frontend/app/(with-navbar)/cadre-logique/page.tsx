@@ -9,6 +9,10 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import useAdminGuard from '@/lib/hooks/useAdminGuard'
 import '@/lib/i18n'
 
+/**
+ * Type definition for logical framework
+ * Represents the structure of a logical framework in the system
+ */
 type Cadre = {
   cad_id: number
   cad_nom: string
@@ -16,6 +20,22 @@ type Cadre = {
   cad_dateFin: string
 }
 
+/**
+ * Logical Framework Page Component
+ * 
+ * This component provides a management interface for logical frameworks.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - List of all logical frameworks
+ * - CRUD operations (Create, Read, Update, Delete)
+ * - Date formatting
+ * - Internationalization support
+ * 
+ * The page displays:
+ * - A table of logical frameworks with their details
+ * - Action buttons for each framework
+ * - Create new framework button
+ */
 export default function CadreLogiquePage() {
   useAuthGuard()
   const { t } = useTranslation()
@@ -24,6 +44,10 @@ export default function CadreLogiquePage() {
   const router = useRouter()
   const checked = useAdminGuard()
 
+  /**
+   * Fetches logical frameworks on component mount
+   * Loads all frameworks from the API
+   */
   useEffect(() => {
     const fetchCadres = async () => {
       try {
@@ -39,6 +63,13 @@ export default function CadreLogiquePage() {
     fetchCadres()
   }, [callApi])
 
+  /**
+   * Handles the deletion of a logical framework
+   * Shows confirmation dialog before deletion
+   * Updates the list after successful deletion
+   * 
+   * @param cadre - The logical framework to delete
+   */
   const handleDelete = async (cadre: Cadre) => {
     const confirmed = confirm(t('confirm_delete_logframe', { name: cadre.cad_nom }))
     if (!confirmed) return
@@ -55,16 +86,24 @@ export default function CadreLogiquePage() {
     }
   }
 
+  /**
+   * Formats a date string to Swiss locale format
+   * 
+   * @param dateString - The date string to format
+   * @returns Formatted date string
+   */
   const formatDate = (dateString: string) => {
     const d = new Date(dateString)
     return d.toLocaleDateString('fr-CH')
   }
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page header with title and create button */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -81,11 +120,13 @@ export default function CadreLogiquePage() {
           </div>
         </header>
 
+        {/* Logical frameworks table section */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           {cadres.length === 0 ? (
             <p className="text-gray-600">{t('logframes_none')}</p>
           ) : (
             <table className="w-full table-auto text-sm text-left border-separate border-spacing-y-2">
+              {/* Table header */}
               <thead>
                 <tr className="text-gray-500">
                   <th className="px-2 py-1">{t('column_name')}</th>
@@ -94,6 +135,7 @@ export default function CadreLogiquePage() {
                   <th className="px-2 py-1">{t('column_actions')}</th>
                 </tr>
               </thead>
+              {/* Table body with framework rows */}
               <tbody>
                 {cadres.map(cadre => (
                   <tr key={cadre.cad_id} className="bg-gray-50 rounded">
@@ -101,6 +143,7 @@ export default function CadreLogiquePage() {
                     <td className="px-2 py-2">{formatDate(cadre.cad_dateDebut)}</td>
                     <td className="px-2 py-2">{formatDate(cadre.cad_dateFin)}</td>
                     <td className="px-2 py-2">
+                      {/* Action buttons for each framework */}
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => router.push(`/cadre-logique/${cadre.cad_id}/creer`)}

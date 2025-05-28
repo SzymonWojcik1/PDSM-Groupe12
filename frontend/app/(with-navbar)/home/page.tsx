@@ -5,11 +5,29 @@ import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
 
+/**
+ * Home Page Component
+ * 
+ * This component serves as the main dashboard of the application.
+ * Features include:
+ * - Protected route (requires authentication)
+ * - Role-based access control
+ * - Dynamic navigation cards
+ * - Internationalization support
+ * 
+ * The dashboard displays different cards based on user role:
+ * - Basic cards for all users (beneficiaries, activities, projects, etc.)
+ * - Admin-only cards for 'siege' role (logframe, users, logs)
+ */
 export default function HomePage() {
   useAuthGuard()
   const { t } = useTranslation()
   const [role, setRole] = useState<string | null>(null)
 
+  /**
+   * Retrieves user role from localStorage on component mount
+   * Used to determine which navigation cards to display
+   */
   useEffect(() => {
     const r = localStorage.getItem('role')
     setRole(r)
@@ -18,13 +36,16 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
+        {/* Page header with title and description */}
         <header className="mb-10">
           <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('dashboard_title')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           <p className="text-gray-700 mt-2">{t('dashboard_intro')}</p>
         </header>
 
+        {/* Navigation cards grid */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Basic navigation cards for all users */}
           <Card
             title={t('card_beneficiaries_title')}
             href="/beneficiaires"
@@ -45,6 +66,8 @@ export default function HomePage() {
             href="/partenaires"
             description={t('card_partners_desc')}
           />
+
+          {/* Logframe card - visible only for 'siege' role */}
           {role === 'siege' && (
             <Card
               title={t('card_logframe_title')}
@@ -52,11 +75,15 @@ export default function HomePage() {
               description={t('card_logframe_desc')}
             />
           )}
+
+          {/* Evaluations card - available for all users */}
           <Card
             title={t('card_evaluations_title', 'Évaluations')}
             href="/evaluation"
             description={t('card_evaluations_desc', 'Consulter ou créer des évaluations des partenaires.')}
           />
+
+          {/* Admin-only cards - visible only for 'siege' role */}
           {role === 'siege' && (
             <>
               <Card
@@ -67,10 +94,12 @@ export default function HomePage() {
               <Card
                 title={t('card_logs_title', 'Logs')}
                 href="/logs"
-                description={t('card_logs_desc', 'Consulter les actions enregistrées dans l’application.')}
+                description={t('card_logs_desc', 'Consulter les actions enregistrées dans l'application.')}
               />
             </>
           )}
+
+          {/* Profile card - available for all users */}
           <Card
             title={t('card_profile_title')}
             href="/profil"
@@ -82,6 +111,19 @@ export default function HomePage() {
   )
 }
 
+/**
+ * Card Component
+ * 
+ * A reusable component for navigation cards in the dashboard.
+ * Features:
+ * - Clickable card with hover effect
+ * - Title and description display
+ * - Consistent styling with the application theme
+ * 
+ * @param title - The card title
+ * @param description - The card description
+ * @param href - The navigation link
+ */
 function Card({
   title,
   description,

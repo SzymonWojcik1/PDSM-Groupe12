@@ -8,6 +8,23 @@ import { useApi } from '@/lib/hooks/useApi'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import useAdminGuard from '@/lib/hooks/useAdminGuard'
 
+/**
+ * Logical Framework Dashboard Component
+ * 
+ * This component provides a comprehensive dashboard for monitoring logical framework indicators.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - Global statistics overview
+ * - Hierarchical indicator tracking
+ * - Progress visualization
+ * 
+ * The dashboard displays:
+ * - Total indicators count
+ * - Sum of target values
+ * - Sum of achieved values
+ * - Global progress percentage
+ * - Detailed table with progress bars for each indicator
+ */
 export default function DashboardCadreLogique() {
   useAuthGuard()
   const { id } = useParams()
@@ -17,6 +34,7 @@ export default function DashboardCadreLogique() {
 
   const checked = useAdminGuard()
 
+  // State management for objectives and statistics
   const [objectifs, setObjectifs] = useState<any[]>([])
   const [stats, setStats] = useState({
     total: 0,
@@ -25,6 +43,10 @@ export default function DashboardCadreLogique() {
     progressionGlobale: 0
   })
 
+  /**
+   * Fetches and processes logical framework data
+   * Calculates global statistics and progress
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,6 +58,7 @@ export default function DashboardCadreLogique() {
         let totalValeur = 0
         let totalIndicateurs = 0
 
+        // Calculate totals by iterating through the hierarchical structure
         for (const obj of data) {
           for (const out of obj.outcomes || []) {
             for (const op of out.outputs || []) {
@@ -50,6 +73,7 @@ export default function DashboardCadreLogique() {
           }
         }
 
+        // Calculate global progress percentage
         const progressionGlobale = totalCible > 0
           ? Math.round((totalValeur / totalCible) * 100)
           : 0
@@ -68,11 +92,13 @@ export default function DashboardCadreLogique() {
     fetchData()
   }, [id])
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen px-6 py-10 bg-[#F9FAFB]">
       <div className="max-w-7xl mx-auto">
+        {/* Page header with title and back button */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <h1 className="text-4xl font-bold text-[#9F0F3A]">
@@ -87,25 +113,31 @@ export default function DashboardCadreLogique() {
           <div className="h-1 w-20 bg-[#9F0F3A] mt-2 rounded" />
         </div>
 
+        {/* Statistics cards grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {/* Total indicators card */}
           <div className="bg-white shadow border rounded-xl p-4">
             <p className="text-sm text-gray-500">{t('dashboard_total_indicators')}</p>
             <p className="text-2xl font-bold text-[#9F0F3A]">{stats.total}</p>
           </div>
+          {/* Target sum card */}
           <div className="bg-white shadow border rounded-xl p-4">
             <p className="text-sm text-gray-500">{t('dashboard_target_sum')}</p>
             <p className="text-2xl font-bold text-gray-800">{stats.totalCible}</p>
           </div>
+          {/* Achieved sum card */}
           <div className="bg-white shadow border rounded-xl p-4">
             <p className="text-sm text-gray-500">{t('dashboard_achieved_sum')}</p>
             <p className="text-2xl font-bold text-gray-800">{stats.totalValeur}</p>
           </div>
+          {/* Global progress card */}
           <div className="bg-white shadow border rounded-xl p-4">
             <p className="text-sm text-gray-500">{t('dashboard_global_progress')}</p>
             <p className="text-2xl font-bold text-green-600">{stats.progressionGlobale}%</p>
           </div>
         </div>
 
+        {/* Objectives and indicators tables */}
         {objectifs.map((obj, i) => (
           <div key={obj.obj_id} className="mb-10">
             <h2 className="text-2xl font-bold text-[#9F0F3A] mb-4">
@@ -113,6 +145,7 @@ export default function DashboardCadreLogique() {
             </h2>
             <div className="overflow-x-auto rounded-xl shadow-md border border-gray-200">
               <table className="w-full text-sm">
+                {/* Table header */}
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">{t('outcome')}</th>
@@ -124,6 +157,7 @@ export default function DashboardCadreLogique() {
                     <th className="px-4 py-3 text-center font-semibold">{t('progress')}</th>
                   </tr>
                 </thead>
+                {/* Table body with hierarchical data */}
                 <tbody className="bg-white divide-y divide-gray-200">
                   {obj.outcomes.map((out: any) =>
                     out.outputs.map((op: any) =>
@@ -139,6 +173,7 @@ export default function DashboardCadreLogique() {
                             <td className="px-4 py-3 text-gray-800">{ind.ind_nom}</td>
                             <td className="px-4 py-3 text-center text-gray-700">{cible}</td>
                             <td className="px-4 py-3 text-center text-gray-700">{valeur}</td>
+                            {/* Progress bar cell */}
                             <td className="px-4 py-3">
                               <div className="relative w-full h-5 bg-gray-200 rounded-full overflow-hidden">
                                 <div

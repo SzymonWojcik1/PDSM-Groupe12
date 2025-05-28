@@ -10,6 +10,14 @@ import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import useAdminGuard from '@/lib/hooks/useAdminGuard';
 
+/**
+ * Type definitions for the logical framework structure
+ */
+
+/**
+ * Indicator type definition
+ * Represents a performance indicator with its target and actual values
+ */
 type Indicateur = {
   ind_id: number;
   ind_nom: string;
@@ -18,6 +26,10 @@ type Indicateur = {
   valeurReelle?: number;
 };
 
+/**
+ * Output type definition
+ * Represents a project output with its associated indicators
+ */
 type Output = {
   opu_id: number;
   opu_nom: string;
@@ -25,6 +37,10 @@ type Output = {
   indicateurs: Indicateur[];
 };
 
+/**
+ * Outcome type definition
+ * Represents a project outcome with its associated outputs
+ */
 type Outcome = {
   out_id: number;
   out_nom: string;
@@ -32,13 +48,20 @@ type Outcome = {
   outputs: Output[];
 };
 
+/**
+ * Objective type definition
+ * Represents a project objective with its associated outcomes
+ */
 type Objectif = {
   obj_id: number;
   obj_nom: string;
   outcomes: Outcome[];
 };
 
-// Contexte de la modale : modifier obj, out, opu ou ind
+/**
+ * Modal context type definition
+ * Defines the different types of modals and their required data
+ */
 type ModalContext =
   | { type: 'obj'; id: number; currentName: string; url: string }
   | { type: 'out'; id: number; currentName: string; url: string }
@@ -46,6 +69,9 @@ type ModalContext =
   | { type: 'indicateur'; ind: Indicateur; url: string }
   | null;
 
+/**
+ * Props for the indicator modal component
+ */
 type ModalIndicateurInputProps = {
   currentName: string;
   currentValue: number;
@@ -53,6 +79,15 @@ type ModalIndicateurInputProps = {
   onClose: () => void;
 };
 
+/**
+ * Indicator Modal Component
+ * 
+ * A modal dialog for editing indicator details
+ * Features:
+ * - Name editing
+ * - Target value editing
+ * - Validation before submission
+ */
 function ModalIndicateurInput({
   currentName,
   currentValue,
@@ -66,7 +101,7 @@ function ModalIndicateurInput({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
         <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Modifier un indicateur</h2>
-        <label className="block text-sm font-medium mb-1">Nom de l’indicateur</label>
+        <label className="block text-sm font-medium mb-1">Nom de l'indicateur</label>
         <input
           type="text"
           value={nom}
@@ -103,6 +138,22 @@ function ModalIndicateurInput({
   );
 }
 
+/**
+ * Update Logical Framework Page Component
+ * 
+ * This component provides a comprehensive interface for updating logical frameworks.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - Framework details editing
+ * - Hierarchical structure management (objectives, outcomes, outputs, indicators)
+ * - CRUD operations for all levels
+ * - Modal-based editing interface
+ * 
+ * The page displays:
+ * - Framework basic information form
+ * - Hierarchical table of objectives, outcomes, outputs, and indicators
+ * - Edit and delete actions for each element
+ */
 export default function UpdateCadreLogiquePage() {
   useAuthGuard();
   const { callApi } = useApi();
@@ -118,7 +169,10 @@ export default function UpdateCadreLogiquePage() {
 
   const checked = useAdminGuard()
 
-  // Dates auto
+  /**
+   * Automatically updates start and end dates when year changes
+   * Sets a 4-year period from the selected year
+   */
   useEffect(() => {
     if (typeof annee === 'number' && !isNaN(annee)) {
       setCadDateDebut(`${annee}-01-01`);
@@ -126,7 +180,10 @@ export default function UpdateCadreLogiquePage() {
     }
   }, [annee]);
 
-  // Chargement initial
+  /**
+   * Initial data loading
+   * Fetches framework details and structure
+   */
   useEffect(() => {
     const load = async () => {
       try {
@@ -144,6 +201,10 @@ export default function UpdateCadreLogiquePage() {
     load();
   }, [id]);
 
+  /**
+   * Fetches the complete framework structure
+   * Includes objectives, outcomes, outputs, and indicators
+   */
   const fetchObjectifs = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
@@ -154,6 +215,12 @@ export default function UpdateCadreLogiquePage() {
     }
   };
 
+  /**
+   * Updates the name of any framework element
+   * 
+   * @param url - API endpoint for the element
+   * @param payload - Data to update
+   */
   const modifierNom = async (url: string, payload: any) => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
@@ -167,6 +234,12 @@ export default function UpdateCadreLogiquePage() {
     }
   };
 
+  /**
+   * Deletes any framework element
+   * Shows confirmation dialog before deletion
+   * 
+   * @param url - API endpoint for the element to delete
+   */
   const supprimerElement = async (url: string) => {
     if (!confirm('Supprimer cet élément ?')) return;
     try {
@@ -177,6 +250,12 @@ export default function UpdateCadreLogiquePage() {
     }
   };
 
+  /**
+   * Handles framework details form submission
+   * Updates basic framework information
+   * 
+   * @param e - Form event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cadNom || !cadDateDebut || !cadDateFin) return alert('Tous les champs sont requis.');
@@ -199,12 +278,13 @@ export default function UpdateCadreLogiquePage() {
     }
   };
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
-        {/* En-tête */}
+        {/* Page header with title and back button */}
         <header className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier le cadre logique</h1>
@@ -215,7 +295,7 @@ export default function UpdateCadreLogiquePage() {
           </Link>
         </header>
 
-        {/* Formulaire de cadre */}
+        {/* Framework details form */}
         <div className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -252,7 +332,7 @@ export default function UpdateCadreLogiquePage() {
           </form>
         </div>
 
-        {/* Liste des objectifs */}
+        {/* Objectives list with hierarchical structure */}
         {objectifs.map((obj) => (
           <div key={obj.obj_id} className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
             <div className="flex justify-between items-start mb-4">
@@ -271,6 +351,7 @@ export default function UpdateCadreLogiquePage() {
               </div>
             </div>
 
+            {/* Hierarchical table structure */}
             <table className="w-full text-sm border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
@@ -286,6 +367,7 @@ export default function UpdateCadreLogiquePage() {
                   out.outputs.map((op, k) =>
                     op.indicateurs.map((ind, l) => (
                       <tr key={ind.ind_id}>
+                        {/* Outcome cell with rowspan */}
                         {k === 0 && l === 0 && (
                           <td
                             rowSpan={out.outputs.reduce((acc, o) => acc + (o.indicateurs.length || 1), 0)}
@@ -316,6 +398,7 @@ export default function UpdateCadreLogiquePage() {
                             </div>
                           </td>
                         )}
+                        {/* Output cell with rowspan */}
                         {l === 0 && (
                           <td rowSpan={op.indicateurs.length || 1} className="border px-4 py-2 align-top">
                             <div className="flex justify-between items-start">
@@ -343,6 +426,7 @@ export default function UpdateCadreLogiquePage() {
                             </div>
                           </td>
                         )}
+                        {/* Indicator cell */}
                         <td className="border px-4 py-2">
                           <div className="flex justify-between items-start">
                             <div>
@@ -371,11 +455,11 @@ export default function UpdateCadreLogiquePage() {
         ))}
       </div>
 
-      {/* Modales dynamiques */}
+      {/* Dynamic modals for editing different elements */}
       {modalContext?.type === 'obj' && (
         <ModalInput
           title="Modifier objectif général"
-          label="Nom de l’objectif"
+          label="Nom de l'objectif"
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
@@ -387,7 +471,7 @@ export default function UpdateCadreLogiquePage() {
       {modalContext?.type === 'out' && (
         <ModalInput
           title="Modifier un outcome"
-          label="Nom de l’outcome"
+          label="Nom de l'outcome"
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
@@ -399,7 +483,7 @@ export default function UpdateCadreLogiquePage() {
       {modalContext?.type === 'opu' && (
         <ModalInput
           title="Modifier un output"
-          label="Nom de l’output"
+          label="Nom de l'output"
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {

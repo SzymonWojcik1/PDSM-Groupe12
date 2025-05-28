@@ -8,6 +8,10 @@ import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import useAdminGuard from '@/lib/hooks/useAdminGuard';
 
+/**
+ * Indicator type definition
+ * Represents a performance indicator with its target and actual values
+ */
 type Indicateur = {
   ind_id: number;
   ind_nom: string;
@@ -16,6 +20,10 @@ type Indicateur = {
   valeurReelle?: number;
 };
 
+/**
+ * Output type definition
+ * Represents a project output with its associated indicators
+ */
 type Output = {
   opu_id: number;
   opu_nom: string;
@@ -23,6 +31,10 @@ type Output = {
   indicateurs: Indicateur[];
 };
 
+/**
+ * Outcome type definition
+ * Represents a project outcome with its associated outputs
+ */
 type Outcome = {
   out_id: number;
   out_nom: string;
@@ -30,23 +42,43 @@ type Outcome = {
   outputs: Output[];
 };
 
+/**
+ * Objective type definition
+ * Represents a project objective with its associated outcomes
+ */
 type Objectif = {
   obj_id: number;
   obj_nom: string;
   outcomes: Outcome[];
 };
 
+/**
+ * Modal context type definition
+ * Defines the different types of modals and their required data for creating new elements
+ */
 type ModalContext =
   | { type: 'outcome'; objId: number; count: number }
   | { type: 'output'; outId: number; count: number; outcomeIndex: number }
   | { type: 'indicateur'; outId: number; opuId: number; count: number; outcomeIndex: number; outputIndex: number }
   | null;
 
+/**
+ * Props for the indicator modal component
+ */
 type ModalIndicateurInputProps = {
   onConfirm: (nom: string, valeur: number) => void;
   onClose: () => void;
 };
 
+/**
+ * Indicator Modal Component
+ * 
+ * A modal dialog for creating new indicators
+ * Features:
+ * - Name input
+ * - Target value input
+ * - Validation before submission
+ */
 function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps) {
   const [nom, setNom] = useState('');
   const [valeur, setValeur] = useState('');
@@ -55,7 +87,7 @@ function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps)
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
         <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Ajouter un indicateur</h2>
-        <label className="block text-sm font-medium mb-1">Nom de l’indicateur</label>
+        <label className="block text-sm font-medium mb-1">Nom de l'indicateur</label>
         <input
           type="text"
           value={nom}
@@ -89,6 +121,22 @@ function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps)
   );
 }
 
+/**
+ * Create Logical Framework Page Component
+ * 
+ * This component provides an interface for creating and managing logical frameworks.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - Hierarchical structure management (objectives, outcomes, outputs, indicators)
+ * - Dynamic form creation
+ * - Real-time updates
+ * 
+ * The page displays:
+ * - Form for adding new objectives
+ * - Hierarchical table structure
+ * - Add buttons for each level
+ * - Activity linking functionality
+ */
 export default function CadreLogiqueDetailPage() {
   useAuthGuard();
   const { id } = useParams();
@@ -97,11 +145,16 @@ export default function CadreLogiqueDetailPage() {
 
   const checked = useAdminGuard()
 
+  // State management
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [nouveauObjectif, setNouveauObjectif] = useState('');
   const [error, setError] = useState('');
   const [modalContext, setModalContext] = useState<ModalContext>(null);
 
+  /**
+   * Fetches the complete framework structure
+   * Includes objectives, outcomes, outputs, and indicators
+   */
   const fetchObjectifs = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/cadre-logique/${id}/structure`);
@@ -112,10 +165,15 @@ export default function CadreLogiqueDetailPage() {
     }
   };
 
+  // Load initial data
   useEffect(() => {
     fetchObjectifs();
   }, [id]);
 
+  /**
+   * Adds a new objective to the framework
+   * Updates the list after successful addition
+   */
   const ajouterObjectif = async () => {
     if (!nouveauObjectif.trim()) return;
 
@@ -132,7 +190,7 @@ export default function CadreLogiqueDetailPage() {
         fetchObjectifs();
       } else {
         const data = await res.json();
-        setError(data.message || 'Erreur lors de l’ajout');
+        setError(data.message || 'Erreur lors de l'ajout');
       }
     } catch (err) {
       console.error('Erreur serveur:', err);
@@ -140,6 +198,12 @@ export default function CadreLogiqueDetailPage() {
     }
   };
 
+  /**
+   * Generic function to add any element to the framework
+   * 
+   * @param url - API endpoint for the element
+   * @param payload - Data to create
+   */
   const ajouterElement = async (url: string, payload: any) => {
     try {
       await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
@@ -153,11 +217,13 @@ export default function CadreLogiqueDetailPage() {
     }
   };
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-8">
       <div className="max-w-6xl mx-auto">
+        {/* Page header with title and back button */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -174,6 +240,7 @@ export default function CadreLogiqueDetailPage() {
           </div>
         </header>
 
+        {/* New objective form */}
         <div className="bg-white p-6 rounded-xl shadow mb-8">
           <h2 className="text-xl font-semibold mb-4">Ajouter un objectif général</h2>
           <div className="flex gap-3">
@@ -181,7 +248,7 @@ export default function CadreLogiqueDetailPage() {
               type="text"
               value={nouveauObjectif}
               onChange={(e) => setNouveauObjectif(e.target.value)}
-              placeholder="Nom de l’objectif"
+              placeholder="Nom de l'objectif"
               className="flex-1 border border-gray-300 rounded px-4 py-2"
             />
             <button
@@ -194,10 +261,12 @@ export default function CadreLogiqueDetailPage() {
           {error && <p className="text-red-600 mt-2">{error}</p>}
         </div>
 
+        {/* Objectives list with hierarchical structure */}
         {objectifs.map((obj, i) => (
           <div key={obj.obj_id} className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{obj.obj_nom}</h2>
             <table className="w-full text-sm border border-gray-300">
+              {/* Table header */}
               <thead className="bg-gray-100">
                 <tr>
                   <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
@@ -207,6 +276,7 @@ export default function CadreLogiqueDetailPage() {
                   <th className="border px-4 py-2 w-1/8 text-left">Valeur réelle</th>
                 </tr>
               </thead>
+              {/* Table body with hierarchical data */}
               <tbody>
                 {obj.outcomes.length === 0 && (
                   <tr>
@@ -339,10 +409,11 @@ export default function CadreLogiqueDetailPage() {
         ))}
       </div>
 
+      {/* Dynamic modals for creating new elements */}
       {modalContext?.type === 'outcome' && (
         <ModalInput
           title="Ajouter un outcome"
-          label="Nom de l’outcome"
+          label="Nom de l'outcome"
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
             const { objId, count } = modalContext;
@@ -361,7 +432,7 @@ export default function CadreLogiqueDetailPage() {
       {modalContext?.type === 'output' && (
         <ModalInput
           title="Ajouter un output"
-          label="Nom de l’output"
+          label="Nom de l'output"
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
             const { outId, count, outcomeIndex } = modalContext;
