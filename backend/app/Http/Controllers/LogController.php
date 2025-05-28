@@ -10,11 +10,12 @@ class LogController extends Controller
 {
     public function index()
     {
-        // Vérifie que seul le rôle "siege" peut accéder
+        // Allow access only to users with the "siege" role
         if (Auth::user()?->role !== 'siege') {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
+        // Return logs ordered by newest first
         return Log::orderBy('created_at', 'desc')->get();
     }
 }

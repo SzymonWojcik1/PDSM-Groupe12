@@ -9,10 +9,11 @@ import { useApi } from '@/lib/hooks/useApi'
 import { countriesByRegion } from '@/lib/countriesByRegion'
 
 export default function PartenairesPage() {
-  useAuthGuard()
+  useAuthGuard() // Ensures that only authenticated users can access this page
   const { callApi } = useApi()
   const { t } = useTranslation()
 
+  // State for the list of partners and filters
   const [partenaires, setPartenaires] = useState<any[]>([])
   const [filtered, setFiltered] = useState<any[]>([])
   const [filters, setFilters] = useState({
@@ -21,21 +22,24 @@ export default function PartenairesPage() {
     region: '',
   })
 
+  // Fetch all partners from the backend
   const fetchPartenaires = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
       const data = await res.json()
       setPartenaires(data)
-      setFiltered(data)
+      setFiltered(data) // Initial state = all partners
     } catch (err) {
       console.error('Erreur chargement partenaires', err)
     }
   }
 
+  // Fetch on page load
   useEffect(() => {
     fetchPartenaires()
   }, [])
 
+  // Apply filters whenever they change
   useEffect(() => {
     let result = [...partenaires]
     if (filters.nom) {
@@ -52,26 +56,30 @@ export default function PartenairesPage() {
     setFiltered(result)
   }, [filters, partenaires])
 
+  // Handle filter input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFilters(prev => ({ ...prev, [name]: value }))
   }
 
+  // Update region and reset country when region changes
   const handleRegionChange = (region: string) => {
     setFilters(prev => ({ ...prev, region, pays: '' }))
   }
 
+  // Clear all filters
   const resetFilters = () => {
     setFilters({ nom: '', pays: '', region: '' })
   }
 
+  // Delete partner by ID
   const deletePartenaire = async (id: number) => {
     if (!confirm(t('confirm_delete'))) return
     try {
       await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
         method: 'DELETE',
       })
-      await fetchPartenaires()
+      await fetchPartenaires() // Refresh list after deletion
     } catch (err) {
       console.error('Erreur suppression partenaire', err)
     }
@@ -80,6 +88,7 @@ export default function PartenairesPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page title */}
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">
             {t('partners_list_title')}
@@ -88,6 +97,7 @@ export default function PartenairesPage() {
           <p className="text-gray-600">{t('partners_list_description')}</p>
         </header>
 
+        {/* Create partner button */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-6">
           <Link href="/partenaires/creer">
             <button className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium">
@@ -96,9 +106,11 @@ export default function PartenairesPage() {
           </Link>
         </div>
 
+        {/* Filters */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('filters')}</h2>
           <div className="flex flex-wrap gap-3 items-end">
+            {/* Name filter */}
             <input
               type="text"
               name="nom"
@@ -108,6 +120,7 @@ export default function PartenairesPage() {
               className="border border-gray-300 rounded px-4 py-2 text-sm text-gray-800"
             />
 
+            {/* Region dropdown */}
             <select
               name="region"
               value={filters.region}
@@ -120,6 +133,7 @@ export default function PartenairesPage() {
               ))}
             </select>
 
+            {/* Country dropdown - only enabled if region selected */}
             <select
               name="pays"
               value={filters.pays}
@@ -133,6 +147,7 @@ export default function PartenairesPage() {
               ))}
             </select>
 
+            {/* Reset filters button */}
             <button
               onClick={resetFilters}
               className="px-4 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 text-sm"
@@ -142,6 +157,7 @@ export default function PartenairesPage() {
           </div>
         </div>
 
+        {/* Partners table */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">
             {t('partners_table_title')}
@@ -164,12 +180,14 @@ export default function PartenairesPage() {
                     <td className="px-4 py-2 text-gray-800">{partenaire.part_pays}</td>
                     <td className="px-4 py-2 text-gray-800">{partenaire.part_region}</td>
                     <td className="px-4 py-2 space-x-2 whitespace-nowrap">
+                      {/* Edit button */}
                       <Link
                         href={`/partenaires/${partenaire.part_id}/update`}
                         className="text-sm text-blue-600 hover:underline"
                       >
                         {t('edit')}
                       </Link>
+                      {/* Delete button */}
                       <button
                         onClick={() => deletePartenaire(partenaire.part_id)}
                         className="text-sm text-gray-500 hover:text-red-600 hover:underline"
@@ -179,6 +197,7 @@ export default function PartenairesPage() {
                     </td>
                   </tr>
                 ))}
+                {/* No results message */}
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={4} className="text-center px-4 py-6 text-gray-500">

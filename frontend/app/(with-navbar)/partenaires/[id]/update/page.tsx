@@ -9,31 +9,35 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import { useApi } from '@/lib/hooks/useApi'
 
 export default function UpdatePartenaire() {
-  useAuthGuard()
+  useAuthGuard() // Block access if user is not authenticated
   const { callApi } = useApi()
   const { t } = useTranslation()
-  const { id } = useParams()
+  const { id } = useParams() // Extract the ID from the URL
   const router = useRouter()
 
+  // Form state containing the values of the partner being edited
   const [form, setForm] = useState({
     part_nom: '',
     part_pays: '',
     part_region: '',
   })
 
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('') // State to display any error message
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch the partner data from the backend
         const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`)
         const data = await res.json()
+        // Pre-fill the form with existing data
         setForm({
           part_nom: data.part_nom || '',
           part_pays: data.part_pays || '',
           part_region: data.part_region || '',
         })
       } catch (err) {
+        // Display a translated error message if fetch fails
         setErrorMessage(t('error_occurred'))
       }
     }
@@ -41,19 +45,22 @@ export default function UpdatePartenaire() {
     fetchData()
   }, [id, t])
 
+  // Handle input change for both text and select inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
-    setErrorMessage('')
+    setErrorMessage('') // Reset error message on change
   }
 
+  // Reset the selected country if region is changed
   const handleRegionChange = (region: string) => {
     setForm(prev => ({ ...prev, part_region: region, part_pays: '' }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     try {
+      // Send a PUT request to update the partner
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -63,10 +70,12 @@ export default function UpdatePartenaire() {
       const data = await res.json()
 
       if (!res.ok) {
+        // Show error returned from the backend
         setErrorMessage(data.message || t('error_occurred'))
         return
       }
 
+      // Redirect to the partners list if update succeeds
       router.push('/partenaires')
     } catch (err: any) {
       setErrorMessage(err.message || t('error_occurred'))
@@ -76,6 +85,7 @@ export default function UpdatePartenaire() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-4xl mx-auto">
+        {/* Header with title and return link */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -91,14 +101,17 @@ export default function UpdatePartenaire() {
           </div>
         </header>
 
+        {/* Form to update the partner */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 w-full">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Error message if any */}
             {errorMessage && (
               <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
                 {errorMessage}
               </div>
             )}
 
+            {/* Partner name input */}
             <input
               name="part_nom"
               placeholder={t('partner_name')}
@@ -108,6 +121,7 @@ export default function UpdatePartenaire() {
               required
             />
 
+            {/* Region select dropdown */}
             <select
               name="part_region"
               value={form.part_region}
@@ -121,6 +135,7 @@ export default function UpdatePartenaire() {
               ))}
             </select>
 
+            {/* Country select dropdown (depends on selected region) */}
             <select
               name="part_pays"
               value={form.part_pays}
@@ -135,6 +150,7 @@ export default function UpdatePartenaire() {
               ))}
             </select>
 
+            {/* Submit button */}
             <button
               type="submit"
               className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"

@@ -4,37 +4,40 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 
-import useAdminGuard from '@/lib/hooks/useAdminGuard'
-import { useApi } from '@/lib/hooks/useApi'
+import useAdminGuard from '@/lib/hooks/useAdminGuard' // Protects this page for admin only
+import { useApi } from '@/lib/hooks/useApi' // Custom hook for API calls with auth headers
 
 export default function LogsPage() {
   const { t } = useTranslation()
-  const checked = useAdminGuard()
+  const checked = useAdminGuard() // Check if the user is an admin
   const { callApi } = useApi()
 
-  const [logs, setLogs] = useState<any[]>([])
-  const [filteredLogs, setFilteredLogs] = useState<any[]>([])
+  const [logs, setLogs] = useState<any[]>([]) // All logs fetched from the backend
+  const [filteredLogs, setFilteredLogs] = useState<any[]>([]) // Logs after filtering
   const [error, setError] = useState<string | null>(null)
 
-  const [search, setSearch] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [search, setSearch] = useState('') // Search input
+  const [startDate, setStartDate] = useState('') // Start date for filtering
+  const [endDate, setEndDate] = useState('') // End date for filtering
 
+  // Fetch logs on initial mount
   const fetchLogs = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/logs`)
       if (!res.ok) throw new Error('Erreur lors du chargement des logs')
       const data = await res.json()
       setLogs(data)
-      setFilteredLogs(data)
+      setFilteredLogs(data) // Initialize both lists
     } catch (err: any) {
       setError(err.message)
     }
   }
 
+  // Filter logs based on search and date range
   const applyFilters = () => {
     let results = [...logs]
 
+    // Search term filter
     if (search.trim() !== '') {
       const term = search.toLowerCase()
       results = results.filter(
@@ -45,11 +48,13 @@ export default function LogsPage() {
       )
     }
 
+    // Start date filter
     if (startDate) {
       const start = new Date(startDate)
       results = results.filter(log => new Date(log.created_at) >= start)
     }
 
+    // End date filter
     if (endDate) {
       const end = new Date(endDate)
       results = results.filter(log => new Date(log.created_at) <= end)
@@ -62,21 +67,24 @@ export default function LogsPage() {
     fetchLogs()
   }, [])
 
+  // Re-apply filters when inputs change
   useEffect(() => {
     applyFilters()
   }, [search, startDate, endDate, logs])
 
-  if (!checked) return null
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page header */}
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('Logs')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4" />
           <p className="text-gray-600">Historique des actions importantes effectuées dans l’application</p>
         </header>
 
+        {/* Filter bar */}
         <div className="bg-white border rounded-2xl shadow-sm p-4 mb-6">
           <div className="flex flex-wrap gap-4 items-end">
             <input
@@ -109,8 +117,10 @@ export default function LogsPage() {
           </div>
         </div>
 
+        {/* Error message */}
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
+        {/* Logs table */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <div className="overflow-x-auto">
             <table className="w-full table-auto border border-gray-200 text-sm text-black">
@@ -141,7 +151,9 @@ export default function LogsPage() {
                       <td className="p-2">{log.message}</td>
                       <td className="p-2">
                         <pre className="whitespace-pre-wrap break-words max-w-xs">
-                          {typeof log.context === 'string' ? log.context : JSON.stringify(log.context, null, 2)}
+                          {typeof log.context === 'string'
+                            ? log.context
+                            : JSON.stringify(log.context, null, 2)}
                         </pre>
                       </td>
                     </tr>

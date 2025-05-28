@@ -21,7 +21,7 @@ type Projet = {
 
 export default function ActivitesPage() {
   const { t } = useTranslation();
-  useAuthGuard();
+  useAuthGuard(); // Ensure the user is authenticated
   const { callApi } = useApi();
   const router = useRouter();
   const importRef = useRef<HTMLInputElement>(null);
@@ -32,6 +32,7 @@ export default function ActivitesPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
   const [filters, setFilters] = useState({ search: '', partenaire: '', projet: '' });
 
+  // Fetch initial data: activities, partners, and projects
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -59,7 +60,7 @@ export default function ActivitesPage() {
     fetchData();
   }, []);
 
-
+  // Apply filters to activities when filters or data change
   useEffect(() => {
     let result = [...activites];
     if (filters.search) {
@@ -76,21 +77,25 @@ export default function ActivitesPage() {
     setFiltered(result);
   }, [filters, activites]);
 
+  // Delete an activity and update local state
   const deleteActivite = async (id: number) => {
     if (!confirm(t('confirm_delete_activity'))) return;
     await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, { method: 'DELETE' });
     setActivites(prev => prev.filter(a => a.act_id !== id));
   };
 
+  // Handle changes in search/filter form
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
+  // Reset all filters
   const resetFilters = () => {
     setFilters({ search: '', partenaire: '', projet: '' });
   };
 
+  // Export the filtered activities to a CSV file
   const exportToCSV = () => {
     const headers = [
       t('table_name'),
@@ -123,10 +128,12 @@ export default function ActivitesPage() {
     document.body.removeChild(link);
   };
 
+  // Trigger file input click for Excel import
   const triggerImport = () => {
     importRef.current?.click();
   };
 
+  // Handle Excel file import and send rows to API
   const handleImport = async (rows: Record<string, unknown>[]) => {
     let imported = 0;
     let ignored = 0;
@@ -175,13 +182,13 @@ export default function ActivitesPage() {
         }
 
         imported++;
-
       } catch (err) {
         failed++;
         continue;
       }
     }
 
+    // Show import summary
     alert(
       `${imported} ligne(s) importée(s) avec succès.\n` +
       `${ignored} ligne(s) ignorée(s).\n` +
@@ -194,25 +201,21 @@ export default function ActivitesPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page header */}
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('activities_management')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
           <p className="text-gray-600">{t('activities_description')}</p>
         </header>
 
+        {/* Action buttons */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => router.push('/activites/creer')}
-              className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium"
-            >
+            <button onClick={() => router.push('/activites/creer')} className="bg-[#9F0F3A] text-white px-5 py-2 rounded-lg hover:bg-[#800d30] transition font-medium">
               {t('create_activity')}
             </button>
 
-            <button
-              onClick={triggerImport}
-              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
-            >
+            <button onClick={triggerImport} className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition">
               {t('import_file')}
             </button>
 
@@ -224,10 +227,7 @@ export default function ActivitesPage() {
               onPreview={handleImport}
             />
 
-            <button
-              onClick={exportToCSV}
-              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
-            >
+            <button onClick={exportToCSV} className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition">
               {t('export_data')}
             </button>
 
@@ -239,15 +239,13 @@ export default function ActivitesPage() {
               {t('download_excel_template')}
             </a>
 
-            <button
-              onClick={() => router.push('/activites/dashboard')}
-              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
-            >
+            <button onClick={() => router.push('/activites/dashboard')} className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition">
               {t('view_dashboard')}
             </button>
           </div>
         </div>
 
+        {/* Filters */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_activities')}</h2>
           <ActiviteFilters
@@ -259,6 +257,7 @@ export default function ActivitesPage() {
           />
         </div>
 
+        {/* Table of activities */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('activities_list')}</h2>
           <ActiviteTable activites={filtered} onDelete={deleteActivite} />

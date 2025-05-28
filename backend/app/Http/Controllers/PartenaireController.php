@@ -8,20 +8,24 @@ use App\Helpers\Logger;
 
 class PartenaireController extends Controller
 {
+    // Return all partners
     public function index()
     {
         $partenaires = Partenaire::all();
         return response()->json($partenaires);
     }
 
+    // Create a new partner
     public function store(Request $request)
     {
+        // Validate input data
         $validated = $request->validate([
             'part_nom' => 'required|string|max:255',
             'part_pays' => 'required|string|max:255',
             'part_region' => 'required|string|max:255',
         ]);
 
+        // Check if a partner with the same name and country already exists (case-insensitive)
         $exists = Partenaire::whereRaw('LOWER(part_nom) = ?', [strtolower($validated['part_nom'])])
             ->whereRaw('LOWER(part_pays) = ?', [strtolower($validated['part_pays'])])
             ->exists();
@@ -30,8 +34,10 @@ class PartenaireController extends Controller
             return response()->json(['message' => 'Un partenaire avec ce nom et ce pays existe déjà.'], 409);
         }
 
+        // Create partner
         $partenaire = Partenaire::create($validated);
 
+        // Log creation
         Logger::log(
             'info',
             'Création partenaire',
@@ -43,6 +49,7 @@ class PartenaireController extends Controller
         return response()->json($partenaire, 201);
     }
 
+    // Show details of a specific partner
     public function show($id)
     {
         $partenaire = Partenaire::find($id);
@@ -54,6 +61,7 @@ class PartenaireController extends Controller
         return response()->json($partenaire);
     }
 
+    // Update an existing partner
     public function update(Request $request, $id)
     {
         $partenaire = Partenaire::find($id);
@@ -62,12 +70,14 @@ class PartenaireController extends Controller
             return response()->json(['message' => 'Partenaire non trouvé'], 404);
         }
 
+        // Validate input
         $validated = $request->validate([
             'part_nom' => 'required|string|max:255',
             'part_pays' => 'required|string|max:255',
             'part_region' => 'required|string|max:255',
         ]);
 
+        // Check if another partner with the same name and country exists
         $exists = Partenaire::whereRaw('LOWER(part_nom) = ?', [strtolower($validated['part_nom'])])
             ->whereRaw('LOWER(part_pays) = ?', [strtolower($validated['part_pays'])])
             ->where('part_id', '!=', $id)
@@ -77,8 +87,10 @@ class PartenaireController extends Controller
             return response()->json(['message' => 'Un partenaire avec ce nom et ce pays existe déjà.'], 409);
         }
 
+        // Update partner
         $partenaire->update($validated);
 
+        // Log update
         Logger::log(
             'info',
             'Mise à jour partenaire',
@@ -90,6 +102,7 @@ class PartenaireController extends Controller
         return response()->json($partenaire);
     }
 
+    // Delete a partner
     public function destroy($id)
     {
         $partenaire = Partenaire::find($id);
@@ -100,6 +113,7 @@ class PartenaireController extends Controller
 
         $partenaire->delete();
 
+        // Log deletion
         Logger::log(
             'info',
             'Suppression partenaire',
@@ -111,6 +125,7 @@ class PartenaireController extends Controller
         return response()->json(['message' => 'Partenaire supprimé']);
     }
 
+    // Get all users associated with a specific partner
     public function users($id)
     {
         $partenaire = Partenaire::with('users')->find($id);

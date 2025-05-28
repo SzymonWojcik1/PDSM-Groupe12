@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
+// Type definition for a beneficiary
 type Beneficiaire = {
   ben_id: string;
   ben_prenom: string;
@@ -14,9 +15,9 @@ type Beneficiaire = {
 };
 
 export default function AjouterBeneficiaire() {
-  useAuthGuard();
+  useAuthGuard(); // Protect the page to ensure the user is authenticated
   const { t } = useTranslation();
-  const { id } = useParams();
+  const { id } = useParams(); // Extract activity ID from URL
   const router = useRouter();
   const { callApi } = useApi();
 
@@ -27,6 +28,7 @@ export default function AjouterBeneficiaire() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch the activity's details
   const fetchActivity = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`);
@@ -37,6 +39,7 @@ export default function AjouterBeneficiaire() {
     }
   };
 
+  // Fetch all beneficiaries matching the search term
   const fetchAllBeneficiaires = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires?search=${encodeURIComponent(searchTerm)}`);
@@ -47,6 +50,7 @@ export default function AjouterBeneficiaire() {
     }
   };
 
+  // Fetch the list of beneficiaries already registered to the activity
   const fetchActivityBeneficiaires = async () => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}/beneficiaires`);
@@ -57,6 +61,7 @@ export default function AjouterBeneficiaire() {
     }
   };
 
+  // Add multiple selected beneficiaries to the activity
   const handleAddMany = async () => {
     setIsLoading(true);
     try {
@@ -65,38 +70,42 @@ export default function AjouterBeneficiaire() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ben_ids: selectedIds }),
       });
-      await fetchActivityBeneficiaires();
-      setSelectedIds([]);
+      await fetchActivityBeneficiaires(); // Refresh list after adding
+      setSelectedIds([]); // Reset selection
     } catch (err) {
       console.error('Erreur ajout multiple', err);
     }
     setIsLoading(false);
   };
 
+  // Remove a beneficiary from the activity
   const handleRemove = async (benId: string) => {
     setIsLoading(true);
     try {
       await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}/beneficiaires/${benId}`, {
         method: 'DELETE',
       });
-      await fetchActivityBeneficiaires();
+      await fetchActivityBeneficiaires(); // Refresh list after removal
     } catch (err) {
       console.error('Erreur suppression', err);
     }
     setIsLoading(false);
   };
 
+  // Load activity and its beneficiaries when component mounts
   useEffect(() => {
     fetchActivity();
     fetchActivityBeneficiaires();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Refresh list of beneficiaries whenever the search term changes
   useEffect(() => {
     fetchAllBeneficiaires();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  // Filter available beneficiaries (exclude already registered ones)
   const availableBeneficiaires = allBeneficiaires.filter(
     b => !activityBeneficiaires.some(ab => ab.ben_id === b.ben_id)
   );
@@ -104,6 +113,7 @@ export default function AjouterBeneficiaire() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page header */}
         <header className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('add_beneficiaries')}</h1>
@@ -120,7 +130,7 @@ export default function AjouterBeneficiaire() {
           </button>
         </header>
 
-        {/* Zone de recherche et bouton d’ajout */}
+        {/* Search bar and add button */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
@@ -139,7 +149,7 @@ export default function AjouterBeneficiaire() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Bénéficiaires disponibles */}
+          {/* List of available beneficiaries to add */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('available_beneficiaries')}</h2>
             {availableBeneficiaires.length === 0 ? (
@@ -168,7 +178,7 @@ export default function AjouterBeneficiaire() {
             )}
           </section>
 
-          {/* Bénéficiaires inscrits */}
+          {/* List of beneficiaries already registered */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('registered_beneficiaries')}</h2>
             {activityBeneficiaires.length === 0 ? (

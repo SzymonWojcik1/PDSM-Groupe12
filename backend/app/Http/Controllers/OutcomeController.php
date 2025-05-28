@@ -8,25 +8,33 @@ use App\Helpers\Logger;
 
 class OutcomeController extends Controller
 {
+    // Return all outcomes, optionally filtered by objective ID
     public function index(Request $request)
     {
         $query = Outcome::query();
+
+        // Filter by 'obj_id' if provided
         if ($request->has('obj_id')) {
             $query->where('obj_id', $request->input('obj_id'));
         }
+
         return $query->get();
     }
 
+    // Create a new outcome
     public function store(Request $request)
     {
+        // Validate input data
         $validated = $request->validate([
             'out_nom' => 'required|string',
             'out_code' => 'required|string|max:20',
             'obj_id'   => 'required|exists:objectif_general,obj_id',
         ]);
 
+        // Create outcome
         $outcome = Outcome::create($validated);
 
+        // Log creation
         Logger::log(
             'info',
             'Création outcome',
@@ -38,23 +46,28 @@ class OutcomeController extends Controller
         return response()->json($outcome, 201);
     }
 
+    // Show a specific outcome by ID
     public function show($id)
     {
         return Outcome::findOrFail($id);
     }
 
+    // Update an existing outcome
     public function update(Request $request, $id)
     {
         $outcome = Outcome::findOrFail($id);
 
+        // Validate fields (all optional)
         $validated = $request->validate([
             'out_nom'  => 'sometimes|string',
             'out_code' => 'sometimes|string|max:20',
             'obj_id'   => 'sometimes|exists:objectif_general,obj_id',
         ]);
 
+        // Update the outcome with validated data
         $outcome->update($validated);
 
+        // Log update
         Logger::log(
             'info',
             'Mise à jour outcome',
@@ -66,11 +79,13 @@ class OutcomeController extends Controller
         return response()->json($outcome);
     }
 
+    // Delete an outcome
     public function destroy($id)
     {
         $outcome = Outcome::findOrFail($id);
         $outcome->delete();
 
+        // Log deletion
         Logger::log(
             'info',
             'Suppression outcome',

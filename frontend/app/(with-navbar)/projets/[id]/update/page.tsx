@@ -18,9 +18,11 @@ export default function UpdateProjetPage() {
   const { id } = useParams()
   const router = useRouter()
 
+  // Protects route access using auth + 2FA
   useAuthGuard()
   const { callApi } = useApi()
 
+  // Project form state
   const [formData, setFormData] = useState({
     pro_nom: '',
     pro_dateDebut: '',
@@ -28,14 +30,17 @@ export default function UpdateProjetPage() {
     pro_part_id: '',
   })
 
+  // List of partners to populate the dropdown
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!id || Array.isArray(id)) return
 
+    // Fetch project data and list of partners
     const fetchData = async () => {
       try {
+        // Get project data
         const resProjet = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/projets/${id}`)
         const dataProjet = await resProjet.json()
         setFormData({
@@ -45,6 +50,7 @@ export default function UpdateProjetPage() {
           pro_part_id: dataProjet.pro_part_id,
         })
 
+        // Get partners list
         const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
         const dataPartenaires = await resPartenaires.json()
         setPartenaires(dataPartenaires)
@@ -56,11 +62,13 @@ export default function UpdateProjetPage() {
     fetchData()
   }, [id])
 
+  // Handles form input updates
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
     setErrorMessage('')
   }
 
+  // Handles form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -68,11 +76,13 @@ export default function UpdateProjetPage() {
     const fin = new Date(formData.pro_dateFin)
     const now = new Date()
 
+    // Validate date order
     if (debut > fin) {
       setErrorMessage(t('date_start_after_end'))
       return
     }
 
+    // Ensure dates are not in the past
     if (debut < now || fin < now) {
       setErrorMessage(t('date_in_past'))
       return
@@ -92,6 +102,7 @@ export default function UpdateProjetPage() {
         return
       }
 
+      // Redirect to project list on success
       router.push('/projets')
     } catch (err: any) {
       setErrorMessage(err.message || t('error_occurred'))
@@ -104,6 +115,7 @@ export default function UpdateProjetPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
+              {/* Title and description */}
               <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_project_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('update_project_description')}</p>
@@ -125,6 +137,7 @@ export default function UpdateProjetPage() {
               </div>
             )}
 
+            {/* Project name input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('project_name')}</label>
               <input
@@ -137,6 +150,7 @@ export default function UpdateProjetPage() {
               />
             </div>
 
+            {/* Date inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('start_date')}</label>
@@ -162,6 +176,7 @@ export default function UpdateProjetPage() {
               </div>
             </div>
 
+            {/* Partner selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('partner')}</label>
               <select
@@ -180,6 +195,7 @@ export default function UpdateProjetPage() {
               </select>
             </div>
 
+            {/* Submit button */}
             <div className="pt-4">
               <button
                 type="submit"

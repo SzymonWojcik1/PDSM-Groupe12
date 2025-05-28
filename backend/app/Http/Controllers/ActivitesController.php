@@ -13,13 +13,16 @@ use App\Helpers\Logger;
 
 class ActivitesController extends Controller
 {
+    // Return all activities with related partner and project data
     public function index()
     {
         return response()->json(Activites::with(['partenaire', 'projet'])->get());
     }
 
+    // Store a new activity
     public function store(Request $request)
     {
+        // Validate input fields
         $validated = $request->validate([
             'act_nom' => 'required|string|max:255',
             'act_dateDebut' => 'required|date',
@@ -28,6 +31,7 @@ class ActivitesController extends Controller
             'act_pro_id' => 'required|exists:projet,pro_id',
         ]);
 
+        // Check if the same activity already exists for the same project and dates
         $exists = Activites::whereRaw('LOWER(act_nom) = ?', [strtolower($validated['act_nom'])])
             ->where('act_dateDebut', $validated['act_dateDebut'])
             ->where('act_dateFin', $validated['act_dateFin'])
@@ -42,16 +46,20 @@ class ActivitesController extends Controller
         $debut = Carbon::parse($validated['act_dateDebut']);
         $fin = Carbon::parse($validated['act_dateFin']);
 
+        // Prevent creating activity with past dates
         if ($debut->lt($now) || $fin->lt($now)) {
             return response()->json(['message' => 'Les dates ne peuvent pas être dans le passé.'], 400);
         }
 
+        // Prevent start date being after end date
         if ($debut->gt($fin)) {
             return response()->json(['message' => 'La date de début ne peut pas être après la date de fin.'], 400);
         }
 
+        // Create the activity
         $activites = Activites::create($validated);
 
+        // Log activity creation
         Logger::log(
             'info',
             'Création activité',
@@ -63,8 +71,10 @@ class ActivitesController extends Controller
         return response()->json($activites, 201);
     }
 
+    // Show a specific activity
     public function show($id)
     {
+        // Retrieve activity with its relations
         $activites = Activites::with(['partenaire', 'projet'])->find($id);
 
         if (!$activites) {
@@ -74,6 +84,7 @@ class ActivitesController extends Controller
         return response()->json($activites);
     }
 
+    // Update an existing activity
     public function update(Request $request, $id)
     {
         $activites = Activites::find($id);
@@ -82,6 +93,7 @@ class ActivitesController extends Controller
             return response()->json(['message' => 'Activité non trouvée'], 404);
         }
 
+        // Validate new data
         $validated = $request->validate([
             'act_nom' => 'required|string|max:255',
             'act_dateDebut' => 'required|date',
@@ -90,7 +102,7 @@ class ActivitesController extends Controller
             'act_pro_id' => 'required|exists:projet,pro_id',
         ]);
 
-
+        // Check for duplicate activity (excluding the current one)
         $exists = Activites::whereRaw('LOWER(act_nom) = ?', [strtolower($validated['act_nom'])])
             ->where('act_dateDebut', $validated['act_dateDebut'])
             ->where('act_dateFin', $validated['act_dateFin'])
@@ -105,6 +117,7 @@ class ActivitesController extends Controller
         $now = Carbon::now();
         $ancienDebut = Carbon::parse($activites->act_dateDebut);
 
+        // Prevent modification if the activity has already started
         if ($now->gte($ancienDebut)) {
             return response()->json(['message' => 'Impossible de modifier une activité déjà commencée ou terminée.'], 403);
         }
@@ -112,16 +125,20 @@ class ActivitesController extends Controller
         $nouveauDebut = Carbon::parse($validated['act_dateDebut']);
         $nouveauFin = Carbon::parse($validated['act_dateFin']);
 
+        // Prevent setting new dates in the past
         if ($nouveauDebut->lt($now) || $nouveauFin->lt($now)) {
             return response()->json(['message' => 'Les nouvelles dates ne peuvent pas être dans le passé.'], 400);
         }
 
+        // Prevent start date after end date
         if ($nouveauDebut->gt($nouveauFin)) {
             return response()->json(['message' => 'La date de début ne peut pas être après la date de fin.'], 400);
         }
 
+        // Update the activity
         $activites->update($validated);
 
+        // Log the update (label may be reused from creation)
         Logger::log(
             'info',
             'Création activité',
@@ -133,6 +150,7 @@ class ActivitesController extends Controller
         return response()->json($activites);
     }
 
+    // Delete an activity
     public function destroy($id)
     {
         $activites = Activites::find($id);
@@ -143,6 +161,7 @@ class ActivitesController extends Controller
 
         $activites->delete();
 
+        // Log activity deletion
         Logger::log(
             'info',
             'Supression activité',
@@ -153,9 +172,4 @@ class ActivitesController extends Controller
 
         return response()->json(['message' => 'Activité supprimée']);
     }
-
-    
-
-
-    
 }

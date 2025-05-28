@@ -8,19 +8,23 @@ use App\Helpers\Logger;
 
 class CadreLogiqueController extends Controller
 {
+    // Return all logic frameworks
     public function index()
     {
         return CadreLogique::all();
     }
 
+    // Create a new logic framework
     public function store(Request $request)
     {
+        // Validate input data
         $validated = $request->validate([
             'cad_nom' => 'required|string|max:255',
             'cad_dateDebut' => 'required|date',
             'cad_dateFin' => 'required|date|after_or_equal:cad_dateDebut',
         ]);
 
+        // Check if another logic framework exists during the same period
         $exists = CadreLogique::where(function ($query) use ($validated) {
             $query->whereBetween('cad_dateDebut', [$validated['cad_dateDebut'], $validated['cad_dateFin']])
                 ->orWhereBetween('cad_dateFin', [$validated['cad_dateDebut'], $validated['cad_dateFin']])
@@ -36,8 +40,10 @@ class CadreLogiqueController extends Controller
             ], 409);
         }
 
+        // Create the logic framework
         $cadre = CadreLogique::create($validated);
 
+        // Log creation
         Logger::log(
             'info',
             'Création cadre logique',
@@ -49,25 +55,29 @@ class CadreLogiqueController extends Controller
         return response()->json($cadre, 201);
     }
 
+    // Get one logic framework by ID
     public function show($id)
     {
-
         return CadreLogique::findOrFail($id);
     }
 
+    // Update a logic framework
     public function update(Request $request, $id)
     {
         $cadre = CadreLogique::findOrFail($id);
 
+        // Validate fields (optional)
         $validated = $request->validate([
             'cad_nom' => 'sometimes|string|max:255',
             'cad_dateDebut' => 'sometimes|date',
             'cad_dateFin' => 'sometimes|date|after_or_equal:cad_dateDebut',
         ]);
 
+        // Use existing dates if not provided in the request
         $debut = $validated['cad_dateDebut'] ?? $cadre->cad_dateDebut;
         $fin = $validated['cad_dateFin'] ?? $cadre->cad_dateFin;
 
+        // Check for overlapping date range with other frameworks
         $exists = CadreLogique::where('cad_id', '!=', $id)
             ->where(function ($query) use ($debut, $fin) {
                 $query->whereBetween('cad_dateDebut', [$debut, $fin])
@@ -84,12 +94,14 @@ class CadreLogiqueController extends Controller
             ], 409);
         }
 
+        // Update the framework
         $cadre->update([
             'cad_nom' => $validated['cad_nom'] ?? $cadre->cad_nom,
             'cad_dateDebut' => $validated['cad_dateDebut'] ?? $cadre->cad_dateDebut,
             'cad_dateFin' => $validated['cad_dateFin'] ?? $cadre->cad_dateFin,
         ]);
 
+        // Log the update
         Logger::log(
             'info',
             'Mise à jour cadre logique',
@@ -101,11 +113,13 @@ class CadreLogiqueController extends Controller
         return response()->json($cadre);
     }
 
+    // Delete a logic framework
     public function destroy($id)
     {
         $cadre = CadreLogique::findOrFail($id);
         $cadre->delete();
 
+        // Log deletion
         Logger::log(
             'info',
             'Suppression cadre logique',
@@ -117,13 +131,14 @@ class CadreLogiqueController extends Controller
         return response()->json(['message' => 'Cadre logique supprimé']);
     }
 
+    // Return structured data with calculated values
     public function structure($id)
     {
         $cadre = CadreLogique::with([
             'objectifsGeneraux.outcomes.outputs.indicateurs.activites'
         ])->findOrFail($id);
 
-        // Calcul valeurReelle
+        // Calculate "valeurReelle" for each indicator based on unique beneficiaries
         foreach ($cadre->objectifsGeneraux as $objectif) {
             foreach ($objectif->outcomes as $outcome) {
                 foreach ($outcome->outputs as $output) {
