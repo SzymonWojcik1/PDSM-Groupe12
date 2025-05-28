@@ -45,11 +45,13 @@ export default function HomePage() {
             href="/partenaires"
             description={t('card_partners_desc')}
           />
-          <Card
-            title={t('card_logframe_title')}
-            href="/cadre-logique"
-            description={t('card_logframe_desc')}
-          />
+          {role === 'siege' && (
+            <Card
+              title={t('card_logframe_title')}
+              href="/cadre-logique"
+              description={t('card_logframe_desc')}
+            />
+          )}
           <Card
             title={t('card_evaluations_title', 'Évaluations')}
             href="/evaluation"

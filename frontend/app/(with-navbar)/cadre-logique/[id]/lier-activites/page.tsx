@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
 import { useApi } from '@/lib/hooks/useApi'
 
 export type Activite = {
@@ -29,6 +30,15 @@ export default function LierActivitesPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { callApi } = useApi()
+
+  const checked = useAdminGuard()
+    
+      if (checked === null) return null
+    
+      if (checked === false) {
+        router.push('/home') 
+        return null
+      }
 
   const [activites, setActivites] = useState<Activite[]>([])
   const [linkedActivites, setLinkedActivites] = useState<ActiviteWithCount[]>([])

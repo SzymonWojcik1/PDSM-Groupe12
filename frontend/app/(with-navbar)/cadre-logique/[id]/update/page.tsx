@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Pencil, Trash } from 'lucide-react';
 import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import useAdminGuard from '@/lib/hooks/useAdminGuard';
 
 type Indicateur = {
   ind_id: number;
@@ -104,6 +106,7 @@ function ModalIndicateurInput({
 export default function UpdateCadreLogiquePage() {
   useAuthGuard();
   const { callApi } = useApi();
+  const router = useRouter();
 
   const { id } = useParams();
   const [cadNom, setCadNom] = useState('');
@@ -112,6 +115,15 @@ export default function UpdateCadreLogiquePage() {
   const [cadDateFin, setCadDateFin] = useState('');
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [modalContext, setModalContext] = useState<ModalContext>(null);
+
+  const checked = useAdminGuard()
+  
+    if (checked === null) return null
+  
+    if (checked === false) {
+      router.push('/home') 
+      return null
+    }
 
   // Dates auto
   useEffect(() => {

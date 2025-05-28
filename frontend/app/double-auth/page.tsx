@@ -56,6 +56,7 @@ export default function VerifyPage() {
       // Stocke le token définitivement après succès de la 2FA
       localStorage.setItem('token', token)
       localStorage.setItem('2fa_validated', 'true')
+      localStorage.setItem('role', data.user.role)
       sessionStorage.removeItem('temp_token')
 
       router.push('/home')

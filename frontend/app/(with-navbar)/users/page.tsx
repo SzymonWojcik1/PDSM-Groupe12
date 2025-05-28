@@ -34,6 +34,14 @@ export default function UsersPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const checked = useAdminGuard()
+
+  if (checked === null) return null
+
+  if (checked === false) {
+    router.push('/home') 
+    return null
+  }
+
   const { callApi } = useApi()
 
   const [users, setUsers] = useState<User[]>([])
@@ -135,8 +143,6 @@ export default function UsersPage() {
 
     fetchMetaData()
   }, [])
-
-  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

@@ -42,7 +42,10 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'two_factor_required' => true
+            'two_factor_required' => true,
+            'user' => [
+                'role' => $user->role,
+            ]
         ]);
     }
 
@@ -67,7 +70,12 @@ class AuthController extends Controller
         $user->two_factor_expires_at = null;
         $user->save();
 
-        return response()->json(['message' => 'Double authentification réussie']);
+        return response()->json([
+            'message' => 'Double authentification réussie',
+            'user' => [
+                'role' => $user->role,
+            ]
+        ]);
     }
 
     public function logout(Request $request)

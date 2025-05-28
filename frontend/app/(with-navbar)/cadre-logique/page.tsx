@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useApi } from '@/lib/hooks/useApi'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
 import '@/lib/i18n'
 
 type Cadre = {
@@ -21,6 +22,15 @@ export default function CadreLogiquePage() {
   const { callApi } = useApi()
   const [cadres, setCadres] = useState<Cadre[]>([])
   const router = useRouter()
+
+  const checked = useAdminGuard()
+  
+    if (checked === null) return null
+  
+    if (checked === false) {
+      router.push('/home') 
+      return null
+    }
 
   useEffect(() => {
     const fetchCadres = async () => {

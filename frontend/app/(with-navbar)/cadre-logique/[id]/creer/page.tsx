@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import useAdminGuard from '@/lib/hooks/useAdminGuard';
 
 type Indicateur = {
   ind_id: number;
@@ -92,6 +93,16 @@ export default function CadreLogiqueDetailPage() {
   useAuthGuard();
   const { id } = useParams();
   const { callApi } = useApi();
+  const router = useRouter();
+
+  const checked = useAdminGuard()
+    
+  if (checked === null) return null
+
+  if (checked === false) {
+    router.push('/home') 
+    return null
+  }
 
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [nouveauObjectif, setNouveauObjectif] = useState('');

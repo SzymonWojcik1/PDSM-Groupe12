@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 import { useApi } from '@/lib/hooks/useApi'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
+import useAdminGuard from '@/lib/hooks/useAdminGuard'
 
 export default function DashboardCadreLogique() {
   useAuthGuard()
@@ -13,6 +14,15 @@ export default function DashboardCadreLogique() {
   const router = useRouter()
   const { t } = useTranslation()
   const { callApi } = useApi()
+
+  const checked = useAdminGuard()
+    
+      if (checked === null) return null
+    
+      if (checked === false) {
+        router.push('/home') 
+        return null
+      }
 
   const [objectifs, setObjectifs] = useState<any[]>([])
   const [stats, setStats] = useState({

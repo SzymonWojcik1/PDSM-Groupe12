@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import useAdminGuard from '@/lib/hooks/useAdminGuard';
 import '@/lib/i18n';
 
 export default function CreateCadreLogique() {
@@ -13,6 +14,15 @@ export default function CreateCadreLogique() {
   const { t } = useTranslation();
   const router = useRouter();
   const { callApi } = useApi();
+
+  const checked = useAdminGuard()
+  
+    if (checked === null) return null
+  
+    if (checked === false) {
+      router.push('/home') 
+      return null
+    }
 
   const [cadNom, setCadNom] = useState('');
   const [cadDateDebut, setCadDateDebut] = useState('');

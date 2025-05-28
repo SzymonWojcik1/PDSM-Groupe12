@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -37,9 +37,16 @@ const navItems = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(true)
+  const [role, setRole] = useState<string | null>(null)
+
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem('role')
+    setRole(storedRole)
+  }, [])
 
   const handleLogout = async () => {
     const token = localStorage.getItem('token')
@@ -61,6 +68,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     localStorage.removeItem('token')
     localStorage.removeItem('2fa_validated')
+    localStorage.removeItem('role')
     router.push('/login')
   }
 
@@ -82,28 +90,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </button>
 
             <nav className="space-y-2 mt-10">
-              {navItems
-                .filter(({ href }) => {
-                  if (href === '/users') {
-                    const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null
-                    return role === 'siege'
-                  }
-                  return true
-                })
-                .map(({ key, href, icon: Icon }) => {
-                  const isActive = pathname.startsWith(href)
-                  return (
-                    <Link key={href} href={href}>
-                      <div
-                        className={`flex items-center gap-3 px-2 py-2 rounded cursor-pointer transition 
-                          ${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-200 text-gray-800'}`}
-                      >
-                        <Icon size={20} />
-                        {open && <span>{t(key)}</span>}
-                      </div>
-                    </Link>
-                  )
-                })}
+              {navItems.map(({ key, href, icon: Icon }) => {
+                const isAdminOnly = ['/users', '/cadre-logique'].includes(href)
+
+                if (isAdminOnly && role !== 'siege') return null
+
+                const isActive = pathname.startsWith(href)
+                return (
+                  <Link key={href} href={href}>
+                    <div
+                      className={`flex items-center gap-3 px-2 py-2 rounded cursor-pointer transition 
+                        ${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-200 text-gray-800'}`}
+                    >
+                      <Icon size={20} />
+                      {open && <span>{t(key)}</span>}
+                    </div>
+                  </Link>
+                )
+              })}
             </nav>
           </div>
 
@@ -127,6 +131,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <LogOut size={20} />
               {open && <span>{t('logout')}</span>}
             </button>
+
+            
           </div>
         </aside>
 

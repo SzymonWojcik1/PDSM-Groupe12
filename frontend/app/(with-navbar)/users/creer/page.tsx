@@ -17,6 +17,14 @@ export default function CreateUserPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const checked = useAdminGuard()
+  
+  if (checked === null) return null
+
+  if (checked === false) {
+    router.push('/home') 
+    return null
+  }
+  
   const { callApi } = useApi()
 
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
@@ -29,7 +37,6 @@ export default function CreateUserPage() {
   })
 
   useEffect(() => {
-    if (!checked) return
 
     const fetchMetaData = async () => {
       try {

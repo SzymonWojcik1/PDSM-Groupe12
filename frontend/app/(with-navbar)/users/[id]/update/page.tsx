@@ -18,6 +18,14 @@ export default function EditUserPage() {
   const { id } = useParams()
   const router = useRouter()
   const checked = useAdminGuard()
+  
+    if (checked === null) return null
+  
+    if (checked === false) {
+      router.push('/home') 
+      return null
+    }
+    
   const { callApi } = useApi()
 
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
