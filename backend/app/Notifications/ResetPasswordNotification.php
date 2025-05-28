@@ -43,7 +43,7 @@ class ResetPasswordNotification extends Notification
             ->line('Bonjour ' . ($notifiable->first_name ?? '') . ',')
             ->line('Vous avez demandé la réinitialisation de votre mot de passe pour votre compte MerlApp.')
             ->action('Réinitialiser mon mot de passe', $url)
-            ->line('Si vous n'avez pas fait cette demande, vous pouvez ignorer ce message.')
+            ->line('Si vous n\'avez pas fait cette demande, vous pouvez ignorer ce message.')
             ->line('Merci, à bientôt.')
             ->line('-----------------------------')
             // English
