@@ -13,12 +13,21 @@ type ImportExcelProps = {
   onPreview?: (rows: Record<string, unknown>[]) => void; // Callback to send extracted rows
 };
 
-// ForwardRef component so we can trigger file input externally
+/**
+ * ImportExcel component
+ * - Allows importing and validating Excel files (.xlsx, .xls).
+ * - Validates required fields, name fields, and "other" fields.
+ * - Converts date fields to 'yyyy-mm-dd' format.
+ * - Exports errors as a CSV if any are found.
+ * - Calls onPreview with valid rows.
+ */
 const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
   ({ fromCol = 0, toCol = 6, dateFields = [], onPreview }, ref) => {
     const { t } = useTranslation();
 
-    // Called when a file is selected
+    /**
+     * Handles reading and processing the selected Excel file.
+     */
     const handleExcelFile = (file: File) => {
       const reader = new FileReader();
 
@@ -32,32 +41,38 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
         const worksheet = workbook.Sheets[sheetName];
         const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
+        // Skip if not enough rows
         if (rawRows.length <= 3) {
           console.warn(t('not_enough_rows'));
           return;
         }
 
+        // Extract header and data rows
         const headerRow = (rawRows[0] as unknown[]).slice(fromCol, toCol) as string[];
         const dataRows = rawRows.slice(3);
 
         const formatted: Record<string, unknown>[] = [];
         const errors: string[][] = [];
 
+        // Process each data row
         for (const row of dataRows) {
           try {
             const rowArray = row as unknown[];
             const sliced = rowArray.slice(fromCol, toCol);
 
+            // Skip empty rows
             const isEmpty = sliced.every(
               (cell) => cell === undefined || cell === null || cell === ''
             );
             if (isEmpty) continue;
 
+            // Check for missing columns
             if (rowArray.length < toCol) {
               errors.push([...sliced.map(val => String(val)), 'Row has fewer columns than expected']);
               continue;
             }
 
+            // Validate required fields
             const requiredIndexes = [0, 1, 2, 3, 4, 5, 7, 8, 12];
             const hasEmptyRequired = requiredIndexes.some(
               (i) => sliced[i] === undefined || sliced[i] === null || sliced[i] === ''
@@ -68,6 +83,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
               continue;
             }
 
+            // Validate name fields
             const col1 = sliced[0];
             const col2 = sliced[1];
             const col12 = sliced[12];
@@ -83,6 +99,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
               continue;
             }
 
+            // Validate "other" fields for type, sexe, genre
             const otherConditions: [number, number][] = [
               [5, 6],
               [8, 9],
@@ -115,18 +132,21 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
               continue;
             }
 
+            // Build row object with formatted values
             const rowObj: Record<string, unknown> = {};
 
             for (let i = fromCol; i < toCol; i++) {
               const key = headerRow[i - fromCol];
               let value = rowArray[i];
 
+              // Lowercase for first and last name
               if (i - fromCol === 0 || i - fromCol === 1) {
                 if (typeof value === 'string') {
                   value = value.toLowerCase();
                 }
               }
 
+              // Format date fields
               if (dateFields.includes(key)) {
                 if (typeof value === 'number') {
                   const jsDate = XLSX.SSF.parse_date_code(value);
@@ -153,6 +173,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
           }
         }
 
+        // If there are errors, export them as a CSV file
         if (errors.length > 0) {
           const csvHeader = [...headerRow, 'error'].join(',') + '\n';
           const csvRows = errors.map(row => row.map(val => `"${val ?? ''}"`).join(',')).join('\n');
@@ -161,6 +182,7 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
           saveAs(blob, 'import_errors.csv');
         }
 
+        // If there are valid rows, call onPreview and show alerts
         if (formatted.length > 0) {
           console.log(t('imported_data') + ':', formatted);
           onPreview?.(formatted);
@@ -178,6 +200,9 @@ const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>(
       reader.readAsArrayBuffer(file);
     };
 
+    /**
+     * Handles file input change event.
+     */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleExcelFile(file);

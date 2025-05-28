@@ -17,6 +17,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_creates_a_valid_beneficiaire()
     {
+        // Create a valid beneficiary and test creation endpoint
         $data = Beneficiaire::factory()->make([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -26,7 +27,7 @@ class BeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(201)
                 ->assertJsonFragment(['ben_nom' => $data['ben_nom']]);
-        
+
         $this->assertDatabaseHas('beneficiaires', [
             'ben_nom' => $data['ben_nom'],
         ]);
@@ -35,6 +36,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_missing_required_fields()
     {
+        // Test validation: missing required fields
         $data = Beneficiaire::factory()->make([
             'ben_nom' => null,
             'ben_type' => 'child',
@@ -50,6 +52,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_type_autre_without_type_autre()
     {
+        // Test validation: type "other" requires ben_type_autre
         $response = $this->postJson('/api/beneficiaires', [
             'ben_prenom' => 'Test',
             'ben_nom' => 'User',
@@ -73,6 +76,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_sexe_autre_without_sexe_autre()
     {
+        // Test validation: sexe "other" requires ben_sexe_autre
         $response = $this->postJson('/api/beneficiaires', [
             'ben_prenom' => 'Test',
             'ben_nom' => 'User',
@@ -96,6 +100,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_genre_autre_without_genre_autre()
     {
+        // Test validation: genre "other" requires ben_genre_autre
         $response = $this->postJson('/api/beneficiaires', [
             'ben_prenom' => 'Test',
             'ben_nom' => 'User',
@@ -119,6 +124,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_lists_all_beneficiaires()
     {
+        // Test listing all beneficiaries
         Beneficiaire::factory()->count(3)->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -133,6 +139,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_filters_beneficiaires_by_fields()
     {
+        // Test filtering beneficiaries by zone and sex
         Beneficiaire::factory()->create([
             'ben_zone' => Zone::URBAINE->value,
             'ben_sexe' => Sexe::FEMME->value,
@@ -155,6 +162,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_shows_a_beneficiaire()
     {
+        // Test showing a single beneficiary
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -169,6 +177,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_when_beneficiaire_not_found()
     {
+        // Test 404 response when beneficiary is not found
         $response = $this->getJson('/api/beneficiaires/999');
 
         $response->assertStatus(404);
@@ -177,6 +186,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_updates_a_beneficiaire()
     {
+        // Test updating a beneficiary
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -188,7 +198,7 @@ class BeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonFragment(['ben_nom' => 'Modifié']);
-        
+
         $this->assertDatabaseHas('beneficiaires', [
             'ben_nom' => 'Modifié',
         ]);
@@ -197,6 +207,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_update_if_type_autre_missing_detail()
     {
+        // Test update validation: type "other" requires ben_type_autre
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -214,6 +225,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_returns_200_on_update_with_no_changes()
     {
+        // Test update endpoint with no changes
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -228,6 +240,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_updates_only_one_field()
     {
+        // Test updating only one field of a beneficiary
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -244,6 +257,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_deletes_a_beneficiaire()
     {
+        // Test deleting a beneficiary
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
@@ -262,6 +276,7 @@ class BeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_on_second_delete()
     {
+        // Test deleting a beneficiary twice returns 404 on second attempt
         $b = Beneficiaire::factory()->create([
             'ben_type' => 'child',
             'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),

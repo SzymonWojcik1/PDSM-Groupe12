@@ -9,6 +9,7 @@ import EnumSelect from '@/components/enumsSelect';
 import { validateAgeByType } from '@/lib/validateAgeByType';
 import { useApi } from '@/lib/hooks/useApi';
 
+// Type for the form data representing a beneficiary
 export type BeneficiaireFormData = {
   ben_prenom: string;
   ben_nom: string;
@@ -25,17 +26,27 @@ export type BeneficiaireFormData = {
   ben_ethnicite: string;
 };
 
+// Type for enums used in dropdowns
 type EnumMap = Record<string, { value: string; label: string }[]>;
 
+// Props for the BeneficiaireForm component
 type Props = {
   initialData?: BeneficiaireFormData;
   onSubmit: (data: BeneficiaireFormData) => Promise<void>;
   submitLabel?: string;
 };
 
+/**
+ * BeneficiaireForm component
+ * - Handles creation and editing of a beneficiary.
+ * - Manages form state, validation, and submission.
+ * - Uses enums and region/country selectors for dropdowns.
+ */
 export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }: Props) {
   const { t } = useTranslation();
   const { callApi } = useApi();
+
+  // State for the form fields
   const [form, setForm] = useState<BeneficiaireFormData>(
     initialData || {
       ben_prenom: '', ben_nom: '', ben_date_naissance: '', ben_region: '', ben_pays: '',
@@ -43,10 +54,14 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
       ben_genre: '', ben_genre_autre: '', ben_ethnicite: ''
     }
   );
+  // State for enums (type, zone, sexe, genre)
   const [enums, setEnums] = useState<EnumMap>({});
+  // State to control error display
   const [showErrors, setShowErrors] = useState(false);
+  // State to show help for ethnicity field
   const [ethniciteFocused, setEthniciteFocused] = useState(false);
 
+  // Fetch enums from API on mount
   useEffect(() => {
     const fetchEnums = async () => {
       try {
@@ -62,6 +77,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
     fetchEnums();
   }, [callApi]);
 
+  // Handle input changes for all fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const lowercaseFields = ['ben_nom', 'ben_prenom', 'ben_ethnicite'];
@@ -69,6 +85,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
+  // Validate the form fields
   const isFormValid = () => {
     const requiredFields = [
       'ben_prenom', 'ben_nom', 'ben_date_naissance', 'ben_region', 'ben_pays',
@@ -92,6 +109,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
     return true;
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowErrors(true);
@@ -103,6 +121,9 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
     await onSubmit(form);
   };
 
+  /**
+   * Render a single input field with validation and error display.
+   */
   const renderField = (
     label: string,
     name: keyof BeneficiaireFormData,
@@ -144,9 +165,12 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* First name field */}
       {renderField(t('firstname'), 'ben_prenom')}
+      {/* Last name field */}
       {renderField(t('lastname'), 'ben_nom')}
 
+      {/* Date of birth field using DatePicker */}
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-left">{t('birthdate')}</label>
         <DatePicker
@@ -171,6 +195,7 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
         />
       </div>
 
+      {/* Region and country selector */}
       <RegionCountrySelector
         onRegionChange={(r) => setForm((prev) => ({ ...prev, ben_region: r }))}
         onCountryChange={(c) => setForm((prev) => ({ ...prev, ben_pays: c }))}
@@ -180,21 +205,27 @@ export default function BeneficiaireForm({ initialData, onSubmit, submitLabel }:
         initialCountry={form.ben_pays}
       />
 
+      {/* Type dropdown and "other" field */}
       <EnumSelect name="ben_type" label={t('type')} options={enums.type || []} value={form.ben_type} onChange={handleChange} error={!form.ben_type && showErrors} errorMessage={t('select_type')} />
       {form.ben_type === 'other' && renderField(t('other_type'), 'ben_type_autre', 'text', undefined, true)}
 
+      {/* Zone dropdown */}
       <EnumSelect name="ben_zone" label={t('zone')} options={enums.zone || []} value={form.ben_zone} onChange={handleChange} error={!form.ben_zone && showErrors} errorMessage={t('select_zone')} />
+      {/* Sex dropdown and "other" field */}
       <EnumSelect name="ben_sexe" label={t('sex')} options={enums.sexe || []} value={form.ben_sexe} onChange={handleChange} error={!form.ben_sexe && showErrors} errorMessage={t('select_sex')} />
       {form.ben_sexe === 'other' && renderField(t('other_sex'), 'ben_sexe_autre', 'text', undefined, true)}
 
+      {/* Gender dropdown and "other" field */}
       <EnumSelect name="ben_genre" label={t('gender')} options={enums.genre || []} value={form.ben_genre} onChange={handleChange} />
       {form.ben_genre === 'other' && renderField(t('other_gender'), 'ben_genre_autre')}
 
+      {/* Ethnicity field with help text on focus */}
       <div className="flex flex-col gap-1 relative">
         {renderField(t('ethnicity'), 'ben_ethnicite')}
         {ethniciteFocused && <p className="text-xs text-gray-600 mt-1">{t('ethnicity_help')}</p>}
       </div>
 
+      {/* Submit button */}
       <button
         type="submit"
         className={`w-full font-semibold py-2 rounded

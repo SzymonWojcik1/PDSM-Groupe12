@@ -1,5 +1,8 @@
 <?php
 
+// This configuration file defines the mapping of world regions to their respective countries.
+// Used for region/country dropdowns and validation throughout the application.
+
 return [
     'Africa' => [
         "Algeria",

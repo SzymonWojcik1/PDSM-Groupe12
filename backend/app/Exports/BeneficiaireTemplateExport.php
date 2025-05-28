@@ -15,15 +15,19 @@ use PhpOffice\PhpSpreadsheet\NamedRange;
 
 class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEvents
 {
+    /**
+     * Returns a sample row of beneficiary data for the Excel template.
+     */
     public function collection()
     {
-
         return collect([
             ['Jean', 'Dupont', '1990-05-14', 'Europe', 'France', 'adult', null, 'urban', 'male', null, 'cis_hetero', null, 'Français']
         ]);
-
     }
 
+    /**
+     * Returns the headings used in the Excel export file.
+     */
     public function headings(): array
     {
         return [
@@ -43,6 +47,9 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
         ];
     }
 
+    /**
+     * Registers the AfterSheet event to set data validation, named ranges, and helper rows.
+     */
     public function registerEvents(): array
     {
         return [
@@ -50,6 +57,7 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                 $sheet = $event->sheet->getDelegate();
                 $spreadsheet = $sheet->getParent();
 
+                // Retrieve option lists from config and enums
                 $regions = array_keys(config('regions'));
                 $pays = collect(config('regions'))->flatten()->unique()->sort()->values()->toArray();
                 $genres = array_map(fn($case) => $case->value, Genre::cases());
@@ -57,9 +65,11 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                 $types = array_map(fn($case) => $case->value, Type::cases());
                 $zones = array_map(fn($case) => $case->value, Zone::cases());
 
+                // Create hidden sheet for dropdown lists
                 $dataSheet = $spreadsheet->createSheet();
                 $dataSheet->setTitle('Données');
 
+                // Populate countries and regions into the data sheet
                 foreach ($pays as $i => $country) {
                     $dataSheet->setCellValue("A" . ($i + 1), $country);
                 }
@@ -67,13 +77,15 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                     $dataSheet->setCellValue("B" . ($i + 1), $region);
                 }
 
+                // Hide the data sheet from users
                 $dataSheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_HIDDEN);
-
                 $spreadsheet->setActiveSheetIndex(0);
 
+                // Define named ranges for dropdowns
                 $spreadsheet->addNamedRange(new NamedRange('ListePays', $dataSheet, "'Données'!\$A\$1:\$A\$" . count($pays)));
                 $spreadsheet->addNamedRange(new NamedRange('ListeRegions', $dataSheet, "'Données'!\$B\$1:\$B\$" . count($regions)));
 
+                // Insert an example row under the header
                 $sheet->insertNewRowBefore(2, 1);
                 $sheet->fromArray([
                     [
@@ -84,10 +96,12 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                     ]
                 ], null, 'A2');
 
-
+                // Apply data validation and formatting from row 3 to 500
                 for ($row = 3; $row <= 500; $row++) {
+                    // Format date cell
                     $sheet->getStyle("C$row")->getNumberFormat()->setFormatCode('yyyy-mm-dd');
 
+                    // Apply dropdown validation for region and country
                     foreach (['D' => '=ListeRegions', 'E' => '=ListePays'] as $col => $formula) {
                         $validation = new DataValidation();
                         $validation->setType(DataValidation::TYPE_LIST);
@@ -100,6 +114,7 @@ class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEv
                         $sheet->getCell("$col$row")->setDataValidation(clone $validation);
                     }
 
+                    // Inline value lists for dropdowns (non-named range)
                     $inlineValidations = [
                         'F' => $types,
                         'H' => $zones,

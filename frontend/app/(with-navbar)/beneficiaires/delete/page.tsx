@@ -2,26 +2,31 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import BeneficiaireFilters from '@/components/beneficiaireFilters';
 import BeneficiaireTable, { Beneficiaire, EnumMap } from '@/components/beneficiaireTable';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
+// Page component for deleting beneficiaries (single or multiple)
 export default function SupprimerBeneficiairesPage() {
+  // Protect the page with authentication guard
   useAuthGuard();
   const { t } = useTranslation();
   const { callApi } = useApi();
-  const router = useRouter();
 
+  // State for beneficiaries list
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
+  // State for selected beneficiary IDs
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // State for enums (type, zone, etc.)
   const [enums, setEnums] = useState<EnumMap>({});
+  // State for filter fields
   const [filters, setFilters] = useState({
     region: '', pays: '', zone: '', type: '', sexe: '', genre: '', search: ''
   });
 
+  // Fetch enums on mount
   useEffect(() => {
     const fetchEnums = async () => {
       try {
@@ -35,6 +40,7 @@ export default function SupprimerBeneficiairesPage() {
     fetchEnums();
   }, [callApi]);
 
+  // Fetch beneficiaries list when filters change
   useEffect(() => {
     const fetchBeneficiaires = async () => {
       try {
@@ -54,23 +60,28 @@ export default function SupprimerBeneficiairesPage() {
     fetchBeneficiaires();
   }, [filters, callApi]);
 
+  // Handle change for filter fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
+  // Handle region change and reset country filter
   const handleRegionChange = (region: string) => {
     setFilters(prev => ({ ...prev, region, pays: '' }));
   };
 
+  // Reset all filters to default values
   const resetFilters = () => {
     setFilters({ region: '', pays: '', zone: '', type: '', sexe: '', genre: '', search: '' });
   };
 
+  // Toggle selection of a single beneficiary
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
+  // Toggle select all/deselect all beneficiaries currently displayed
   const toggleSelectAll = () => {
     const idsAffiches = beneficiaires.map(b => b.ben_id);
     const allSelected = idsAffiches.every(id => selectedIds.includes(id));
@@ -81,6 +92,7 @@ export default function SupprimerBeneficiairesPage() {
     }
   };
 
+  // Delete a single beneficiary
   const handleDelete = async (id: string) => {
     const confirmed = confirm(t('confirm_delete_beneficiary'));
     if (!confirmed) return;
@@ -94,6 +106,7 @@ export default function SupprimerBeneficiairesPage() {
     }
   };
 
+  // Delete all selected beneficiaries
   const deleteSelected = async () => {
     const confirmed = confirm(t('confirm_delete_selection'));
     if (!confirmed) return;
@@ -112,6 +125,7 @@ export default function SupprimerBeneficiairesPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header with title and back link */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -128,6 +142,7 @@ export default function SupprimerBeneficiairesPage() {
           </div>
         </header>
 
+        {/* Action buttons for delete selection and select all/deselect all */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200 flex flex-wrap gap-3 items-center">
           <button
             onClick={deleteSelected}
@@ -149,6 +164,7 @@ export default function SupprimerBeneficiairesPage() {
           </button>
         </div>
 
+        {/* Filters for beneficiaries */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('filter_beneficiaries')}</h2>
           <BeneficiaireFilters
@@ -160,6 +176,7 @@ export default function SupprimerBeneficiairesPage() {
           />
         </div>
 
+        {/* Table of beneficiaries with selection and delete options */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('beneficiaries_list')}</h2>
 

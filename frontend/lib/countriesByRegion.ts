@@ -1,3 +1,5 @@
+// Mapping of world regions to their respective countries for dropdowns and validation.
+
 export const countriesByRegion = {
   Africa: [
     "Algeria",
