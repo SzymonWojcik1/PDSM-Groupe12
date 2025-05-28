@@ -116,4 +116,53 @@ class ActiviteBeneficiaireController extends Controller
             'message' => 'Bénéficiaire retiré avec succès'
         ]);
     }
+
+    /**
+     * Add multiple beneficiaries to an activity in batch
+     * 
+     * @param Request $request
+     * @param int $id Activity ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function batchStore(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'beneficiaires' => 'required|array|min:1',
+            'beneficiaires.*' => 'required|exists:beneficiaires,ben_id'
+        ]);
+
+        $inserted = 0;
+        $duplicates = 0;
+
+        foreach ($validated['beneficiaires'] as $benId) {
+            $exists = ActiviteBeneficiaire::where('acb_act_id', $id)
+                ->where('acb_ben_id', $benId)
+                ->exists();
+
+            if ($exists) {
+                $duplicates++;
+                continue;
+            }
+
+            ActiviteBeneficiaire::create([
+                'acb_act_id' => $id,
+                'acb_ben_id' => $benId,
+            ]);
+
+            $inserted++;
+        }
+
+        // Log the batch action
+        Logger::log(
+            'info',
+            'Ajout en lot de bénéficiaires',
+            "Ajout de $inserted bénéficiaires à l'activité ID $id ($duplicates doublons ignorés)",
+            ['activity_id' => $id, 'inserted' => $inserted, 'duplicates' => $duplicates],
+            auth()->id()
+        );
+
+        return response()->json([
+            'message' => "Ajout effectué. $inserted bénéficiaires ajoutés. $duplicates doublons ignorés."
+        ]);
+    }
 }

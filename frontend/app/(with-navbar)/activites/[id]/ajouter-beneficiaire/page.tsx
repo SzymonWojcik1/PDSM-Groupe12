@@ -68,7 +68,7 @@ export default function AjouterBeneficiaire() {
       await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}/beneficiaires/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ben_ids: selectedIds }),
+        body: JSON.stringify({ beneficiaires: selectedIds }),
       });
       await fetchActivityBeneficiaires(); // Refresh list after adding
       setSelectedIds([]); // Reset selection
