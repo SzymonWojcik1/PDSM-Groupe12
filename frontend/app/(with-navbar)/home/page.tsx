@@ -94,7 +94,7 @@ export default function HomePage() {
               <Card
                 title={t('card_logs_title', 'Logs')}
                 href="/logs"
-                description={t('card_logs_desc', 'Consulter les actions enregistrées dans l'application.')}
+                description={t('card_logs_desc', 'Consulter les actions enregistrées dans l\'application.')}
               />
             </>
           )}

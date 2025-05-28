@@ -79,9 +79,9 @@ export default function LogsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Page header */}
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('Logs')}</h1>
+          <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('logs_title')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4" />
-          <p className="text-gray-600">Historique des actions importantes effectuées dans l’application</p>
+          <p className="text-gray-600">{t('logs_description')}</p>
         </header>
 
         {/* Filter bar */}
@@ -89,13 +89,13 @@ export default function LogsPage() {
           <div className="flex flex-wrap gap-4 items-end">
             <input
               type="text"
-              placeholder="Recherche..."
+              placeholder={t('logs_search_placeholder')}
               className="px-4 py-2 border border-gray-300 rounded text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             <div className="flex flex-col text-sm">
-              <label htmlFor="start-date" className="text-gray-600">Date début</label>
+              <label htmlFor="start-date" className="text-gray-600">{t('logs_start_date')}</label>
               <input
                 id="start-date"
                 type="date"
@@ -105,7 +105,7 @@ export default function LogsPage() {
               />
             </div>
             <div className="flex flex-col text-sm">
-              <label htmlFor="end-date" className="text-gray-600">Date fin</label>
+              <label htmlFor="end-date" className="text-gray-600">{t('logs_end_date')}</label>
               <input
                 id="end-date"
                 type="date"
@@ -126,19 +126,19 @@ export default function LogsPage() {
             <table className="w-full table-auto border border-gray-200 text-sm text-black">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-2">Date</th>
-                  <th className="p-2">Utilisateur</th>
-                  <th className="p-2">Niveau</th>
-                  <th className="p-2">Action</th>
-                  <th className="p-2">Message</th>
-                  <th className="p-2">Contexte</th>
+                  <th className="p-2">{t('logs_date')}</th>
+                  <th className="p-2">{t('logs_user')}</th>
+                  <th className="p-2">{t('logs_level')}</th>
+                  <th className="p-2">{t('logs_action')}</th>
+                  <th className="p-2">{t('logs_message')}</th>
+                  <th className="p-2">{t('logs_context')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center p-4 text-gray-500">
-                      Aucun log trouvé.
+                      {t('logs_none_found')}
                     </td>
                   </tr>
                 ) : (

@@ -7,6 +7,7 @@ import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import useAdminGuard from '@/lib/hooks/useAdminGuard';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Indicator type definition
@@ -142,6 +143,7 @@ export default function CadreLogiqueDetailPage() {
   const { id } = useParams();
   const { callApi } = useApi();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const checked = useAdminGuard()
 
@@ -190,7 +192,7 @@ export default function CadreLogiqueDetailPage() {
         fetchObjectifs();
       } else {
         const data = await res.json();
-        setError(data.message || 'Erreur lors de l'ajout');
+        setError(data.message || 'Erreur lors de l\'ajout');
       }
     } catch (err) {
       console.error('Erreur serveur:', err);
@@ -227,35 +229,35 @@ export default function CadreLogiqueDetailPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Remplir le cadre logique</h1>
+              <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('fill_logical_framework')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">Ajoutez les outcomes, outputs et indicateurs pour chaque objectif.</p>
+              <p className="text-gray-600">{t('add_outcomes_outputs_indicators')}</p>
             </div>
             <Link
               href="/cadre-logique"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
             >
-              Retour à la liste
+              {t('back_to_list')}
             </Link>
           </div>
         </header>
 
         {/* New objective form */}
         <div className="bg-white p-6 rounded-xl shadow mb-8">
-          <h2 className="text-xl font-semibold mb-4">Ajouter un objectif général</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('add_general_objective')}</h2>
           <div className="flex gap-3">
             <input
               type="text"
               value={nouveauObjectif}
               onChange={(e) => setNouveauObjectif(e.target.value)}
-              placeholder="Nom de l'objectif"
+              placeholder={t('objective_name')}
               className="flex-1 border border-gray-300 rounded px-4 py-2"
             />
             <button
               onClick={ajouterObjectif}
               className="bg-[#9F0F3A] text-white px-4 py-2 rounded hover:bg-[#800d30]"
             >
-              + Objectif
+              {t('add_objective')}
             </button>
           </div>
           {error && <p className="text-red-600 mt-2">{error}</p>}
@@ -269,18 +271,18 @@ export default function CadreLogiqueDetailPage() {
               {/* Table header */}
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
-                  <th className="border px-4 py-2 w-1/10 text-left">Valeur cible</th>
-                  <th className="border px-4 py-2 w-1/8 text-left">Valeur réelle</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outcomes')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outputs')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('indicators')}</th>
+                  <th className="border px-4 py-2 w-1/10 text-left">{t('target_value')}</th>
+                  <th className="border px-4 py-2 w-1/8 text-left">{t('actual_value')}</th>
                 </tr>
               </thead>
               {/* Table body with hierarchical data */}
               <tbody>
                 {obj.outcomes.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="border px-4 py-2 italic text-gray-400">Aucun indicateur</td>
+                    <td colSpan={4} className="border px-4 py-2 italic text-gray-400">{t('no_indicators')}</td>
                   </tr>
                 )}
                 {obj.outcomes.map((out, j) =>
@@ -295,7 +297,7 @@ export default function CadreLogiqueDetailPage() {
                           <button
                             onClick={() => setModalContext({ type: 'output', outId: out.out_id, count: 0, outcomeIndex: j })}
                             className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                            + Output
+                            {t('add_output')}
                           </button>
                         </div>
                       </td>
@@ -315,7 +317,7 @@ export default function CadreLogiqueDetailPage() {
                                 <button
                                   onClick={() => setModalContext({ type: 'output', outId: out.out_id, count: out.outputs.length, outcomeIndex: j })}
                                   className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                  + Output
+                                  {t('add_output')}
                                 </button>
                               </div>
                             </td>
@@ -329,7 +331,7 @@ export default function CadreLogiqueDetailPage() {
                               <button
                                 onClick={() => setModalContext({ type: 'indicateur', outId: out.out_id, opuId: op.opu_id, count: 0, outcomeIndex: j, outputIndex: k })}
                                 className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                + Indicateur
+                                {t('add_indicator')}
                               </button>
                             </div>
                           </td>
@@ -364,7 +366,7 @@ export default function CadreLogiqueDetailPage() {
                                   <button
                                     onClick={() => setModalContext({ type: 'indicateur', outId: out.out_id, opuId: op.opu_id, count: op.indicateurs.length, outcomeIndex: j, outputIndex: k })}
                                     className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]">
-                                    + Indicateur
+                                    {t('add_indicator')}
                                   </button>
                                 </div>
                               </td>
@@ -383,9 +385,9 @@ export default function CadreLogiqueDetailPage() {
                               <br />
                               <Link
                                 href={`/cadre-logique/${id}/lier-activites?ind=${ind.ind_id}`}
-                                className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea]"
+                                className="text-[#9F0F3A] text-xs border border-[#9F0F3A] px-2 py-1 rounded hover:bg-[#f4e6ea] whitespace-nowrap inline-block"
                               >
-                                + Lier activités
+                                {t('link_activities')}
                               </Link>
                             </td>
                           </tr>
@@ -412,8 +414,8 @@ export default function CadreLogiqueDetailPage() {
       {/* Dynamic modals for creating new elements */}
       {modalContext?.type === 'outcome' && (
         <ModalInput
-          title="Ajouter un outcome"
-          label="Nom de l'outcome"
+          title={t('add_outcome')}
+          label={t('new_outcome_name')}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
             const { objId, count } = modalContext;
@@ -431,8 +433,8 @@ export default function CadreLogiqueDetailPage() {
 
       {modalContext?.type === 'output' && (
         <ModalInput
-          title="Ajouter un output"
-          label="Nom de l'output"
+          title={t('add_output')}
+          label={t('new_output_name')}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
             const { outId, count, outcomeIndex } = modalContext;

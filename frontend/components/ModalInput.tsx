@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Props interface for the ModalInput component
@@ -34,6 +35,7 @@ export default function ModalInput({
   onConfirm,
   onClose,
 }: Props) {
+  const { t } = useTranslation()
   // State for managing input value
   const [value, setValue] = useState('')
 
@@ -69,7 +71,7 @@ export default function ModalInput({
             onClick={onClose}
             className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
           >
-            Cancel
+            {t('cancel')}
           </button>
           
           {/* Confirm button */}
@@ -79,7 +81,7 @@ export default function ModalInput({
             }}
             className="px-4 py-2 bg-[#9F0F3A] text-white rounded hover:bg-[#800d30]"
           >
-            Confirm
+            {t('confirm')}
           </button>
         </div>
       </div>
