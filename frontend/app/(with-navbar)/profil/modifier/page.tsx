@@ -9,6 +9,10 @@ import { Eye, EyeOff } from 'lucide-react'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import { useApi } from '@/lib/hooks/useApi'
 
+/**
+ * Type definition for user data
+ * Represents the structure of editable user information
+ */
 type UserData = {
   id: number
   nom: string
@@ -17,12 +21,26 @@ type UserData = {
   telephone?: string
 }
 
+/**
+ * Edit Profile Page Component
+ * 
+ * This component provides a form interface for users to edit their profile information.
+ * Features include:
+ * - Protected route (requires authentication)
+ * - Pre-filled form with current user data
+ * - Password update (optional)
+ * - Password visibility toggle
+ * - Form validation
+ * - Loading and error states
+ * - Internationalization support
+ */
 export default function ModifierProfilPage() {
   useAuthGuard()
   const router = useRouter()
   const { t } = useTranslation()
   const { callApi } = useApi()
 
+  // State management for form data and UI
   const [user, setUser] = useState<UserData | null>(null)
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
@@ -34,6 +52,10 @@ export default function ModifierProfilPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  /**
+   * Fetches user data on component mount
+   * Loads current user's information and pre-fills the form
+   */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -51,6 +73,11 @@ export default function ModifierProfilPage() {
     fetchUser()
   }, [t])
 
+  /**
+   * Handles form submission
+   * Updates user profile and handles password change if provided
+   * Includes validation for password confirmation
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -60,6 +87,7 @@ export default function ModifierProfilPage() {
 
     const payload: any = { nom, prenom, telephone }
 
+    // Add password to payload if provided
     if (password) {
       if (password !== passwordConfirm) {
         setError(t('password_mismatch'))
@@ -97,19 +125,24 @@ export default function ModifierProfilPage() {
     }
   }
 
+  // Display error message if fetch failed
   if (error) return <div className="p-6 text-red-600">{t('error_prefix')} {error}</div>
+  // Display loading state while fetching data
   if (!user) return <div className="p-6">{t('loading')}</div>
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-3xl mx-auto">
+        {/* Page header with title */}
         <header className="mb-10">
           <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('edit_profile_title')}</h1>
           <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
         </header>
 
+        {/* Profile edit form */}
         <section className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
           <form onSubmit={handleSubmit} className="space-y-6 text-lg text-gray-800">
+            {/* Last name input */}
             <div>
               <label className="block font-medium mb-1">{t('label_lastname')}</label>
               <input
@@ -121,6 +154,7 @@ export default function ModifierProfilPage() {
               />
             </div>
 
+            {/* First name input */}
             <div>
               <label className="block font-medium mb-1">{t('label_firstname')}</label>
               <input
@@ -132,6 +166,7 @@ export default function ModifierProfilPage() {
               />
             </div>
 
+            {/* Phone number input */}
             <div>
               <label className="block font-medium mb-1">{t('label_phone')}</label>
               <input
@@ -142,6 +177,7 @@ export default function ModifierProfilPage() {
               />
             </div>
 
+            {/* Password input with visibility toggle */}
             <div>
               <label className="block font-medium mb-1">{t('label_password')}</label>
               <div className="relative">
@@ -162,6 +198,7 @@ export default function ModifierProfilPage() {
               </div>
             </div>
 
+            {/* Password confirmation input with visibility toggle */}
             <div>
               <label className="block font-medium mb-1">{t('label_password_confirm')}</label>
               <div className="relative">
@@ -182,8 +219,10 @@ export default function ModifierProfilPage() {
               </div>
             </div>
 
+            {/* Error message display */}
             {error && <p className="text-red-600 text-sm">{error}</p>}
 
+            {/* Form action buttons */}
             <div className="flex items-center gap-4 pt-4">
               <button
                 type="submit"

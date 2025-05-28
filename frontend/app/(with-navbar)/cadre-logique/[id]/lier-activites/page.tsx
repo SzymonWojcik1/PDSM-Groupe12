@@ -9,6 +9,10 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import useAdminGuard from '@/lib/hooks/useAdminGuard'
 import { useApi } from '@/lib/hooks/useApi'
 
+/**
+ * Activity type definition
+ * Represents an activity with its basic information and optional partner/project references
+ */
 export type Activite = {
   act_id: number
   act_nom: string
@@ -18,10 +22,31 @@ export type Activite = {
   projet?: { pro_nom: string; pro_id: number }
 }
 
+/**
+ * Extended activity type with beneficiary count
+ * Used for activities that are linked to an indicator
+ */
 type ActiviteWithCount = Activite & {
   nbBeneficiaires: number
 }
 
+/**
+ * Link Activities Page Component
+ * 
+ * This component provides an interface for linking activities to indicators.
+ * Features include:
+ * - Protected route (requires authentication and admin rights)
+ * - Activity search and filtering
+ * - Batch linking of activities
+ * - Individual unlinking of activities
+ * - Real-time beneficiary count tracking
+ * 
+ * The page displays:
+ * - List of available activities
+ * - List of linked activities
+ * - Total beneficiary count
+ * - Search functionality for both lists
+ */
 export default function LierActivitesPage() {
   useAuthGuard()
   const { id } = useParams()
@@ -33,6 +58,7 @@ export default function LierActivitesPage() {
 
   const checked = useAdminGuard()
 
+  // State management
   const [activites, setActivites] = useState<Activite[]>([])
   const [linkedActivites, setLinkedActivites] = useState<ActiviteWithCount[]>([])
   const [selectedIds, setSelectedIds] = useState<number[]>([])
@@ -40,6 +66,10 @@ export default function LierActivitesPage() {
   const [searchAll, setSearchAll] = useState('')
   const [searchLinked, setSearchLinked] = useState('')
 
+  /**
+   * Fetches both available and linked activities
+   * Loads all activities and those linked to the current indicator
+   */
   const fetchActivites = async () => {
     try {
       const [allRes, linksRes] = await Promise.all([
@@ -59,6 +89,10 @@ export default function LierActivitesPage() {
     }
   }
 
+  /**
+   * Handles batch linking of selected activities to the indicator
+   * Updates the lists after successful linking
+   */
   const handleLinkMany = async () => {
     if (!indicateurId) return
     setIsLoading(true)
@@ -77,6 +111,12 @@ export default function LierActivitesPage() {
     }
   }
 
+  /**
+   * Handles unlinking of a single activity from the indicator
+   * Updates the lists after successful unlinking
+   * 
+   * @param actId - ID of the activity to unlink
+   */
   const handleUnlink = async (actId: number) => {
     if (!indicateurId) return
     setIsLoading(true)
@@ -99,25 +139,31 @@ export default function LierActivitesPage() {
     }
   }
 
+  // Load activities when indicator ID is available
   useEffect(() => {
     if (indicateurId) fetchActivites()
   }, [indicateurId])
 
+  // Filter available activities based on search term
   const availableActivites = activites
     .filter(act => !linkedActivites.some(linked => linked.act_id === act.act_id))
     .filter(act => act.act_nom.toLowerCase().includes(searchAll.toLowerCase()))
 
+  // Filter linked activities based on search term
   const filteredLinkedActivites = linkedActivites.filter(act =>
     act.act_nom.toLowerCase().includes(searchLinked.toLowerCase())
   )
 
+  // Calculate total beneficiaries from linked activities
   const valeurReelle = linkedActivites.reduce((acc, curr) => acc + curr.nbBeneficiaires, 0)
 
-  if (!checked) return null // Block access if not admin
+  // Block access if not admin
+  if (!checked) return null
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-8">
       <div className="max-w-6xl mx-auto">
+        {/* Page header with title and back button */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-[#9F0F3A]">{t('link_activities_to_indicator')}</h1>
           <button
@@ -128,6 +174,7 @@ export default function LierActivitesPage() {
           </button>
         </div>
 
+        {/* Total beneficiaries and link button */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-gray-600">
             {t('total_beneficiaries_linked')} : <strong>{valeurReelle}</strong>
@@ -141,8 +188,9 @@ export default function LierActivitesPage() {
           </button>
         </div>
 
+        {/* Two-column layout for available and linked activities */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Activités disponibles */}
+          {/* Available activities section */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">{t('all_activities')}</h2>
             <input
@@ -178,7 +226,7 @@ export default function LierActivitesPage() {
             )}
           </section>
 
-          {/* Activités liées */}
+          {/* Linked activities section */}
           <section className="bg-white border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4 text-[#9F0F3A]">{t('linked_activities')}</h2>
             <input
