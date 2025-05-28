@@ -31,7 +31,7 @@ class PasswordResetController extends Controller
             return response()->json(['message' => 'Lien envoyé par e-mail.']);
         } else {
             Logger::log(
-                'warning',
+                'info',
                 'Échec envoi lien réinitialisation',
                 'Échec de l’envoi du lien de réinitialisation',
                 ['email' => $request->email],
@@ -80,7 +80,7 @@ class PasswordResetController extends Controller
             return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
         } else {
             Logger::log(
-                'warning',
+                'info',
                 'Échec réinitialisation mot de passe',
                 'La réinitialisation a échoué',
                 ['email' => $request->email],

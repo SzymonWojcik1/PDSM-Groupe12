@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Outcome;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class OutcomeController extends Controller
 {
@@ -24,7 +25,17 @@ class OutcomeController extends Controller
             'obj_id'   => 'required|exists:objectif_general,obj_id',
         ]);
 
-        return response()->json(Outcome::create($validated), 201);
+        $outcome = Outcome::create($validated);
+
+        Logger::log(
+            'info',
+            'Création outcome',
+            'Un nouvel outcome a été créé.',
+            ['id' => $outcome->out_id, 'nom' => $outcome->out_nom, 'code' => $outcome->out_code],
+            auth()->id()
+        );
+
+        return response()->json($outcome, 201);
     }
 
     public function show($id)
@@ -44,12 +55,29 @@ class OutcomeController extends Controller
 
         $outcome->update($validated);
 
+        Logger::log(
+            'info',
+            'Mise à jour outcome',
+            'Un outcome a été mis à jour.',
+            ['id' => $outcome->out_id, 'nom' => $outcome->out_nom],
+            auth()->id()
+        );
+
         return response()->json($outcome);
     }
 
     public function destroy($id)
     {
-        Outcome::findOrFail($id)->delete();
+        $outcome = Outcome::findOrFail($id);
+        $outcome->delete();
+
+        Logger::log(
+            'info',
+            'Suppression outcome',
+            'Un outcome a été supprimé.',
+            ['id' => $outcome->out_id, 'nom' => $outcome->out_nom],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Outcome supprimé']);
     }

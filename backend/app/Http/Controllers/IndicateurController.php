@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Indicateur;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class IndicateurController extends Controller
 {
@@ -26,7 +27,17 @@ class IndicateurController extends Controller
             'opu_id' => 'nullable|exists:output,opu_id',
         ]);
 
-        return response()->json(Indicateur::create($validated), 201);
+        $indicateur = Indicateur::create($validated);
+
+        Logger::log(
+            'info',
+            'Création indicateur',
+            'Un nouvel indicateur a été créé.',
+            ['id' => $indicateur->ind_id, 'nom' => $indicateur->ind_nom],
+            auth()->id()
+        );
+
+        return response()->json($indicateur, 201);
     }
 
     public function show($id)
@@ -48,12 +59,29 @@ class IndicateurController extends Controller
 
         $ind->update($validated);
 
+        Logger::log(
+            'info',
+            'Mise à jour indicateur',
+            'Un indicateur a été modifié.',
+            ['id' => $ind->ind_id, 'nom' => $ind->ind_nom],
+            auth()->id()
+        );
+
         return response()->json($ind);
     }
 
     public function destroy($id)
     {
-        Indicateur::findOrFail($id)->delete();
+        $ind = Indicateur::findOrFail($id);
+        $ind->delete();
+
+        Logger::log(
+            'info',
+            'Suppression indicateur',
+            'Un indicateur a été supprimé.',
+            ['id' => $ind->ind_id, 'nom' => $ind->ind_nom],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Indicateur supprimé']);
     }

@@ -49,7 +49,7 @@ class ActiviteBeneficiaireController extends Controller
         $activiteBeneficiaire->acb_ben_id = $request->ben_id;
         $activiteBeneficiaire->save();
 
-        /*Logger::log(
+        Logger::log(
             'info',
             'Ajout bénéficiaire à activité',
             'Un bénéficiaire a été inscrit à une activité',
@@ -58,7 +58,7 @@ class ActiviteBeneficiaireController extends Controller
                 'beneficiaire_id' => $request->ben_id
             ],
             auth()->id()
-        );*/
+        );
 
         return response()->json([
             'message' => 'Bénéficiaire ajouté avec succès'
@@ -80,7 +80,7 @@ class ActiviteBeneficiaireController extends Controller
             ], 404);
         }
 
-        /*Logger::log(
+        Logger::log(
             'warning',
             'Retrait bénéficiaire d\'activité',
             'Un bénéficiaire a été retiré d\'une activité',
@@ -89,7 +89,7 @@ class ActiviteBeneficiaireController extends Controller
                 'beneficiaire_id' => $beneficiaireId
             ],
             auth()->id()
-        );*/
+        );
 
         return response()->json([
             'message' => 'Bénéficiaire retiré avec succès'

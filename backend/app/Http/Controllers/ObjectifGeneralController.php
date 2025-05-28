@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ObjectifGeneral;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class ObjectifGeneralController extends Controller
 {
@@ -23,7 +24,17 @@ class ObjectifGeneralController extends Controller
             'cad_id' => 'required|exists:cadre_logique,cad_id',
         ]);
 
-        return response()->json(ObjectifGeneral::create($validated), 201);
+        $objectif = ObjectifGeneral::create($validated);
+
+        Logger::log(
+            'info',
+            'Création objectif général',
+            'Un nouvel objectif général a été créé.',
+            ['id' => $objectif->obj_id, 'nom' => $objectif->obj_nom],
+            auth()->id()
+        );
+
+        return response()->json($objectif, 201);
     }
 
     public function show($id)
@@ -42,12 +53,29 @@ class ObjectifGeneralController extends Controller
 
         $objectif->update($validated);
 
+        Logger::log(
+            'info',
+            'Mise à jour objectif général',
+            'Un objectif général a été mis à jour.',
+            ['id' => $objectif->obj_id, 'nom' => $objectif->obj_nom],
+            auth()->id()
+        );
+
         return response()->json($objectif);
     }
 
     public function destroy($id)
     {
-        ObjectifGeneral::findOrFail($id)->delete();
+        $objectif = ObjectifGeneral::findOrFail($id);
+        $objectif->delete();
+
+        Logger::log(
+            'info',
+            'Suppression objectif général',
+            'Un objectif général a été supprimé.',
+            ['id' => $objectif->obj_id, 'nom' => $objectif->obj_nom],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Objectif général supprimé']);
     }
