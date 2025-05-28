@@ -9,12 +9,32 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\Logger;
 
 class ActivitesImportController extends Controller
 {
     public function import(Request $request): StreamedResponse
     {
+        $userId = $request->user()?->id;
+
+        // Log tentative d'import
+        Logger::log(
+            'info',
+            'Import activités',
+            'Tentative d\'import d\'activités par fichier Excel.',
+            [],
+            $userId
+        );
+
         if (!$request->hasFile('file') || !$request->file('file')->isValid()) {
+            Logger::log(
+                'error',
+                'Import activités échoué',
+                'Fichier manquant ou invalide.',
+                [],
+                $userId
+            );
+
             return response()->json(['error' => 'Fichier invalide.'], 400);
         }
 
@@ -66,6 +86,7 @@ class ActivitesImportController extends Controller
         }
 
         if (!empty($errors)) {
+
             $headers = array_keys($errors[0]['data']);
             $csvHeaders = array_merge(['ligne'], $headers, ['colonnes_fautives']);
 

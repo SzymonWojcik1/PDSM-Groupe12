@@ -125,7 +125,7 @@ export default function UsersPage() {
               ? t('siege')
               : role.value === 'utilisateur'
               ? t('utilisateur')
-              : role.label
+              : role.label,
         }))
         setRoles(rolesWithLabels)
 

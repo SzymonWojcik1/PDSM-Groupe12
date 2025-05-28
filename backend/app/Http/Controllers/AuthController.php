@@ -9,11 +9,10 @@ use Illuminate\Validation\ValidationException;
 use App\Notifications\TwoFactorCodeNotification;
 use App\Enums\Role;
 use Illuminate\Validation\Rule;
-
+use App\Helpers\Logger;
 
 class AuthController extends Controller
 {
-
     public function login(Request $request)
     {
         $request->validate([
@@ -24,6 +23,14 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            Logger::log(
+                'warning',
+                'Échec de connexion',
+                'Tentative de connexion avec identifiants incorrects',
+                ['email' => $request->email],
+                $user->id
+            );
+
             throw ValidationException::withMessages([
                 'email' => ['Identifiants incorrects.'],
             ]);
@@ -39,6 +46,15 @@ class AuthController extends Controller
         $user->save();
 
         $user->notify(new TwoFactorCodeNotification($code));
+
+        Logger::log(
+            'info',
+            'Connexion réussie',
+            'Utilisateur connecté, code 2FA envoyé',
+            ['email' => $user->email],
+            $user->id
+        );
+
 
         return response()->json([
             'token' => $token,
@@ -62,6 +78,14 @@ class AuthController extends Controller
             $user->two_factor_code !== $request->code ||
             now()->gt($user->two_factor_expires_at)
         ) {
+            Logger::log(
+                'warning',
+                'Échec 2FA',
+                'Code 2FA incorrect ou expiré',
+                ['user_id' => $user->id, 'code_saisi' => $request->code],
+                $user->id
+            );
+
             return response()->json(['message' => 'Code invalide ou expiré'], 422);
         }
 
@@ -69,6 +93,14 @@ class AuthController extends Controller
         $user->two_factor_code = null;
         $user->two_factor_expires_at = null;
         $user->save();
+
+        Logger::log(
+            'info',
+            '2FA vérifié',
+            'Double authentification réussie',
+            ['user_id' => $user->id],
+            $user->id
+        );
 
         return response()->json([
             'message' => 'Double authentification réussie',
@@ -80,7 +112,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+
+        $user->currentAccessToken()->delete();
+
+        Logger::log(
+            'info',
+            'Déconnexion',
+            'Utilisateur déconnecté',
+            ['user_id' => $user->id],
+            $user->id
+        );
 
         return response()->json([
             'message' => 'Déconnecté avec succès'

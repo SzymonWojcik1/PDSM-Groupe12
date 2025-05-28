@@ -9,12 +9,13 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
 export default function UpdateActivitePage() {
-  useAuthGuard();
+  useAuthGuard(); // Ensure only authenticated users can access the page
   const { t } = useTranslation();
-  const { id } = useParams();
+  const { id } = useParams(); // Get the activity ID from the URL
   const router = useRouter();
   const { callApi } = useApi();
 
+  // State to hold initial data to populate the form
   const [initialData, setInitialData] = useState<null | {
     act_nom: string;
     act_dateDebut: string;
@@ -26,6 +27,7 @@ export default function UpdateActivitePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch the activity by ID
         const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`);
         if (!res.ok) {
           const errorText = await res.text();
@@ -33,6 +35,7 @@ export default function UpdateActivitePage() {
         }
 
         const data = await res.json();
+        // Set the form's initial values
         setInitialData({
           act_nom: data.act_nom,
           act_dateDebut: data.act_dateDebut,
@@ -47,10 +50,11 @@ export default function UpdateActivitePage() {
     };
 
     fetchData();
-    // ⚠️ Ne surtout pas inclure `callApi` ou `t` ici pour éviter les appels en boucle
+    // Do not include callApi or t in deps to avoid infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Handle the form submission to update the activity
   const handleUpdate = async (data: any) => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
@@ -60,7 +64,7 @@ export default function UpdateActivitePage() {
       });
 
       if (res.ok) {
-        router.push('/activites');
+        router.push('/activites'); // Redirect after successful update
       } else {
         const err = await res.json();
         alert(err.message || t('update_error'));
@@ -81,6 +85,7 @@ export default function UpdateActivitePage() {
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('edit_activity_description')}</p>
             </div>
+            {/* Link to go back to the list of activities */}
             <Link
               href="/activites"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
@@ -91,6 +96,7 @@ export default function UpdateActivitePage() {
         </header>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6">
+          {/* Only render the form if initial data is loaded */}
           {initialData && (
             <ActiviteForm
               initialData={initialData}

@@ -8,6 +8,7 @@ import {
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 
+// Define the shape of an activity
 type Activite = {
   act_id: number;
   act_nom: string;
@@ -16,16 +17,18 @@ type Activite = {
   partenaire: { part_nom: string; part_id: number };
 };
 
+// Define the shape of a partner
 type Partenaire = {
   part_id: number;
   part_nom: string;
 };
 
 export default function DashboardActivitesPage() {
-  const { t } = useTranslation();
-  useAuthGuard();
-  const { callApi } = useApi();
+  const { t } = useTranslation(); // Used for translation
+  useAuthGuard(); // Protects the page (requires authentication)
+  const { callApi } = useApi(); // Custom hook to call the API
 
+  // State variables
   const [activites, setActivites] = useState<Activite[]>([]);
   const [filteredActivites, setFilteredActivites] = useState<Activite[]>([]);
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
@@ -36,6 +39,7 @@ export default function DashboardActivitesPage() {
     dateFin: '',
   });
 
+  // Fetch all activities and partners on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,14 +62,17 @@ export default function DashboardActivitesPage() {
     fetchData();
   }, [callApi]);
 
+  // Apply filters every time filters or activities change
   useEffect(() => {
     let result = [...activites];
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]; // Format date as YYYY-MM-DD
 
+    // Filter by partner
     if (filters.partenaire) {
       result = result.filter(a => a.partenaire?.part_id.toString() === filters.partenaire);
     }
 
+    // Filter by time period
     if (filters.periode === 'passee') {
       result = result.filter(a => a.act_dateFin < today);
     } else if (filters.periode === 'encours') {
@@ -76,6 +83,7 @@ export default function DashboardActivitesPage() {
       result = result.filter(a => a.act_dateDebut > today);
     }
 
+    // Filter by start and end date
     if (filters.dateDebut) {
       result = result.filter(a => a.act_dateDebut >= filters.dateDebut);
     }
@@ -86,8 +94,10 @@ export default function DashboardActivitesPage() {
     setFilteredActivites(result);
   }, [filters, activites]);
 
+  // Today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
+  // Count activities per period
   const countByPeriode = {
     passees: filteredActivites.filter(a => a.act_dateFin < today).length,
     encours: filteredActivites.filter(a =>
@@ -96,16 +106,18 @@ export default function DashboardActivitesPage() {
     aVenir: filteredActivites.filter(a => a.act_dateDebut > today).length,
   };
 
+  // Prepare data for pie chart
   const periodeData = [
     { name: t('past'), value: countByPeriode.passees },
     { name: t('ongoing'), value: countByPeriode.encours },
     { name: t('upcoming'), value: countByPeriode.aVenir },
   ];
-  const periodeColors = ['#16a34a', '#eab308', '#2563eb'];
+  const periodeColors = ['#16a34a', '#eab308', '#2563eb']; // Colors for each period
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-7xl mx-auto">
+        {/* Page header */}
         <header className="mb-10 flex justify-between items-center">
           <div>
             <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('activities_dashboard')}</h1>
@@ -119,6 +131,7 @@ export default function DashboardActivitesPage() {
           </button>
         </header>
 
+        {/* Summary statistics cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
           <div className="bg-white border rounded-2xl shadow-sm p-4 text-center">
             <p className="text-3xl font-bold text-gray-800">{filteredActivites.length}</p>
@@ -138,7 +151,9 @@ export default function DashboardActivitesPage() {
           </div>
         </div>
 
+        {/* Filter section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Partner filter */}
           <select
             name="partenaire"
             value={filters.partenaire}
@@ -151,6 +166,7 @@ export default function DashboardActivitesPage() {
             ))}
           </select>
 
+          {/* Period filter */}
           <select
             name="periode"
             value={filters.periode}
@@ -163,6 +179,7 @@ export default function DashboardActivitesPage() {
             <option value="avenir">{t('upcoming')}</option>
           </select>
 
+          {/* Date range filter */}
           <div className="flex gap-2">
             <input
               type="date"
@@ -181,6 +198,7 @@ export default function DashboardActivitesPage() {
           </div>
         </div>
 
+        {/* Reset filters */}
         <div className="mb-6">
           <button
             onClick={() =>
@@ -192,7 +210,7 @@ export default function DashboardActivitesPage() {
           </button>
         </div>
 
-        {/* GRAPHIQUE PIE */}
+        {/* Pie chart showing distribution by period */}
         <section className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold text-[#9F0F3A] mb-4">{t('period_distribution')}</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -214,7 +232,7 @@ export default function DashboardActivitesPage() {
           </ResponsiveContainer>
         </section>
 
-        {/* TABLE */}
+        {/* Activities table */}
         <section className="bg-white border rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#9F0F3A] mb-4">{t('activities_list')}</h2>
           <div className="overflow-x-auto">

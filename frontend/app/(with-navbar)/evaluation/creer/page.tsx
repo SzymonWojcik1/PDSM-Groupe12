@@ -1,25 +1,27 @@
-'use client'
+'use client' // Required for using React hooks and client-side logic in Next.js App Router
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslation } from 'react-i18next'
-import useAuthGuard from '@/lib/hooks/useAuthGuard'
-import { useApi } from '@/lib/hooks/useApi'
+import { useRouter } from 'next/navigation' // Used to redirect the user after form submission
+import { useTranslation } from 'react-i18next' // Internationalization hook
+import useAuthGuard from '@/lib/hooks/useAuthGuard' // Custom hook to protect the page for authenticated users
+import { useApi } from '@/lib/hooks/useApi' // Custom hook for authenticated API calls
 
+// Define the partner type structure
 type Partenaire = { part_id: number; part_nom: string }
 
 export default function CreateEvaluationPage() {
-  useAuthGuard()
-  const { t } = useTranslation()
-  const { callApi } = useApi()
-  const router = useRouter()
+  useAuthGuard() // Ensures the user is authenticated before rendering the page
+  const { t } = useTranslation() // Access translations
+  const { callApi } = useApi() // Custom API call function
+  const router = useRouter() // Allows navigation after submission
 
-  const [partenaires, setPartenaires] = useState<Partenaire[]>([])
-  const [selectedPartenaireId, setSelectedPartenaireId] = useState<number | null>(null)
-  const [critereInput, setCritereInput] = useState('')
-  const [criteres, setCriteres] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
+  const [partenaires, setPartenaires] = useState<Partenaire[]>([]) // Store list of partners
+  const [selectedPartenaireId, setSelectedPartenaireId] = useState<number | null>(null) // Selected partner ID
+  const [critereInput, setCritereInput] = useState('') // Input value for new criterion
+  const [criteres, setCriteres] = useState<string[]>([]) // List of added criteria
+  const [loading, setLoading] = useState(false) // Loading state during form submission
 
+  // Fetch partners from API on component mount
   useEffect(() => {
     const fetchPartenaires = async () => {
       try {
@@ -33,6 +35,7 @@ export default function CreateEvaluationPage() {
     fetchPartenaires()
   }, [callApi])
 
+  // Add new criterion to the list
   const handleAddCritere = () => {
     if (critereInput.trim()) {
       setCriteres(prev => [...prev, critereInput.trim()])
@@ -40,8 +43,10 @@ export default function CreateEvaluationPage() {
     }
   }
 
+  // Submit form and create evaluations
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Check if form is complete
     if (!selectedPartenaireId || criteres.length === 0) {
       alert(t('create_eval_alert_missing', 'Veuillez choisir un partenaire et ajouter au moins un critère.'))
       return
@@ -49,25 +54,29 @@ export default function CreateEvaluationPage() {
 
     setLoading(true)
     try {
+      // Prepare request body
       const body = {
         part_id: selectedPartenaireId,
         criteres: criteres.map(label => ({
           label,
-          reussi: false
+          reussi: false // Default to false for all criteria
         }))
       }
 
+      // Send POST request to create evaluations
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/evaluations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       })
 
+      // Handle server-side errors
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.message || err.error)
       }
 
+      // Success message and redirect
       alert(t('create_eval_success', 'Évaluations créées avec succès'))
       router.push('/evaluation')
     } catch (err) {
@@ -81,8 +90,15 @@ export default function CreateEvaluationPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#9F0F3A] mb-6">{t('create_eval_title', 'Créer une évaluation')}</h1>
+        {/* Page title */}
+        <h1 className="text-3xl font-bold text-[#9F0F3A] mb-6">
+          {t('create_eval_title', 'Créer une évaluation')}
+        </h1>
+
+        {/* Evaluation creation form */}
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 border rounded shadow">
+          
+          {/* Partner selection dropdown */}
           <div>
             <label className="block font-semibold mb-1">{t('partner', 'Partenaire')}</label>
             <select
@@ -98,6 +114,7 @@ export default function CreateEvaluationPage() {
             </select>
           </div>
 
+          {/* Criterion input and add button */}
           <div>
             <label className="block font-semibold mb-1">{t('add_criteria', 'Ajouter un critère')}</label>
             <div className="flex space-x-2">
@@ -118,6 +135,7 @@ export default function CreateEvaluationPage() {
             </div>
           </div>
 
+          {/* List of added criteria */}
           {criteres.length > 0 && (
             <div className="mt-4">
               <h2 className="font-semibold mb-2">{t('added_criteria', 'Critères ajoutés :')}</h2>
@@ -127,6 +145,7 @@ export default function CreateEvaluationPage() {
             </div>
           )}
 
+          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}

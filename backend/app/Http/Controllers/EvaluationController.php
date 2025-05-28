@@ -5,16 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Evaluation;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Helpers\Logger;
 
 class EvaluationController extends Controller
 {
+    // Return all evaluations with their associated users
     public function index()
     {
         return Evaluation::with('utilisateur')->get();
     }
 
+    // Create evaluations for all users linked to a given partner
     public function store(Request $request)
     {
+        // Validate request data, including nested criteria
         $request->validate([
             'part_id' => 'required|exists:partenaires,part_id',
             'criteres' => 'required|array|min:1',
@@ -22,6 +26,7 @@ class EvaluationController extends Controller
             'criteres.*.reussi' => 'required|boolean',
         ]);
 
+        // Retrieve all users associated with the specified partner
         $users = User::where('partenaire_id', $request->part_id)->get();
 
         if ($users->isEmpty()) {
@@ -29,7 +34,9 @@ class EvaluationController extends Controller
         }
 
         $evaluations = [];
+        $userIds = [];
 
+        // Create one evaluation per user
         foreach ($users as $user) {
             $evaluations[] = Evaluation::create([
                 'eva_use_id' => $user->id,
@@ -37,7 +44,22 @@ class EvaluationController extends Controller
                 'eva_statut' => 'en_attente',
                 'eva_date_soumission' => now(),
             ]);
+
+            $userIds[] = $user->id;
         }
+
+        // Log creation of evaluations
+        Logger::log(
+            'info',
+            'Création évaluation',
+            'Des évaluations ont été créées pour tous les utilisateurs du partenaire.',
+            [
+                'partenaire_nom' => $request->part_nom,
+                'nb_evaluations' => count($evaluations),
+                'user_ids' => $userIds
+            ],
+            auth()->id()
+        );
 
         return response()->json([
             'message' => count($evaluations) . ' évaluation(s) créée(s)',
@@ -45,14 +67,16 @@ class EvaluationController extends Controller
         ], 201);
     }
 
-
+    // Show one evaluation with its associated user
     public function show($id)
     {
-        return Evaluation::with('utilisateur')->findOrFail($id)->makeHidden([]);;
+        return Evaluation::with('utilisateur')->findOrFail($id)->makeHidden([]);
     }
 
+    // Update the status of an evaluation
     public function updateStatut(Request $request, $id)
     {
+        // Ensure the new status is valid
         $request->validate([
             'eva_statut' => 'required|in:en_attente,soumis,valide',
         ]);
@@ -63,9 +87,22 @@ class EvaluationController extends Controller
             'eva_date_soumission' => now(),
         ]);
 
+        // Log status change
+        Logger::log(
+            'info',
+            'Changement de statut d\'évaluation',
+            'Le statut d\'une évaluation a été modifié.',
+            [
+                'evaluation_id' => $evaluation->eva_id,
+                'nouveau_statut' => $request->eva_statut
+            ],
+            auth()->id()
+        );
+
         return response()->json($evaluation);
     }
 
+    // Retrieve all pending evaluations for a specific user
     public function mesEvaluations(Request $request)
     {
         $user = User::find($request->query('user_id'));
@@ -81,40 +118,51 @@ class EvaluationController extends Controller
         return response()->json($evaluations);
     }
 
+    // Update evaluation with answers (marking criteria as passed or not)
     public function update(Request $request, $id)
     {
         $evaluation = Evaluation::findOrFail($id);
 
-        $reponses = $request->input('reponses'); // Ex: [0 => 'reussi', 1 => 'non_reussi']
-        $criteres = $evaluation->criteres; // array casté automatiquement
+        $reponses = $request->input('reponses'); // Expected format: [0 => 'reussi', 1 => 'non_reussi']
+        $criteres = $evaluation->criteres; // Automatically casted to array
 
+        // Update each criterion with the submitted result
         foreach ($criteres as $index => &$critere) {
             if (isset($reponses[$index])) {
                 $critere['reussi'] = $reponses[$index] === 'reussi';
             }
         }
 
+        // Save updated evaluation
         $evaluation->criteres = $criteres;
         $evaluation->eva_statut = 'soumis';
         $evaluation->eva_date_soumission = now();
         $evaluation->save();
 
+        // Log submission
+        Logger::log(
+            'info',
+            'Soumission d\'évaluation',
+            'Une évaluation a été remplie par l\'utilisateur.',
+            [
+                'evaluation_id' => $evaluation->eva_id,
+                'reponses' => $reponses
+            ],
+            auth()->id()
+        );
+
         return response()->json(['message' => 'Évaluation mise à jour']);
     }
 
+    // Return the count of pending evaluations for a specific user
     public function countMesEvaluations(Request $request)
     {
         $userId = $request->query('user_id');
 
-        $count = \App\Models\Evaluation::where('eva_use_id', $userId)
+        $count = Evaluation::where('eva_use_id', $userId)
             ->where('eva_statut', 'en_attente')
             ->count();
 
         return response()->json(['count' => $count]);
     }
-
-
-
-
-
 }

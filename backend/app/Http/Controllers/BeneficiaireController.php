@@ -10,6 +10,9 @@ use App\Enums\Zone;
 use App\Enums\Sexe;
 use App\Enums\Genre;
 use Carbon\Carbon;
+use App\Models\Log;
+use App\Helpers\Logger;
+
 
 
 class BeneficiaireController extends Controller
@@ -93,6 +96,14 @@ class BeneficiaireController extends Controller
 
         $beneficiaire = Beneficiaire::create($validated);
 
+        Logger::log(
+            'info',
+            'Création bénéficiaire',
+            'Un nouveau bénéficiaire a été créé',
+            ['id' => $beneficiaire->ben_id, "nom" => $beneficiaire->ben_nom, "prenom" => $beneficiaire->ben_prenom],
+            auth()->id()
+        );
+
         return response()->json($beneficiaire, 201);
     }
 
@@ -164,6 +175,14 @@ class BeneficiaireController extends Controller
 
         $beneficiaire->update($validated);
 
+        Logger::log(
+            'info',
+            'Modification bénéficiaire',
+            'Le bénéficiaire a été modifié',
+            ['id' => $beneficiaire->ben_id, "nom" => $beneficiaire->ben_nom, "prenom" => $beneficiaire->ben_prenom],
+            auth()->id()
+        );
+
         return response()->json($beneficiaire);
     }
 
@@ -171,6 +190,14 @@ class BeneficiaireController extends Controller
     {
         $beneficiaire = Beneficiaire::findOrFail($id);
         $beneficiaire->delete();
+
+        Logger::log(
+            'info',
+            'Suppression bénéficiaire',
+            'Le bénéficiaire a été supprimé',
+            ['id' => $beneficiaire->ben_id, "nom" => $beneficiaire->ben_nom, "prenom" => $beneficiaire->ben_prenom],
+            auth()->id()
+        );
 
         return response()->json(['message' => 'Bénéficiaire supprimé avec succès']);
     }

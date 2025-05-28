@@ -9,21 +9,28 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import { useApi } from '@/lib/hooks/useApi'
 
 export default function CreerPartenaire() {
-  useAuthGuard()
+  useAuthGuard() // Ensure that only authenticated users can access the page
   const { t } = useTranslation()
   const router = useRouter()
   const { callApi } = useApi()
 
+  // State for form fields
   const [form, setForm] = useState({ part_nom: '', part_pays: '', part_region: '' })
+
+  // State for error message display
   const [errorMessage, setErrorMessage] = useState('')
+
+  // State for selected region, used to populate country dropdown
   const [selectedRegion, setSelectedRegion] = useState('')
 
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
-    setErrorMessage('')
-    if (e.target.name === 'part_region') setSelectedRegion(e.target.value)
+    setErrorMessage('') // Reset error message on change
+    if (e.target.name === 'part_region') setSelectedRegion(e.target.value) // Update selected region
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -36,12 +43,15 @@ export default function CreerPartenaire() {
       const data = await res.json()
 
       if (!res.ok) {
+        // Display error from backend if request failed
         setErrorMessage(data.message || t('error_occurred'))
         return
       }
 
+      // Redirect to partner list on success
       router.push('/partenaires')
     } catch (err: any) {
+      // Handle fetch or network error
       setErrorMessage(err.message || t('error_occurred'))
     }
   }
@@ -49,6 +59,7 @@ export default function CreerPartenaire() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-4xl mx-auto">
+        {/* Page title and back link */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -65,14 +76,17 @@ export default function CreerPartenaire() {
           </div>
         </header>
 
+        {/* Partner creation form */}
         <div className="bg-white border rounded-2xl shadow-sm p-6 max-w-xl">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Error message box */}
             {errorMessage && (
               <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded">
                 {errorMessage}
               </div>
             )}
 
+            {/* Partner name input */}
             <input
               name="part_nom"
               placeholder={t('partner_name')}
@@ -81,6 +95,7 @@ export default function CreerPartenaire() {
               required
             />
 
+            {/* Region selection dropdown */}
             <select
               name="part_region"
               value={form.part_region}
@@ -94,6 +109,7 @@ export default function CreerPartenaire() {
               ))}
             </select>
 
+            {/* Country selection dropdown (disabled if no region selected) */}
             <select
               name="part_pays"
               value={form.part_pays}
@@ -109,6 +125,7 @@ export default function CreerPartenaire() {
                 ))}
             </select>
 
+            {/* Submit button */}
             <button
               type="submit"
               className="bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30] transition"

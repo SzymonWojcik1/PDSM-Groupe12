@@ -4,22 +4,31 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Validator;
 use App\Enums\Genre;
 use App\Enums\Sexe;
 use App\Enums\Type;
 use App\Enums\Zone;
 use App\Models\Beneficiaire;
+use App\Helpers\Logger;
 
 class BeneficiaireImportController extends Controller
 {
     public function import(Request $request): StreamedResponse
     {
+        $userId = $request->user()?->id;
+
+        Logger::log(
+            'info',
+            'Import bénéficiaires',
+            'Tentative d\'import de bénéficiaires via Excel.',
+            [],
+            $userId
+        );
+
         if (!$request->hasFile('file') || !$request->file('file')->isValid()) {
+
             return response()->json(['error' => 'Fichier invalide.'], 400);
         }
 
@@ -60,36 +69,18 @@ class BeneficiaireImportController extends Controller
 
             $validator = Validator::make($data, [
                 'ben_prenom' => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
-                'ben_nom'    => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
+                'ben_nom' => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
                 'ben_date_naissance' => ['required', 'date_format:Y-m-d'],
                 'ben_region' => ['required', 'in:' . implode(',', $regions)],
-                'ben_pays'   => ['required', 'in:' . implode(',', $pays)],
-                'ben_type'   => ['required', 'in:' . implode(',', $types)],
+                'ben_pays' => ['required', 'in:' . implode(',', $pays)],
+                'ben_type' => ['required', 'in:' . implode(',', $types)],
                 'ben_type_autre' => ['required_if:ben_type,other', 'nullable', 'string', 'max:100', 'regex:/^[\p{L}\-\']+$/u'],
-                'ben_sexe'   => ['required', 'in:' . implode(',', $sexes)],
-                'ben_sexe_autre'   => ['required_if:ben_sexe,other', 'nullable', 'string', 'max:100', 'regex:/^[\p{L}\-\']+$/u'],
-                'ben_genre'  => ['nullable', 'in:' . implode(',', $genres)],
+                'ben_sexe' => ['required', 'in:' . implode(',', $sexes)],
+                'ben_sexe_autre' => ['required_if:ben_sexe,other', 'nullable', 'string', 'max:100', 'regex:/^[\p{L}\-\']+$/u'],
+                'ben_genre' => ['nullable', 'in:' . implode(',', $genres)],
                 'ben_genre_autre' => ['required_if:ben_genre,other', 'nullable', 'string', 'max:100', 'regex:/^[\p{L}\-\']+$/u'],
-                'ben_zone'   => ['required', 'in:' . implode(',', $zones)],
+                'ben_zone' => ['required', 'in:' . implode(',', $zones)],
                 'ben_ethnicite' => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
-            ], [
-                'ben_prenom.regex' => 'Le prénom ne peut contenir que des lettres, des tirets ou des apostrophes.',
-                'ben_nom.regex' => 'Le nom ne peut contenir que des lettres, des tirets ou des apostrophes.',
-                'ben_date_naissance.date_format' => 'La date doit être au format YYYY-MM-DD.',
-                'ben_region.in' => 'Région non valide.',
-                'ben_pays.in' => 'Pays non valide.',
-                'ben_type.in' => 'Type non valide.',
-                'ben_type_autre.required_if' => 'Le champ "Type (autre)" est requis lorsque le type est "other".',
-                'ben_type_autre.regex' => 'Le champ "Type (autre)" ne peut contenir que des lettres, des tirets ou des apostrophes.',
-                'ben_sexe.in' => 'Sexe non valide.',
-                'ben_sexe_autre.required_if' => 'Le champ "Sexe (autre)" est requis lorsque le sexe est "other".',
-                'ben_sexe_autre.regex' => 'Le champ "Sexe (autre)" ne peut contenir que des lettres, des tirets ou des apostrophes.',
-                'ben_genre.in' => 'Genre non valide.',
-                'ben_genre_autre.required_if' => 'Le champ "Genre (autre)" est requis lorsque le genre est "other".',
-                'ben_genre_autre.regex' => 'Le champ "Genre (autre)" ne peut contenir que des lettres, des tirets ou des apostrophes.',
-                'ben_zone.in' => 'Zone non valide.',
-                'ben_ethnicite.regex' => 'ethnicite ne peut contenir que des lettres, des tirets ou des apostrophes.',
-
             ]);
 
             if ($validator->fails()) {
@@ -99,7 +90,6 @@ class BeneficiaireImportController extends Controller
                     'messages' => $validator->errors()->toArray(),
                 ];
             } else {
-                // Vérifier si doublon déjà existant
                 $existing = Beneficiaire::where('ben_nom', $data['ben_nom'])
                     ->where('ben_prenom', $data['ben_prenom'])
                     ->where('ben_date_naissance', $data['ben_date_naissance'])
@@ -122,63 +112,75 @@ class BeneficiaireImportController extends Controller
                 }
             }
         }
+
         if (!empty($errors)) {
-          $headers = array_keys($errors[0]['data']);
-          $csvHeaders = array_merge(['ligne'], $headers, ['colonnes_fautives']);
+            Logger::log(
+                'warning',
+                'Import bénéficiaires échoué',
+                'Des erreurs ont été détectées dans le fichier importé.',
+                ['nb_erreurs' => count($errors)],
+                $userId
+            );
 
-          $callback = function () use ($errors, $headers, $csvHeaders) {
-              $output = fopen('php://output', 'w');
-              fputcsv($output, $csvHeaders);
+            $headers = array_keys($errors[0]['data']);
+            $csvHeaders = array_merge(['ligne'], $headers, ['colonnes_fautives']);
 
-              foreach ($errors as $error) {
-                  $row = [$error['ligne']];
-                  foreach ($headers as $field) {
-                      $row[] = $error['data'][$field] ?? '';
-                  }
-                  $colonnesFautives = implode(', ', array_keys($error['messages']));
-                  $row[] = $colonnesFautives;
+            $callback = function () use ($errors, $headers, $csvHeaders) {
+                $output = fopen('php://output', 'w');
+                fputcsv($output, $csvHeaders);
 
-                  fputcsv($output, $row);
-              }
+                foreach ($errors as $error) {
+                    $row = [$error['ligne']];
+                    foreach ($headers as $field) {
+                        $row[] = $error['data'][$field] ?? '';
+                    }
+                    $colonnesFautives = implode(', ', array_keys($error['messages']));
+                    $row[] = $colonnesFautives;
 
-              fclose($output);
-          };
+                    fputcsv($output, $row);
+                }
 
-          return response()->streamDownload($callback, 'erreurs_import_beneficiaires.csv', [
-              'Content-Type' => 'text/csv',
-          ]);
-      }
+                fclose($output);
+            };
+
+            return response()->streamDownload($callback, 'erreurs_import_beneficiaires.csv', [
+                'Content-Type' => 'text/csv',
+            ]);
+        }
+
         Beneficiaire::insert($validRows);
 
         if (!empty($doublons)) {
+
             return response()->json([
-              'message' => 'Import partiel : certains doublons ont été détectés.',
-              'lignes_importées' => count($validRows),
-              'doublons' => $doublons,
+                'message' => 'Import partiel : certains doublons ont été détectés.',
+                'lignes_importées' => count($validRows),
+                'doublons' => $doublons,
             ]);
         }
 
         return response()->json([
-          'message' => 'Import terminé avec succès.',
-          'lignes_importées' => count($validRows),
+            'message' => 'Import terminé avec succès.',
+            'lignes_importées' => count($validRows),
         ]);
     }
+
     public function storeConfirmedDuplicate(Request $request)
     {
         $data = $request->validate([
-          'ben_prenom'         => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
-          'ben_nom'            => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
-          'ben_date_naissance' => ['required', 'date_format:Y-m-d'],
-          'ben_region'         => ['required', 'string'],
-          'ben_pays'           => ['required', 'string'],
-          'ben_type'           => ['required', 'string'],
-          'ben_type_autre'     => ['nullable', 'string', 'max:100'],
-          'ben_zone'           => ['nullable', 'string'],
-          'ben_sexe'           => ['required', 'string'],
-          'ben_sexe_autre'     => ['nullable', 'string', 'max:100'],
-          'ben_genre'          => ['nullable', 'string'],
-          'ben_genre_autre'    => ['nullable', 'string', 'max:100'],
-          'ben_ethnicite'      => ['required', 'string', 'max:50'],
+            'ben_prenom' => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
+            'ben_nom' => ['required', 'string', 'max:50', 'regex:/^[\p{L}\-\']+$/u'],
+            'ben_date_naissance' => ['required', 'date_format:Y-m-d'],
+            'ben_region' => ['required', 'string'],
+            'ben_pays' => ['required', 'string'],
+            'ben_type' => ['required', 'string'],
+            'ben_type_autre' => ['nullable', 'string', 'max:100'],
+            'ben_zone' => ['nullable', 'string'],
+            'ben_sexe' => ['required', 'string'],
+            'ben_sexe_autre' => ['nullable', 'string', 'max:100'],
+            'ben_genre' => ['nullable', 'string'],
+            'ben_genre_autre' => ['nullable', 'string', 'max:100'],
+            'ben_ethnicite' => ['required', 'string', 'max:50'],
         ]);
 
         $beneficiaire = Beneficiaire::create($data);

@@ -17,9 +17,10 @@ export default function CreateProjetPage() {
   const router = useRouter()
   const { callApi } = useApi()
 
-  // Sécurité : token + 2FA requis
+  // Protects access (authentication + 2FA required)
   useAuthGuard()
 
+  // Form state for creating a project
   const [formData, setFormData] = useState({
     pro_nom: '',
     pro_dateDebut: '',
@@ -27,10 +28,12 @@ export default function CreateProjetPage() {
     pro_part_id: '',
   })
 
+  // List of available partners for the dropdown
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    // Fetch all partners from the backend on page load
     const fetchPartenaires = async () => {
       try {
         const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
@@ -44,6 +47,7 @@ export default function CreateProjetPage() {
     fetchPartenaires()
   }, [])
 
+  // Update form fields and reset any error message
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
     setErrorMessage('')
@@ -56,11 +60,13 @@ export default function CreateProjetPage() {
     const fin = new Date(formData.pro_dateFin)
     const now = new Date()
 
+    // Validation: start date must be before end date
     if (debut > fin) {
       setErrorMessage(t('date_start_after_end'))
       return
     }
 
+    // Validation: dates must be in the future
     if (debut < now || fin < now) {
       setErrorMessage(t('date_in_past'))
       return
@@ -80,6 +86,7 @@ export default function CreateProjetPage() {
         return
       }
 
+      // Redirect to the projects page after successful creation
       router.push('/projets')
     } catch (err: any) {
       setErrorMessage(err.message || t('error_occurred'))
@@ -92,6 +99,7 @@ export default function CreateProjetPage() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
+              {/* Title and description */}
               <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('create_project_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('create_project_description')}</p>
@@ -106,12 +114,14 @@ export default function CreateProjetPage() {
         </header>
 
         <section className="bg-white border rounded-2xl shadow-sm p-6">
+          {/* Error message display */}
           {errorMessage && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
               {errorMessage}
             </div>
           )}
 
+          {/* Project creation form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('project_name')}</label>
@@ -125,6 +135,7 @@ export default function CreateProjetPage() {
               />
             </div>
 
+            {/* Date inputs for start and end */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('start_date')}</label>
@@ -151,6 +162,7 @@ export default function CreateProjetPage() {
               </div>
             </div>
 
+            {/* Partner selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('partner')}</label>
               <select
@@ -169,6 +181,7 @@ export default function CreateProjetPage() {
               </select>
             </div>
 
+            {/* Submit button */}
             <div className="pt-4">
               <button
                 type="submit"

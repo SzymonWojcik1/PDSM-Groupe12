@@ -9,24 +9,28 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
 export default function CreateActivitePage() {
-  useAuthGuard();
-  const { callApi } = useApi();
-  const { t } = useTranslation();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  useAuthGuard(); // Protect the page with an authentication guard
+  const { callApi } = useApi(); // Custom hook to make API calls
+  const { t } = useTranslation(); // i18n translation hook
+  const router = useRouter(); // Router instance for navigation
+  const [loading, setLoading] = useState(false); // Loading state for the form
 
+  // Handle the form submission
   const handleSubmit = async (data: any) => {
     setLoading(true);
     try {
+      // Send a POST request to create a new activity
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
+      // If creation is successful, redirect to activity list
       if (res.ok) {
         router.push('/activites');
       } else {
+        // Otherwise, display the error message
         const err = await res.json();
         alert(err.message || t('error_creating_activity'));
       }
@@ -41,6 +45,7 @@ export default function CreateActivitePage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-4xl mx-auto">
+        {/* Page header with title and back button */}
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -48,6 +53,7 @@ export default function CreateActivitePage() {
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
               <p className="text-gray-600">{t('create_activity_description')}</p>
             </div>
+            {/* Link to go back to the list of activities */}
             <Link
               href="/activites"
               className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea] transition"
@@ -57,6 +63,7 @@ export default function CreateActivitePage() {
           </div>
         </header>
 
+        {/* Activity form section */}
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           <ActiviteForm
             submitLabel={loading ? t('creating') + '...' : t('create_activity_button')}

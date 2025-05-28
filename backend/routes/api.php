@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+
+// Controllers
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\BeneficiaireController;
@@ -19,24 +21,25 @@ use App\Http\Controllers\IndicateurController;
 use App\Http\Controllers\IndicateurActiviteController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ActivitesImportController;
+use App\Http\Controllers\LogController;
 
-// Routes publiques
+// Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
 
-// Routes protégées
+// Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Authentification
+    // Authentication & profile
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/2fa/verify', [AuthController::class, 'verifyTwoFactorCode']);
 
-    // Enums
+    // Enum values
     Route::get('/enums', [EnumController::class, 'enums']);
 
-    // Utilisateurs
+    // User management
     Route::controller(UserController::class)->group(function () {
         Route::get('/users', 'index');
         Route::post('/users', 'store');
@@ -47,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', 'me');
     });
 
-    // Bénéficiaires
+    // Beneficiary management
     Route::controller(BeneficiaireController::class)->group(function () {
         Route::get('/beneficiaires', 'index');
         Route::post('/beneficiaires', 'store');
@@ -57,7 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/beneficiaires/check-duplicate', 'checkDuplicate');
     });
 
-    // Partenaires
+    // Partner management
     Route::controller(PartenaireController::class)->group(function () {
         Route::get('/partenaires', 'index');
         Route::post('/partenaires', 'store');
@@ -67,7 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/partenaires/{id}/users', 'users');
     });
 
-    // Projets
+    // Project management
     Route::controller(ProjetController::class)->group(function () {
         Route::get('/projets', 'index');
         Route::post('/projets', 'store');
@@ -76,7 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/projets/{id}', 'destroy');
     });
 
-    // Activités
+    // Activity management
     Route::controller(ActivitesController::class)->group(function () {
         Route::get('/activites', 'index');
         Route::post('/activites', 'store');
@@ -86,9 +89,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/activites/import', 'import');
     });
 
+    // Activity import (alternative route)
     Route::post('/activites/import', [ActivitesImportController::class, 'import']);
 
-    // Activités et bénéficiaires
+    // Link activities to beneficiaries
     Route::controller(ActiviteBeneficiaireController::class)->group(function () {
         Route::get('/activites/{id}/beneficiaires', 'index');
         Route::post('/activites/{id}/beneficiaires', 'store');
@@ -96,7 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/activites/{id}/beneficiaires/batch', 'batchStore');
     });
 
-    // Cadre logique
+    // Logic frameworks (Cadre Logique)
     Route::controller(CadreLogiqueController::class)->group(function () {
         Route::get('/cadre-logique', 'index');
         Route::post('/cadre-logique', 'store');
@@ -106,7 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/cadre-logique/{id}/structure', 'structure');
     });
 
-    // Objectifs généraux
+    // General objectives
     Route::controller(ObjectifGeneralController::class)->group(function () {
         Route::get('/objectifs-generaux', 'index');
         Route::post('/objectifs-generaux', 'store');
@@ -133,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/outputs/{id}', 'destroy');
     });
 
-    // Indicateurs
+    // Indicators
     Route::controller(IndicateurController::class)->group(function () {
         Route::get('/indicateurs', 'index');
         Route::post('/indicateurs', 'store');
@@ -142,7 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/indicateurs/{id}', 'destroy');
     });
 
-    // Indicateurs liés à des activités
+    // Indicators linked to activities
     Route::controller(IndicateurActiviteController::class)->group(function () {
         Route::get('/indicateur-activite', 'index');
         Route::post('/indicateur-activite', 'store');
@@ -152,7 +156,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/indicateur-activite/{id}/activites-with-count', 'getActivitesWithCount');
     });
 
-    // Compteur de bénéficiaires par indicateur
+    // Beneficiary counter per indicator
     Route::get('/indicateur/{id}/beneficiaires-count', function ($id) {
         $count = DB::table('activite_indicateur')
             ->join('activite_beneficiaire', 'activite_indicateur.act_id', '=', 'activite_beneficiaire.acb_act_id')
@@ -163,7 +167,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['count' => $count]);
     });
 
-    // Évaluations
+    // Evaluations
     Route::controller(EvaluationController::class)->group(function () {
         Route::get('/evaluations', 'index');
         Route::post('/evaluations', 'store');
@@ -173,4 +177,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/evaluations/{id}', 'update');
         Route::get('/mes-evaluations/count', 'countMesEvaluations');
     });
+
+    // Logs (restricted to 'siege' role in controller)
+    Route::get('/logs', [LogController::class, 'index']);
 });

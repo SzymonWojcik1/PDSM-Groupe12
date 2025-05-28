@@ -58,11 +58,18 @@ export default function HomePage() {
             description={t('card_evaluations_desc', 'Consulter ou créer des évaluations des partenaires.')}
           />
           {role === 'siege' && (
-            <Card
-              title={t('card_users_title')}
-              href="/users"
-              description={t('card_users_desc')}
-            />
+            <>
+              <Card
+                title={t('card_users_title')}
+                href="/users"
+                description={t('card_users_desc')}
+              />
+              <Card
+                title={t('card_logs_title', 'Logs')}
+                href="/logs"
+                description={t('card_logs_desc', 'Consulter les actions enregistrées dans l’application.')}
+              />
+            </>
           )}
           <Card
             title={t('card_profile_title')}
