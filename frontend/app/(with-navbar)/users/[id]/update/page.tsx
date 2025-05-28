@@ -183,7 +183,7 @@ export default function EditUserPage() {
             <div>
               <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('edit_user_title')}</h1>
               <div className="h-1 w-20 bg-[#9F0F3A] rounded mb-4"></div>
-              <p className="text-gray-600">{t('edit_user_description') || 'Modifiez les informations de l'utilisateur.'}</p>
+              <p className="text-gray-600">{t('edit_user_description') || "Modifiez les informations de l'utilisateur."}</p>
             </div>
             <Link
               href="/users"
