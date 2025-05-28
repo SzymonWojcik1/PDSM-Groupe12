@@ -117,13 +117,6 @@ export default function UpdateCadreLogiquePage() {
   const [modalContext, setModalContext] = useState<ModalContext>(null);
 
   const checked = useAdminGuard()
-  
-    if (checked === null) return null
-  
-    if (checked === false) {
-      router.push('/home') 
-      return null
-    }
 
   // Dates auto
   useEffect(() => {
@@ -205,6 +198,8 @@ export default function UpdateCadreLogiquePage() {
       alert('Échec de la mise à jour.');
     }
   };
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

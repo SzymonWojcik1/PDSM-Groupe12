@@ -16,13 +16,6 @@ export default function DashboardCadreLogique() {
   const { callApi } = useApi()
 
   const checked = useAdminGuard()
-    
-      if (checked === null) return null
-    
-      if (checked === false) {
-        router.push('/home') 
-        return null
-      }
 
   const [objectifs, setObjectifs] = useState<any[]>([])
   const [stats, setStats] = useState({
@@ -74,6 +67,8 @@ export default function DashboardCadreLogique() {
 
     fetchData()
   }, [id])
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen px-6 py-10 bg-[#F9FAFB]">

@@ -16,13 +16,6 @@ export default function CreateCadreLogique() {
   const { callApi } = useApi();
 
   const checked = useAdminGuard()
-  
-    if (checked === null) return null
-  
-    if (checked === false) {
-      router.push('/home') 
-      return null
-    }
 
   const [cadNom, setCadNom] = useState('');
   const [cadDateDebut, setCadDateDebut] = useState('');
@@ -64,6 +57,8 @@ export default function CreateCadreLogique() {
       setCadDateFin(fin);
     }
   };
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

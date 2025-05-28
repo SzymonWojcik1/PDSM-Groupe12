@@ -22,15 +22,7 @@ export default function CadreLogiquePage() {
   const { callApi } = useApi()
   const [cadres, setCadres] = useState<Cadre[]>([])
   const router = useRouter()
-
   const checked = useAdminGuard()
-  
-    if (checked === null) return null
-  
-    if (checked === false) {
-      router.push('/home') 
-      return null
-    }
 
   useEffect(() => {
     const fetchCadres = async () => {
@@ -67,6 +59,8 @@ export default function CadreLogiquePage() {
     const d = new Date(dateString)
     return d.toLocaleDateString('fr-CH')
   }
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">

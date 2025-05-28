@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
@@ -10,16 +9,7 @@ import { useApi } from '@/lib/hooks/useApi' // Custom hook for API calls with au
 
 export default function LogsPage() {
   const { t } = useTranslation()
-  const router = useRouter()
   const checked = useAdminGuard() // Check if the user is an admin
-
-  if (checked === null) return null
-
-  if (checked === false) {
-    router.push('/home') 
-    return null
-  }
-
   const { callApi } = useApi()
 
   const [logs, setLogs] = useState<any[]>([]) // All logs fetched from the backend

@@ -96,13 +96,6 @@ export default function CadreLogiqueDetailPage() {
   const router = useRouter();
 
   const checked = useAdminGuard()
-    
-  if (checked === null) return null
-
-  if (checked === false) {
-    router.push('/home') 
-    return null
-  }
 
   const [objectifs, setObjectifs] = useState<Objectif[]>([]);
   const [nouveauObjectif, setNouveauObjectif] = useState('');
@@ -159,6 +152,8 @@ export default function CadreLogiqueDetailPage() {
       console.error(`Erreur ajout ${url} :`, err);
     }
   };
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-8">

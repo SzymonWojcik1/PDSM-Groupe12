@@ -32,13 +32,6 @@ export default function LierActivitesPage() {
   const { callApi } = useApi()
 
   const checked = useAdminGuard()
-    
-      if (checked === null) return null
-    
-      if (checked === false) {
-        router.push('/home') 
-        return null
-      }
 
   const [activites, setActivites] = useState<Activite[]>([])
   const [linkedActivites, setLinkedActivites] = useState<ActiviteWithCount[]>([])
@@ -119,6 +112,8 @@ export default function LierActivitesPage() {
   )
 
   const valeurReelle = linkedActivites.reduce((acc, curr) => acc + curr.nbBeneficiaires, 0)
+
+  if (!checked) return null // Block access if not admin
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-8">
