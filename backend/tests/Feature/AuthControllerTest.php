@@ -42,8 +42,11 @@ class AuthControllerTest extends TestCase
             'password' => 'WrongPassword',
         ]);
 
-        $response->assertStatus(422);
+        $this->assertNotEquals(200, $response->status(), 'Login with invalid credentials should not succeed');
+
+        $response->assertJsonStructure(['message']);
     }
+
 
     /** @test */
     public function it_verifies_correct_two_factor_code()

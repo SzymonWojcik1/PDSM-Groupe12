@@ -11,20 +11,29 @@ class PartenaireControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function authenticate(): User
+    {
+        $user = User::factory()->create(['role' => 'siege']);
+        $this->actingAs($user);
+        return $user;
+    }
+
     /** @test */
     public function it_lists_all_partenaires()
     {
+        $this->authenticate();
         Partenaire::factory()->count(3)->create();
 
         $response = $this->getJson('/api/partenaires');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(3);
+                 ->assertJsonCount(4); // 3 created + 1 default partenaire
     }
 
     /** @test */
     public function it_creates_a_valid_partenaire()
     {
+        $this->authenticate();
         $payload = [
             'part_nom' => 'Partenaire Test',
             'part_pays' => 'France',
@@ -40,6 +49,7 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_creation_with_missing_fields()
     {
+        $this->authenticate();
         $response = $this->postJson('/api/partenaires', []);
 
         $response->assertStatus(422)
@@ -49,6 +59,8 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_duplicate_partenaire_on_creation()
     {
+        $this->authenticate();
+
         Partenaire::factory()->create([
             'part_nom' => 'Duplicate',
             'part_pays' => 'France',
@@ -69,6 +81,7 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_shows_a_partenaire()
     {
+        $this->authenticate();
         $partenaire = Partenaire::factory()->create();
 
         $response = $this->getJson("/api/partenaires/{$partenaire->part_id}");
@@ -80,6 +93,7 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_for_non_existing_partenaire()
     {
+        $this->authenticate();
         $response = $this->getJson('/api/partenaires/999');
 
         $response->assertStatus(404)
@@ -89,6 +103,7 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_updates_a_valid_partenaire()
     {
+        $this->authenticate();
         $partenaire = Partenaire::factory()->create();
 
         $payload = [
@@ -106,6 +121,8 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_rejects_duplicate_partenaire_on_update()
     {
+        $this->authenticate();
+
         Partenaire::factory()->create([
             'part_nom' => 'Exist',
             'part_pays' => 'Suisse',
@@ -128,6 +145,8 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_when_updating_non_existing_partenaire()
     {
+        $this->authenticate();
+
         $payload = [
             'part_nom' => 'Inexistant',
             'part_pays' => 'Suisse',
@@ -143,6 +162,7 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_deletes_a_partenaire()
     {
+        $this->authenticate();
         $partenaire = Partenaire::factory()->create();
 
         $response = $this->deleteJson("/api/partenaires/{$partenaire->part_id}");
@@ -154,6 +174,8 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_when_deleting_non_existing_partenaire()
     {
+        $this->authenticate();
+
         $response = $this->deleteJson('/api/partenaires/999');
 
         $response->assertStatus(404)
@@ -163,10 +185,12 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_lists_users_of_a_partenaire()
     {
+        $this->authenticate();
+
         $partenaire = Partenaire::factory()->create();
 
         User::factory()->create([
-            'partenaire_id' => $partenaire->part_id, // ici on utilise bien "partenaire_id"
+            'partenaire_id' => $partenaire->part_id,
         ]);
 
         $response = $this->getJson("/api/partenaires/{$partenaire->part_id}/users");
@@ -178,6 +202,8 @@ class PartenaireControllerTest extends TestCase
     /** @test */
     public function it_returns_404_when_listing_users_of_non_existing_partenaire()
     {
+        $this->authenticate();
+
         $response = $this->getJson('/api/partenaires/999/users');
 
         $response->assertStatus(404)

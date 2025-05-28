@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\User;
 use App\Models\Projet;
 use App\Models\Partenaire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,6 +12,20 @@ use Carbon\Carbon;
 class ProjetControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticate();
+    }
+
+    protected function authenticate()
+    {
+        $user = User::factory()->create([
+            'role' => 'siege',
+        ]);
+        $this->actingAs($user);
+    }
 
     /** @test */
     public function it_lists_all_projects()

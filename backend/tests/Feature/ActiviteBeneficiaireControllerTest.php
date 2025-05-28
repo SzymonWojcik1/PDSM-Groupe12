@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\User;
 use App\Models\Activites;
 use App\Models\Beneficiaire;
 use App\Models\ActiviteBeneficiaire;
@@ -12,9 +13,18 @@ class ActiviteBeneficiaireControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function authenticate(): User
+    {
+        $user = User::factory()->create(); // Pas de use_role ici
+        $this->actingAs($user);
+        return $user;
+    }
+
     /** @test */
     public function it_lists_all_beneficiaires_of_an_activite()
     {
+        $this->authenticate();
+
         $activite = Activites::factory()->create();
         $beneficiaires = Beneficiaire::factory()->count(3)->create();
 
@@ -34,6 +44,8 @@ class ActiviteBeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_adds_a_beneficiaire_to_an_activite()
     {
+        $this->authenticate();
+
         $activite = Activites::factory()->create();
         $beneficiaire = Beneficiaire::factory()->create();
 
@@ -45,11 +57,18 @@ class ActiviteBeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(201)
                  ->assertJsonFragment(['message' => 'Bénéficiaire ajouté avec succès']);
+
+        $this->assertDatabaseHas('activite_beneficiaire', [
+            'acb_act_id' => $activite->act_id,
+            'acb_ben_id' => $beneficiaire->ben_id,
+        ]);
     }
 
     /** @test */
     public function it_rejects_duplicate_beneficiaire_in_activite()
     {
+        $this->authenticate();
+
         $activite = Activites::factory()->create();
         $beneficiaire = Beneficiaire::factory()->create();
 
@@ -71,6 +90,8 @@ class ActiviteBeneficiaireControllerTest extends TestCase
     /** @test */
     public function it_removes_a_beneficiaire_from_an_activite()
     {
+        $this->authenticate();
+
         $activite = Activites::factory()->create();
         $beneficiaire = Beneficiaire::factory()->create();
 
@@ -83,11 +104,18 @@ class ActiviteBeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonFragment(['message' => 'Bénéficiaire retiré avec succès']);
+
+        $this->assertDatabaseMissing('activite_beneficiaire', [
+            'acb_act_id' => $activite->act_id,
+            'acb_ben_id' => $beneficiaire->ben_id,
+        ]);
     }
 
     /** @test */
     public function it_returns_404_when_removing_non_existing_association()
     {
+        $this->authenticate();
+
         $activite = Activites::factory()->create();
         $beneficiaire = Beneficiaire::factory()->create();
 
@@ -95,5 +123,18 @@ class ActiviteBeneficiaireControllerTest extends TestCase
 
         $response->assertStatus(404)
                  ->assertJsonFragment(['message' => 'Association non trouvée']);
+    }
+
+    /** @test */
+    public function it_validates_presence_of_ben_id()
+    {
+        $this->authenticate();
+
+        $activite = Activites::factory()->create();
+
+        $response = $this->postJson("/api/activites/{$activite->act_id}/beneficiaires", []);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['ben_id']);
     }
 }

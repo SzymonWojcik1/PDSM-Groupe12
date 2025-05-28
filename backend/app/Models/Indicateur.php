@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Indicateur extends Model
 {
+    use HasFactory;
+    
     protected $table = 'indicateur';
     protected $primaryKey = 'ind_id';
 

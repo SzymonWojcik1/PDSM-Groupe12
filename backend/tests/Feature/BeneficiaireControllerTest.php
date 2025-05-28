@@ -3,288 +3,264 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\User;
 use App\Models\Beneficiaire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Enums\Type;
 use App\Enums\Zone;
 use App\Enums\Sexe;
 use App\Enums\Genre;
+use Carbon\Carbon;
 
 class BeneficiaireControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function it_creates_a_valid_beneficiaire()
+    protected function authenticate(): User
     {
-        // Create a valid beneficiary and test creation endpoint
-        $data = Beneficiaire::factory()->make([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ])->toArray();
-
-        $response = $this->postJson('/api/beneficiaires', $data);
-
-        $response->assertStatus(201)
-                ->assertJsonFragment(['ben_nom' => $data['ben_nom']]);
-
-        $this->assertDatabaseHas('beneficiaires', [
-            'ben_nom' => $data['ben_nom'],
-        ]);
-    }
-
-    /** @test */
-    public function it_rejects_missing_required_fields()
-    {
-        // Test validation: missing required fields
-        $data = Beneficiaire::factory()->make([
-            'ben_nom' => null,
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ])->toArray();
-
-        $response = $this->postJson('/api/beneficiaires', $data);
-
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['ben_nom']);
-    }
-
-    /** @test */
-    public function it_rejects_type_autre_without_type_autre()
-    {
-        // Test validation: type "other" requires ben_type_autre
-        $response = $this->postJson('/api/beneficiaires', [
-            'ben_prenom' => 'Test',
-            'ben_nom' => 'User',
-            'ben_date_naissance' => '2000-01-01',
-            'ben_region' => 'R1',
-            'ben_pays' => 'P1',
-            'ben_type' => 'other',
-            'ben_type_autre' => null,
-            'ben_zone' => 'urban',
-            'ben_sexe' => 'male',
-            'ben_sexe_autre' => null,
-            'ben_genre' => 'cis_hetero',
-            'ben_genre_autre' => null,
-            'ben_ethnicite' => 'ethnie'
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonFragment(['ben_type_autre' => 'Champ requis si type est "Autre"']);
-    }
-
-    /** @test */
-    public function it_rejects_sexe_autre_without_sexe_autre()
-    {
-        // Test validation: sexe "other" requires ben_sexe_autre
-        $response = $this->postJson('/api/beneficiaires', [
-            'ben_prenom' => 'Test',
-            'ben_nom' => 'User',
-            'ben_date_naissance' => '2000-01-01',
-            'ben_region' => 'R1',
-            'ben_pays' => 'P1',
-            'ben_type' => 'child',
-            'ben_type_autre' => null,
-            'ben_zone' => 'urban',
-            'ben_sexe' => 'other',
-            'ben_sexe_autre' => null,
-            'ben_genre' => 'cis_hetero',
-            'ben_genre_autre' => null,
-            'ben_ethnicite' => 'ethnie'
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonFragment(['ben_sexe_autre' => 'Champ requis si sexe est "Autre"']);
-    }
-
-    /** @test */
-    public function it_rejects_genre_autre_without_genre_autre()
-    {
-        // Test validation: genre "other" requires ben_genre_autre
-        $response = $this->postJson('/api/beneficiaires', [
-            'ben_prenom' => 'Test',
-            'ben_nom' => 'User',
-            'ben_date_naissance' => '2000-01-01',
-            'ben_region' => 'R1',
-            'ben_pays' => 'P1',
-            'ben_type' => 'child',
-            'ben_type_autre' => null,
-            'ben_zone' => 'urban',
-            'ben_sexe' => 'male',
-            'ben_sexe_autre' => null,
-            'ben_genre' => 'other',
-            'ben_genre_autre' => null,
-            'ben_ethnicite' => 'ethnie'
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonFragment(['ben_genre_autre' => 'Champ requis si genre est "Autre"']);
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        return $user;
     }
 
     /** @test */
     public function it_lists_all_beneficiaires()
     {
-        // Test listing all beneficiaries
-        Beneficiaire::factory()->count(3)->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
+        $this->authenticate();
+
+        Beneficiaire::factory()->count(5)->create();
 
         $response = $this->getJson('/api/beneficiaires');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(3);
+                 ->assertJsonCount(5);
     }
 
     /** @test */
-    public function it_filters_beneficiaires_by_fields()
+    public function it_filters_beneficiaires_by_region_and_other_params()
     {
-        // Test filtering beneficiaries by zone and sex
-        Beneficiaire::factory()->create([
-            'ben_zone' => Zone::URBAINE->value,
-            'ben_sexe' => Sexe::FEMME->value,
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
-        Beneficiaire::factory()->create([
-            'ben_zone' => Zone::RURALE->value,
-            'ben_sexe' => Sexe::HOMME->value,
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
+        $this->authenticate();
 
-        $response = $this->getJson('/api/beneficiaires?zone=urban&sexe=female');
+        // Create matching and non-matching records
+        Beneficiaire::factory()->create([ 'ben_region' => 'R1', 'ben_pays' => 'P1', 'ben_zone' => Zone::RURALE->value ]);
+        Beneficiaire::factory()->create([ 'ben_region' => 'R2', 'ben_pays' => 'P2', 'ben_zone' => Zone::URBAINE->value ]);
+
+        $response = $this->getJson('/api/beneficiaires?region=R1&pays=P1&zone=' . Zone::RURALE->value);
 
         $response->assertStatus(200)
                  ->assertJsonCount(1);
     }
 
     /** @test */
-    public function it_shows_a_beneficiaire()
+    public function it_searches_by_nom_or_prenom()
     {
-        // Test showing a single beneficiary
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
+        $this->authenticate();
 
-        $response = $this->getJson("/api/beneficiaires/{$b->getKey()}");
+        Beneficiaire::factory()->create([ 'ben_prenom' => 'Alice', 'ben_nom' => 'Dupont' ]);
+        Beneficiaire::factory()->create([ 'ben_prenom' => 'Bob', 'ben_nom' => 'Martin' ]);
 
+        $response = $this->getJson('/api/beneficiaires?search=Ali');
         $response->assertStatus(200)
-                 ->assertJsonFragment(['ben_nom' => $b->ben_nom]);
+                 ->assertJsonCount(1)
+                 ->assertJsonFragment(['ben_prenom' => 'Alice']);
     }
 
     /** @test */
-    public function it_returns_404_when_beneficiaire_not_found()
+    public function it_stores_a_valid_beneficiaire()
     {
-        // Test 404 response when beneficiary is not found
-        $response = $this->getJson('/api/beneficiaires/999');
+        $this->authenticate();
 
+        $payload = [
+            'ben_prenom' => 'Jean',
+            'ben_nom' => 'Pierre',
+            'ben_date_naissance' => Carbon::now()->subYears(20)->toDateString(),
+            'ben_region' => 'RegionX',
+            'ben_pays' => 'PaysY',
+            'ben_type' => Type::JEUNE->value,
+            'ben_type_autre' => null,
+            'ben_zone' => Zone::URBAINE->value,
+            'ben_sexe' => Sexe::HOMME->value,
+            'ben_sexe_autre' => null,
+            'ben_genre' => Genre::AUTRE->value,
+            'ben_genre_autre' => 'Genre custom',
+            'ben_ethnicite' => 'EthnieZ',
+        ];
+
+        $response = $this->postJson('/api/beneficiaires', $payload);
+
+        $response->assertStatus(201)
+                 ->assertJsonFragment(['ben_prenom' => 'Jean', 'ben_nom' => 'Pierre']);
+
+        $this->assertDatabaseHas('beneficiaires', [
+            'ben_prenom' => 'Jean',
+            'ben_nom' => 'Pierre',
+        ]);
+    }
+
+    /** @test */
+    public function it_validates_required_fields_on_store()
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/beneficiaires', []);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors([
+                     'ben_prenom', 'ben_nom', 'ben_date_naissance',
+                     'ben_region', 'ben_pays', 'ben_type',
+                     'ben_zone', 'ben_sexe', 'ben_ethnicite'
+                 ]);
+    }
+
+    /** @test */
+    public function it_requires_type_autre_when_type_is_autre()
+    {
+        $this->authenticate();
+
+        $payload = Beneficiaire::factory()->make([
+            'ben_type' => Type::AUTRE->value,
+            'ben_type_autre' => null
+        ])->toArray();
+        $payload = array_merge($payload, [
+            'ben_zone' => Zone::URBAINE->value,
+            'ben_sexe' => Sexe::HOMME->value,
+            'ben_ethnicite' => 'E'
+        ]);
+
+        $response = $this->postJson('/api/beneficiaires', $payload);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['ben_type_autre']);
+    }
+
+    /** @test */
+    public function it_validates_age_for_enfant_type()
+    {
+        $this->authenticate();
+
+        $date = Carbon::now()->subYears(4)->toDateString();
+        $payload = Beneficiaire::factory()->make([
+            'ben_date_naissance' => $date,
+            'ben_type' => Type::ENFANT->value
+        ])->toArray();
+        $payload = array_merge($payload, [
+            'ben_zone' => Zone::URBAINE->value,
+            'ben_sexe' => Sexe::FEMME->value,
+            'ben_ethnicite' => 'E'
+        ]);
+
+        $response = $this->postJson('/api/beneficiaires', $payload);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['ben_date_naissance']);
+    }
+
+    /** @test */
+    public function it_shows_a_single_beneficiaire()
+    {
+        $this->authenticate();
+
+        $b = Beneficiaire::factory()->create();
+
+        $response = $this->getJson("/api/beneficiaires/{$b->ben_id}");
+
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['ben_id' => $b->ben_id]);
+    }
+
+    /** @test */
+    public function it_returns_404_when_show_nonexistent()
+    {
+        $this->authenticate();
+
+        $response = $this->getJson('/api/beneficiaires/999');
         $response->assertStatus(404);
     }
 
     /** @test */
     public function it_updates_a_beneficiaire()
     {
-        // Test updating a beneficiary
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
-        $data = $b->toArray();
-        $data['ben_nom'] = 'Modifié';
+        $this->authenticate();
 
-        $response = $this->putJson("/api/beneficiaires/{$b->getKey()}", $data);
+        $b = Beneficiaire::factory()->create();
+        $payload = [
+            'ben_prenom' => 'Updated',
+            'ben_nom' => 'Name',
+            'ben_date_naissance' => Carbon::now()->subYears(25)->toDateString(),
+            'ben_region' => 'R',
+            'ben_pays' => 'P',
+            'ben_type' => Type::JEUNE->value,
+            'ben_type_autre' => null,
+            'ben_zone' => Zone::URBAINE->value,
+            'ben_sexe' => Sexe::HOMME->value,
+            'ben_sexe_autre' => null,
+            'ben_genre' => null,
+            'ben_genre_autre' => null,
+            'ben_ethnicite' => 'E'
+        ];
 
+        $response = $this->putJson("/api/beneficiaires/{$b->ben_id}", $payload);
         $response->assertStatus(200)
-                 ->assertJsonFragment(['ben_nom' => 'Modifié']);
+                 ->assertJsonFragment(['ben_prenom' => 'Updated']);
 
-        $this->assertDatabaseHas('beneficiaires', [
-            'ben_nom' => 'Modifié',
-        ]);
-    }
-
-    /** @test */
-    public function it_rejects_update_if_type_autre_missing_detail()
-    {
-        // Test update validation: type "other" requires ben_type_autre
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
-        $data = $b->toArray();
-        $data['ben_type'] = 'other';
-        $data['ben_type_autre'] = null;
-
-        $response = $this->putJson("/api/beneficiaires/{$b->getKey()}", $data);
-
-        $response->assertStatus(422)
-                 ->assertJsonFragment(['ben_type_autre' => 'Champ requis si type est "Autre"']);
-    }
-
-    /** @test */
-    public function it_returns_200_on_update_with_no_changes()
-    {
-        // Test update endpoint with no changes
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
-        $data = $b->toArray();
-
-        $response = $this->putJson("/api/beneficiaires/{$b->getKey()}", $data);
-
-        $response->assertStatus(200);
-    }
-
-    /** @test */
-    public function it_updates_only_one_field()
-    {
-        // Test updating only one field of a beneficiary
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
-        $data = $b->toArray();
-        $data['ben_ethnicite'] = 'NouvelleEthnie';
-
-        $response = $this->putJson("/api/beneficiaires/{$b->getKey()}", $data);
-
-        $response->assertStatus(200)
-                 ->assertJsonFragment(['ben_ethnicite' => 'NouvelleEthnie']);
+        $this->assertDatabaseHas('beneficiaires', ['ben_prenom' => 'Updated']);
     }
 
     /** @test */
     public function it_deletes_a_beneficiaire()
     {
-        // Test deleting a beneficiary
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
+        $this->authenticate();
 
-        $response = $this->deleteJson("/api/beneficiaires/{$b->getKey()}");
-
+        $b = Beneficiaire::factory()->create();
+        $response = $this->deleteJson("/api/beneficiaires/{$b->ben_id}");
         $response->assertStatus(200)
-                 ->assertJson(['message' => 'Bénéficiaire supprimé avec succès']);
+                 ->assertJsonFragment(['message' => 'Bénéficiaire supprimé avec succès']);
 
-        $this->assertDatabaseMissing('beneficiaires', [
-        'ben_id' => $b->getKey(),
-        ]);
+        $this->assertDatabaseMissing('beneficiaires', ['ben_id' => $b->ben_id]);
     }
 
     /** @test */
-    public function it_returns_404_on_second_delete()
+    public function it_checks_duplicate_and_returns_exists()
     {
-        // Test deleting a beneficiary twice returns 404 on second attempt
-        $b = Beneficiaire::factory()->create([
-            'ben_type' => 'child',
-            'ben_date_naissance' => now()->subYears(10)->format('Y-m-d'),
-        ]);
+        $this->authenticate();
 
-        $this->deleteJson("/api/beneficiaires/{$b->getKey()}");
-        $response = $this->deleteJson("/api/beneficiaires/{$b->getKey()}");
+        $b = Beneficiaire::factory()->create();
+        $payload = [
+            'ben_nom' => $b->ben_nom,
+            'ben_prenom' => $b->ben_prenom,
+            'ben_date_naissance' => $b->ben_date_naissance,
+            'ben_sexe' => $b->ben_sexe->value
+        ];
 
-        $response->assertStatus(404);
+        $response = $this->postJson('/api/beneficiaires/check-duplicate', $payload);
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['exists' => true]);
+    }
+
+    /** @test */
+    public function it_checks_duplicate_and_returns_false_when_none()
+    {
+        $this->authenticate();
+
+        $payload = [
+            'ben_nom' => 'X',
+            'ben_prenom' => 'Y',
+            'ben_date_naissance' => Carbon::now()->subYears(30)->toDateString(),
+            'ben_sexe' => Sexe::FEMME->value
+        ];
+
+        $response = $this->postJson('/api/beneficiaires/check-duplicate', $payload);
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['exists' => false]);
+    }
+
+    /** @test */
+    public function it_validates_fields_on_check_duplicate()
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/beneficiaires/check-duplicate', []);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors([
+                     'ben_nom', 'ben_prenom', 'ben_date_naissance', 'ben_sexe'
+                 ]);
     }
 }

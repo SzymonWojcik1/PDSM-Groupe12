@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
+use App\Models\User;
 use App\Helpers\Logger;
 
 class PasswordResetController extends Controller
 {
     /**
-     * Display the password reset request form.
+     * Send a password reset link to the provided email.
      */
     public function sendResetLink(Request $request)
     {
@@ -24,6 +25,9 @@ class PasswordResetController extends Controller
             $request->only('email')
         );
 
+        // Try to retrieve the user to log their ID if available
+        $user = User::where('email', $request->email)->first();
+
         // If the reset link was sent successfully
         if ($status === Password::RESET_LINK_SENT) {
             Logger::log(
@@ -31,7 +35,7 @@ class PasswordResetController extends Controller
                 'Envoi lien réinitialisation', // Password reset link sent
                 'Lien de réinitialisation envoyé par email', // Reset link sent by email
                 ['email' => $request->email],
-                $user->id // Note: $user is not defined here, this may cause an error
+                $user?->id // Use null-safe operator in case user is not found
             );
 
             // Return a success response
@@ -43,7 +47,7 @@ class PasswordResetController extends Controller
                 'Échec envoi lien réinitialisation', // Failed to send reset link
                 'Échec de l’envoi du lien de réinitialisation', // Failed to send reset link
                 ['email' => $request->email],
-                $user->id // Note: $user is not defined here, this may cause an error
+                $user?->id // Use null-safe operator in case user is not found
             );
 
             // Return an error response
@@ -69,15 +73,20 @@ class PasswordResetController extends Controller
             ],
         ]);
 
+        // Prepare a reference to the user for later use
+        $userRef = null;
+
         // Attempt to reset the user's password
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) use ($request) {
+            function ($user, $password) use (&$userRef) {
                 // Update the user's password and remember token
                 $user->forceFill([
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                $userRef = $user; // Save the user for logging outside closure
 
                 // Log the successful password reset
                 Logger::log(
@@ -97,13 +106,16 @@ class PasswordResetController extends Controller
         if ($status === Password::PASSWORD_RESET) {
             return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
         } else {
+            // Attempt to retrieve the user (if not already available) for logging
+            $user = $userRef ?? User::where('email', $request->email)->first();
+
             // Log the failed password reset attempt
             Logger::log(
                 'info',
                 'Échec réinitialisation mot de passe', // Password reset failed
                 'La réinitialisation a échoué', // Reset failed
                 ['email' => $request->email],
-                $user->id // Note: $user is not defined here, this may cause an error
+                $user?->id // Use null-safe operator
             );
 
             // Return an error response

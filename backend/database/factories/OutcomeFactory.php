@@ -18,6 +18,7 @@ class OutcomeFactory extends Factory
         return [
             'out_nom' => $this->faker->sentence(3),
             'obj_id' => ObjectifGeneral::factory(),
+            'out_code' => strtoupper($this->faker->bothify('OUT-###')), // <-- AJOUT ICI
         ];
     }
 }

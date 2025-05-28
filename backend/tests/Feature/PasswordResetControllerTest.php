@@ -5,33 +5,32 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Notifications\ResetPasswordNotification;
-
 
 class PasswordResetControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected string $email = 'yann.husmann@hes-so.ch';
 
     /** @test */
     public function it_sends_a_password_reset_link_to_valid_email()
     {
         Notification::fake();
 
-        $user = User::factory()->create(['email' => 'yann.husmann@hes-so.ch']);
+        $user = User::factory()->create(['email' => $this->email]);
 
         $response = $this->postJson('/api/password/forgot', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
         ]);
 
         $response->assertStatus(200)
                  ->assertJson(['message' => 'Lien envoyé par e-mail.']);
 
         Notification::assertSentTo($user, ResetPasswordNotification::class);
-
     }
 
     /** @test */
@@ -40,7 +39,7 @@ class PasswordResetControllerTest extends TestCase
         Notification::fake();
 
         $response = $this->postJson('/api/password/forgot', [
-            'email' => 'yann.husman@hes-so.ch',
+            'email' => 'nonexistent@example.com',
         ]);
 
         $response->assertStatus(400)
@@ -55,14 +54,14 @@ class PasswordResetControllerTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create([
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'password' => Hash::make('OldPassword123!')
         ]);
 
-        $token = Password::createToken($user);
+        $token = Password::broker()->createToken($user);
 
         $response = $this->postJson('/api/password/reset', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'token' => $token,
             'password' => 'NewPassword123!',
             'password_confirmation' => 'NewPassword123!',
@@ -78,12 +77,12 @@ class PasswordResetControllerTest extends TestCase
     public function it_fails_reset_with_invalid_token()
     {
         $user = User::factory()->create([
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'password' => Hash::make('OldPassword123!')
         ]);
 
         $response = $this->postJson('/api/password/reset', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'token' => 'invalid-token',
             'password' => 'NewPassword123!',
             'password_confirmation' => 'NewPassword123!',
@@ -97,13 +96,13 @@ class PasswordResetControllerTest extends TestCase
     public function it_fails_reset_with_weak_password()
     {
         $user = User::factory()->create([
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
         ]);
 
-        $token = Password::createToken($user);
+        $token = Password::broker()->createToken($user);
 
         $response = $this->postJson('/api/password/reset', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'token' => $token,
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -117,13 +116,13 @@ class PasswordResetControllerTest extends TestCase
     public function it_fails_when_password_confirmation_does_not_match()
     {
         $user = User::factory()->create([
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
         ]);
 
-        $token = Password::createToken($user);
+        $token = Password::broker()->createToken($user);
 
         $response = $this->postJson('/api/password/reset', [
-            'email' => 'yann.husmann@hes-so.ch',
+            'email' => $this->email,
             'token' => $token,
             'password' => 'Password123!',
             'password_confirmation' => 'WrongConfirmation!',
