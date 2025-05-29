@@ -25,8 +25,6 @@ class UserControllerTest extends TestCase
                              'nom' => 'Dupont',
                              'prenom' => 'Jean',
                              'email' => 'jean.dupont@example.com',
-                             'password' => 'Password123!',
-                             'password_confirmation' => 'Password123!',
                              'role' => Role::UTILISATEUR->value,
                          ]);
 
@@ -46,8 +44,6 @@ class UserControllerTest extends TestCase
                              'nom' => 'Test',
                              'prenom' => 'User',
                              'email' => 'test@example.com',
-                             'password' => 'Password123!',
-                             'password_confirmation' => 'Password123!',
                          ]);
 
         $response->assertStatus(403);
@@ -129,28 +125,6 @@ class UserControllerTest extends TestCase
     }
 
     /** @test */
-    public function siege_can_update_user_without_changing_password()
-    {
-        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
-        $token = $siege->createToken('apitoken')->plainTextToken;
-
-        $user = User::factory()->create([
-            'password' => Hash::make('OriginalPassword123!')
-        ]);
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-                        ->putJson("/api/users/{$user->id}", [
-                            'nom' => 'NouveauNom',
-                            // Pas de champ "password"
-                        ]);
-
-        $response->assertStatus(200)
-                ->assertJsonFragment(['nom' => 'NouveauNom']);
-
-        $this->assertTrue(Hash::check('OriginalPassword123!', $user->fresh()->password));
-    }
-
-    /** @test */
     public function it_rejects_update_with_existing_email()
     {
         $siege = User::factory()->create(['role' => Role::SIEGE->value]);
@@ -191,29 +165,10 @@ class UserControllerTest extends TestCase
                 'nom' => 'Dupont123!',
                 'prenom' => 'Jean@',
                 'email' => 'invalidchars@example.com',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
             ]);
 
         $response->assertStatus(422)
                 ->assertJsonValidationErrors(['nom', 'prenom']);
-    }
-
-    /** @test */
-    public function it_rejects_weak_password_on_update()
-    {
-        $siege = User::factory()->create(['role' => Role::SIEGE->value]);
-        $token = $siege->createToken('apitoken')->plainTextToken;
-        $user = User::factory()->create();
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-                        ->putJson("/api/users/{$user->id}", [
-                            'password' => 'weakpass',
-                            'password_confirmation' => 'weakpass',
-                        ]);
-
-        $response->assertStatus(422)
-                ->assertJsonValidationErrors(['password']);
     }
 
     /** @test */
@@ -227,8 +182,6 @@ class UserControllerTest extends TestCase
                             'nom' => 'Nom',
                             'prenom' => 'Prenom',
                             'email' => 'defaultrole@example.com',
-                            'password' => 'Password123!',
-                            'password_confirmation' => 'Password123!',
                         ]);
 
         $response->assertStatus(201);
@@ -251,8 +204,6 @@ class UserControllerTest extends TestCase
                         'nom' => 'Test',
                         'prenom' => 'Invalide',
                         'email' => 'invalidrole@example.com',
-                        'password' => 'Password123!',
-                        'password_confirmation' => 'Password123!',
                         'role' => 'HACKER',
                     ]);
         $create->assertStatus(422)->assertJsonValidationErrors(['role']);
@@ -276,8 +227,6 @@ class UserControllerTest extends TestCase
                             'nom' => "O'Connor",
                             'prenom' => "Jean-Luc",
                             'email' => 'jean.luc@example.com',
-                            'password' => 'Password123!',
-                            'password_confirmation' => 'Password123!',
                         ]);
 
         $response->assertStatus(201)
@@ -327,8 +276,6 @@ class UserControllerTest extends TestCase
                 'nom' => 'Jean',
                 'prenom' => 'CN',
                 'email' => 'jean.cn@example.com',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
                 'role' => Role::CN->value,
                 'superieur_id' => $cr->id
             ]);
@@ -432,8 +379,6 @@ class UserControllerTest extends TestCase
                 'nom' => 'Jean',
                 'prenom' => 'Test',
                 'email' => 'equal@example.com',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
                 'role' => Role::CN->value,
                 'superieur_id' => $cn->id
             ]);
@@ -448,8 +393,6 @@ class UserControllerTest extends TestCase
                 'nom' => 'Jean',
                 'prenom' => 'Test',
                 'email' => 'lower@example.com',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
                 'role' => Role::CN->value,
                 'superieur_id' => $utilisateur->id
             ]);
@@ -469,8 +412,6 @@ class UserControllerTest extends TestCase
                 'nom' => 'Jean',
                 'prenom' => 'Test',
                 'email' => 'valid.superior@example.com',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
                 'role' => Role::CN->value,
                 'superieur_id' => $cr->id
             ]);

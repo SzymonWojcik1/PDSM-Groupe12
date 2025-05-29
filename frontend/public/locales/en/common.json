@@ -311,6 +311,7 @@
     "reset_success": "Password successfully reset.",
     "reset_invalid_link": "Invalid or incomplete link.",
     "reset_unknown_error": "Unknown error. Please try again.",
+    "back_to_login": "Back to login",
     "forgot_title": "Forgot password",
     "forgot_description": "Enter your email address to receive a reset link.",
     "forgot_button": "Send link",

@@ -310,6 +310,7 @@
     "reset_success": "Mot de passe réinitialisé avec succès.",
     "reset_invalid_link": "Lien invalide ou incomplet.",
     "reset_unknown_error": "Erreur inconnue. Veuillez réessayer.",
+    "back_to_login": "Retourner à la connexion",
     "forgot_title": "Mot de passe oublié",
     "forgot_description": "Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.",
     "forgot_button": "Envoyer le lien",

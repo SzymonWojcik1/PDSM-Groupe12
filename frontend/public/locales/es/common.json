@@ -311,6 +311,7 @@
     "reset_success": "Contraseña restablecida con éxito.",
     "reset_invalid_link": "Enlace inválido o incompleto.",
     "reset_unknown_error": "Error desconocido. Por favor, inténtalo de nuevo.",
+    "back_to_login": "Volver al inicio de sesión",
     "forgot_title": "¿Olvidaste tu contraseña?",
     "forgot_description": "Introduce tu correo electrónico para recibir un enlace de restablecimiento.",
     "forgot_button": "Enviar enlace",

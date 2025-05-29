@@ -22,7 +22,6 @@ type User = { id: number; nom: string; prenom: string; role: string }
  * This component provides a form interface for editing existing users in the system.
  * Features include:
  * - Pre-filled form with user's current data
- * - Password update (optional)
  * - Role-based hierarchy for superiors
  * - Partner organization selection
  * - Internationalization support
@@ -33,7 +32,6 @@ type User = { id: number; nom: string; prenom: string; role: string }
  * - Role assignment
  * - Superior selection (based on role hierarchy)
  * - Partner organization assignment
- * - Password (optional)
  */
 export default function EditUserPage() {
   const { t } = useTranslation()
@@ -58,8 +56,6 @@ export default function EditUserPage() {
     telephone: '',
     role: '',
     partenaire_id: '',
-    password: '',
-    password_confirmation: '',
     superieur_id: ''
   })
 
@@ -88,8 +84,6 @@ export default function EditUserPage() {
           telephone: data.telephone || '',
           role: data.role || '',
           partenaire_id: data.partenaire?.part_id?.toString() || '',
-          password: '',
-          password_confirmation: '',
           superieur_id: data.superieur?.id?.toString() || ''
         })
         setCurrentRole(data.role)
@@ -246,24 +240,6 @@ export default function EditUserPage() {
               value={formData.telephone}
               onChange={handleChange}
               placeholder={t('input_phone')}
-              className="border p-2 rounded text-black"
-            />
-
-            {/* Password update fields (optional) */}
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder={t('input_password')}
-              className="border p-2 rounded text-black"
-            />
-            <input
-              type="password"
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              placeholder={t('input_password_confirm')}
               className="border p-2 rounded text-black"
             />
 

@@ -81,10 +81,6 @@ class UserController extends Controller
             'nom' => ['sometimes', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
             'prenom' => ['sometimes', 'string', 'max:255', 'regex:/^[\p{L}\'\-\s]+$/u'],
             'email' => ['sometimes', 'string', 'email', Rule::unique('users')->ignore($user->id)],
-            'password' => [
-                'nullable', 'string', 'confirmed', 'min:8',
-                'regex:/[A-Z]/', 'regex:/[!@#$%^&*(),.?":{}|<>]/'
-            ],
             'role' => ['sometimes', Rule::in(array_column(Role::cases(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:20'],
             'partenaire_id' => ['nullable', 'exists:partenaires,part_id'],
@@ -110,7 +106,6 @@ class UserController extends Controller
             'nom' => $request->nom ?? $user->nom,
             'prenom' => $request->prenom ?? $user->prenom,
             'email' => $request->email ?? $user->email,
-            'password' => $request->filled('password') ? Hash::make($request->password) : $user->password,
             'role' => $newRole,
             'telephone' => $request->telephone ?? $user->telephone,
             'partenaire_id' => $request->partenaire_id ?? $user->partenaire_id,
