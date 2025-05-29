@@ -1,4 +1,4 @@
-# 🌍 Terre des Hommes – Beneficiary Monitoring Platform
+# 🌍 Terre des Hommes – Monitoring Platform
 
 This repository hosts a full-stack platform developed for **Terre des Hommes Suisse**, aiming to enhance the monitoring, evaluation, and self-assessment of humanitarian projects across multiple countries.
 
