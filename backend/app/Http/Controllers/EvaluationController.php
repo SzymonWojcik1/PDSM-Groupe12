@@ -123,14 +123,25 @@ class EvaluationController extends Controller
     {
         $evaluation = Evaluation::findOrFail($id);
 
-        $reponses = $request->input('reponses'); // Expected format: [0 => 'reussi', 1 => 'non_reussi']
-        $criteres = $evaluation->criteres; // Automatically casted to array
+        // Expected format: array of objects like: [ ['label' => '...', 'reussi' => true], ... ]
+        $reponses = $request->input('reponses');
 
-        // Update each criterion with the submitted result
-        foreach ($criteres as $index => &$critere) {
-            if (isset($reponses[$index])) {
-                $critere['reussi'] = $reponses[$index] === 'reussi';
+        // Validate format: array with label and reussi fields
+        if (!is_array($reponses)) {
+            return response()->json(['error' => 'Format invalide pour les réponses'], 400);
+        }
+
+        // Rebuild criteres array from validated reponses
+        $criteres = [];
+        foreach ($reponses as $rep) {
+            if (!isset($rep['label']) || !isset($rep['reussi'])) {
+                return response()->json(['error' => 'Chaque critère doit avoir un label et un champ reussi'], 400);
             }
+
+            $criteres[] = [
+                'label' => $rep['label'],
+                'reussi' => (bool) $rep['reussi'] // Assure que la valeur est bien un booléen
+            ];
         }
 
         // Save updated evaluation
@@ -153,6 +164,7 @@ class EvaluationController extends Controller
 
         return response()->json(['message' => 'Évaluation mise à jour']);
     }
+
 
     // Return the count of pending evaluations for a specific user
     public function countMesEvaluations(Request $request)
