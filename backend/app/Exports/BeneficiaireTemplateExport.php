@@ -7,22 +7,22 @@ use App\Enums\Sexe;
 use App\Enums\Type;
 use App\Enums\Zone;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\NamedRange;
 
-class BeneficiaireTemplateExport implements FromCollection, WithHeadings, WithEvents
+class BeneficiaireTemplateExport implements FromArray, WithHeadings, WithEvents
 {
     /**
      * Returns a sample row of beneficiary data for the Excel template.
      */
-    public function collection()
+    public function array():array
     {
-        return collect([
+        return [
             ['Jean', 'Dupont', '1990-05-14', 'Europe', 'France', 'adult', null, 'urban', 'male', null, 'cis_hetero', null, 'Français']
-        ]);
+        ];
     }
 
     /**
