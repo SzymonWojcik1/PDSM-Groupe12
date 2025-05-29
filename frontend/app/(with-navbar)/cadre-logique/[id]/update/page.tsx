@@ -9,6 +9,7 @@ import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import useAdminGuard from '@/lib/hooks/useAdminGuard';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Type definitions for the logical framework structure
@@ -158,6 +159,7 @@ export default function UpdateCadreLogiquePage() {
   useAuthGuard();
   const { callApi } = useApi();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { id } = useParams();
   const [cadNom, setCadNom] = useState('');
@@ -287,11 +289,11 @@ export default function UpdateCadreLogiquePage() {
         {/* Page header with title and back button */}
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">Modifier le cadre logique</h1>
+            <h1 className="text-4xl font-bold text-[#9F0F3A] mb-1">{t('update_logframe')}</h1>
             <div className="h-1 w-20 bg-[#9F0F3A] rounded"></div>
           </div>
           <Link href="/cadre-logique" className="text-sm text-[#9F0F3A] border border-[#9F0F3A] px-4 py-2 rounded hover:bg-[#f4e6ea]">
-            Retour à la liste
+            {t('back_to_list')}
           </Link>
         </header>
 
@@ -299,7 +301,7 @@ export default function UpdateCadreLogiquePage() {
         <div className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block font-semibold mb-1">Nom du cadre</label>
+              <label className="block font-semibold mb-1">{t('logframe_name')}</label>
               <input
                 type="text"
                 value={cadNom}
@@ -309,7 +311,7 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Année de début</label>
+              <label className="block font-semibold mb-1">{t('start_year')}</label>
               <input
                 type="number"
                 value={annee}
@@ -319,15 +321,15 @@ export default function UpdateCadreLogiquePage() {
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Date de début automatique</label>
+              <label className="block font-semibold mb-1">{t('auto_start_date')}</label>
               <input type="date" value={cadDateDebut} readOnly className="w-full border border-gray-300 rounded p-2 bg-gray-100" />
             </div>
             <div>
-              <label className="block font-semibold mb-1">Date de fin automatique</label>
+              <label className="block font-semibold mb-1">{t('auto_end_date')}</label>
               <input type="date" value={cadDateFin} readOnly className="w-full border border-gray-300 rounded p-2 bg-gray-100" />
             </div>
             <button type="submit" className="w-full bg-[#9F0F3A] text-white py-2 rounded hover:bg-[#800d30]">
-              Enregistrer les modifications
+              {t('save_changes')}
             </button>
           </form>
         </div>
@@ -355,11 +357,11 @@ export default function UpdateCadreLogiquePage() {
             <table className="w-full text-sm border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outcomes</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Outputs</th>
-                  <th className="border px-4 py-2 w-1/4 text-left">Indicateurs</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">Valeur cible</th>
-                  <th className="border px-4 py-2 w-1/6 text-left">Valeur réelle</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outcomes')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('outputs')}</th>
+                  <th className="border px-4 py-2 w-1/4 text-left">{t('indicators')}</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">{t('target_value')}</th>
+                  <th className="border px-4 py-2 w-1/6 text-left">{t('actual_value')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -458,8 +460,8 @@ export default function UpdateCadreLogiquePage() {
       {/* Dynamic modals for editing different elements */}
       {modalContext?.type === 'obj' && (
         <ModalInput
-          title="Modifier objectif général"
-          label="Nom de l'objectif"
+          title={t('edit_general_objective')}
+          label={t('general_objective_name')}
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
@@ -470,8 +472,8 @@ export default function UpdateCadreLogiquePage() {
       )}
       {modalContext?.type === 'out' && (
         <ModalInput
-          title="Modifier un outcome"
-          label="Nom de l'outcome"
+          title={t('edit_outcome')}
+          label={t('outcome_name')}
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {
@@ -482,8 +484,8 @@ export default function UpdateCadreLogiquePage() {
       )}
       {modalContext?.type === 'opu' && (
         <ModalInput
-          title="Modifier un output"
-          label="Nom de l'output"
+          title={t('edit_output')}
+          label={t('output_name')}
           initialValue={modalContext.currentName}
           onClose={() => setModalContext(null)}
           onConfirm={async (nom) => {

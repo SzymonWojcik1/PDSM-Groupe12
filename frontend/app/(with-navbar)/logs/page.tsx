@@ -145,7 +145,13 @@ export default function LogsPage() {
                   filteredLogs.map((log, index) => (
                     <tr key={index} className="border-t border-gray-200">
                       <td className="p-2">{new Date(log.created_at).toLocaleString()}</td>
-                      <td className="p-2">{log.user_id || '-'}</td>
+                      <td className="p-2">
+                        {log.user_nom && log.user_prenom
+                          ? `${log.user_prenom} ${log.user_nom}`
+                          : log.user && log.user.prenom && log.user.nom
+                            ? `${log.user.prenom} ${log.user.nom}`
+                            : log.user_id || '-'}
+                      </td>
                       <td className="p-2">{log.level}</td>
                       <td className="p-2">{log.action}</td>
                       <td className="p-2">{log.message}</td>

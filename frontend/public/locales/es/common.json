@@ -7,7 +7,7 @@
     "users": "Usuarios",
     "profile": "Mi perfil",
     "logout": "Cerrar sesión",
-    "dashboard_title": "Bienvenido a tu página de inicio",
+    "dashboard_title": "Dashboard Marco Lógico",
     "dashboard_intro": "Selecciona una sección del menú de la izquierda o de las opciones a continuación para comenzar.",
     "card_beneficiaries_title": "Beneficiarios",
     "card_beneficiaries_desc": "Gestionar los beneficiarios registrados en el sistema.",
@@ -413,5 +413,14 @@
     "logs_context": "Contexto",
     "logs_none_found": "No se encontraron logs.",
     "card_logs_title": "Logs",
-    "card_logs_desc": "Consultar las acciones registradas en la aplicación."
+    "card_logs_desc": "Consultar las acciones registradas en la aplicación.",
+    "edit_general_objective": "Modificar objetivo general",
+    "general_objective_name": "Nombre del objetivo",
+    "edit_outcome": "Modificar un outcome",
+    "outcome_name": "Nombre del outcome",
+    "edit_output": "Modificar un output",
+    "output_name": "Nombre del output",
+    "edit_indicator": "Modificar un indicador",
+    "indicator_name": "Nombre del indicador",
+    "delete_confirm": "¿Eliminar este elemento?"
 }

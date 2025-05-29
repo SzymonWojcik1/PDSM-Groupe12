@@ -7,7 +7,7 @@
     "users": "Users",
     "profile": "My profile",
     "logout": "Logout",
-    "dashboard_title": "Welcome to your homepage",
+    "dashboard_title": "Logical Framework Dashboard",
     "dashboard_intro": "Select a section from the menu on the left or from the options below to get started.",
     "card_beneficiaries_title": "Beneficiaries",
     "card_beneficiaries_desc": "Manage the beneficiaries registered in the system.",
@@ -412,5 +412,14 @@
     "logs_context": "Context",
     "logs_none_found": "No logs found.",
     "card_logs_title": "Logs",
-    "card_logs_desc": "View the actions recorded in the application."
+    "card_logs_desc": "View the actions recorded in the application.",
+    "edit_general_objective": "Edit general objective",
+    "general_objective_name": "Objective name",
+    "edit_outcome": "Edit outcome",
+    "outcome_name": "Outcome name",
+    "edit_output": "Edit output",
+    "output_name": "Output name",
+    "edit_indicator": "Edit indicator",
+    "indicator_name": "Indicator name",
+    "delete_confirm": "Delete this item?"
 }
