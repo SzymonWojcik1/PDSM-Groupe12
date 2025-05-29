@@ -54,13 +54,13 @@ export default function UpdateProjetPage() {
         const resPartenaires = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/partenaires`)
         const dataPartenaires = await resPartenaires.json()
         setPartenaires(dataPartenaires)
-      } catch (err) {
+      } catch {
         setErrorMessage(t('error_occurred'))
       }
     }
 
     fetchData()
-  }, [id])
+  }, [id, callApi, t])
 
   // Handles form input updates
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -104,8 +104,12 @@ export default function UpdateProjetPage() {
 
       // Redirect to project list on success
       router.push('/projets')
-    } catch (err: any) {
-      setErrorMessage(err.message || t('error_occurred'))
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message || t('error_occurred'))
+      } else {
+        setErrorMessage(t('error_occurred'))
+      }
     }
   }
 

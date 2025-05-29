@@ -45,7 +45,7 @@ export default function CreateProjetPage() {
     }
 
     fetchPartenaires()
-  }, [])
+  }, [callApi])
 
   // Update form fields and reset any error message
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -88,8 +88,12 @@ export default function CreateProjetPage() {
 
       // Redirect to the projects page after successful creation
       router.push('/projets')
-    } catch (err: any) {
-      setErrorMessage(err.message || t('error_occurred'))
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message || t('error_occurred'))
+      } else {
+        setErrorMessage(t('error_occurred'))
+      }
     }
   }
 

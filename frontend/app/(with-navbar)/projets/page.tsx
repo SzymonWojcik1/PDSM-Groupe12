@@ -43,7 +43,7 @@ export default function ProjetsPage() {
     }
 
     fetchProjets()
-  }, [])
+  }, [callApi])
 
   useEffect(() => {
     // Apply filters whenever input or original data changes
