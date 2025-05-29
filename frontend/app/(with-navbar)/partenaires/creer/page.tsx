@@ -21,15 +21,12 @@ export default function CreerPartenaire() {
   const [errorMessage, setErrorMessage] = useState('')
 
   // State for selected region, used to populate country dropdown
-  const [selectedRegion, setSelectedRegion] = useState('')
 
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
     setErrorMessage('') // Reset error message on change
-    if (e.target.name === 'part_region') setSelectedRegion(e.target.value) // Update selected region
   }
-
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,9 +47,13 @@ export default function CreerPartenaire() {
 
       // Redirect to partner list on success
       router.push('/partenaires')
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Handle fetch or network error
-      setErrorMessage(err.message || t('error_occurred'))
+      if (err instanceof Error) {
+        setErrorMessage(err.message || t('error_occurred'))
+      } else {
+        setErrorMessage(t('error_occurred'))
+      }
     }
   }
 

@@ -8,14 +8,22 @@ import useAuthGuard from '@/lib/hooks/useAuthGuard'
 import { useApi } from '@/lib/hooks/useApi'
 import { countriesByRegion } from '@/lib/countriesByRegion'
 
+type Partenaire = {
+  part_id: number
+  part_nom: string
+  part_pays: string
+  part_region: string
+  // Add other fields if needed
+}
+
 export default function PartenairesPage() {
   useAuthGuard() // Ensures that only authenticated users can access this page
   const { callApi } = useApi()
   const { t } = useTranslation()
 
   // State for the list of partners and filters
-  const [partenaires, setPartenaires] = useState<any[]>([])
-  const [filtered, setFiltered] = useState<any[]>([])
+  const [partenaires, setPartenaires] = useState<Partenaire[]>([])
+  const [filtered, setFiltered] = useState<Partenaire[]>([])
   const [filters, setFilters] = useState({
     nom: '',
     pays: '',

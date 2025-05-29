@@ -36,14 +36,14 @@ export default function UpdatePartenaire() {
           part_pays: data.part_pays || '',
           part_region: data.part_region || '',
         })
-      } catch (err) {
+      } catch {
         // Display a translated error message if fetch fails
         setErrorMessage(t('error_occurred'))
       }
     }
 
     fetchData()
-  }, [id, t])
+  }, [id, t, callApi])
 
   // Handle input change for both text and select inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -77,8 +77,12 @@ export default function UpdatePartenaire() {
 
       // Redirect to the partners list if update succeeds
       router.push('/partenaires')
-    } catch (err: any) {
-      setErrorMessage(err.message || t('error_occurred'))
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message || t('error_occurred'))
+      } else {
+        setErrorMessage(t('error_occurred'))
+      }
     }
   }
 
