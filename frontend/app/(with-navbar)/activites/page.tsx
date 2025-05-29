@@ -233,7 +233,8 @@ export default function ActivitesPage() {
 
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL_WITHOUT_API}activites/template`}
-              download
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-5 py-2 rounded-lg border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition"
             >
               {t('download_excel_template')}
