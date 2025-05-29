@@ -161,8 +161,10 @@ class ActiviteBeneficiaireController extends Controller
             auth()->id()
         );
 
+        $status = $inserted > 0 ? 201 : 200;
+
         return response()->json([
             'message' => "Ajout effectué. $inserted bénéficiaires ajoutés. $duplicates doublons ignorés."
-        ]);
+        ], $status);
     }
 }

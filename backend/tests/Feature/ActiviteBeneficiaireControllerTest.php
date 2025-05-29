@@ -137,4 +137,82 @@ class ActiviteBeneficiaireControllerTest extends TestCase
         $response->assertStatus(422)
                  ->assertJsonValidationErrors(['ben_id']);
     }
+
+    /** @test */
+    public function it_add_multiple_beneficiaires_to_an_activite()
+    {
+        $this->authenticate();
+
+        $activite = Activites::factory()->create();
+        $b1 = Beneficiaire::factory()->create();
+        $b2 = Beneficiaire::factory()->create();
+
+        $response = $this->postJson("/api/activites/{$activite->act_id}/beneficiaires/batch", [
+            'beneficiaires' => [$b1->ben_id, $b2->ben_id]
+        ]);
+
+        $response->assertStatus(201)
+                ->assertJson([
+                    'message' => 'Ajout effectué. 2 bénéficiaires ajoutés. 0 doublons ignorés.'
+                ]);
+
+        $this->assertDatabaseHas('activite_beneficiaire', [
+            'acb_act_id' => $activite->act_id,
+            'acb_ben_id' => $b1->ben_id,
+        ]);
+
+        $this->assertDatabaseHas('activite_beneficiaire', [
+            'acb_act_id' => $activite->act_id,
+            'acb_ben_id' => $b2->ben_id,
+        ]);
+    }
+
+    /** @test */
+    public function it_rejects_if_no_beneficiaires_are_provided()
+    {
+        $this->authenticate();
+        $activite = Activites::factory()->create();
+
+        $response = $this->postJson("/api/activites/{$activite->act_id}/beneficiaires/batch", [
+            'beneficiaires' => []
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    /** @test */
+    public function it_rejects_if_any_beneficiaire_does_not_exist()
+    {
+        $this->authenticate();
+        $activite = Activites::factory()->create();
+        $valid = Beneficiaire::factory()->create();
+
+        $response = $this->postJson("/api/activites/{$activite->act_id}/beneficiaires/batch", [
+            'beneficiaires' => [$valid->ben_id, 99999]
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    /** @test */
+    public function it_ignores_duplicate_beneficiaire_entries()
+    {
+        $this->authenticate();
+        $activite = Activites::factory()->create();
+        $ben = Beneficiaire::factory()->create();
+
+        ActiviteBeneficiaire::create([
+            'acb_act_id' => $activite->act_id,
+            'acb_ben_id' => $ben->ben_id,
+        ]);
+
+        $response = $this->postJson("/api/activites/{$activite->act_id}/beneficiaires/batch", [
+            'beneficiaires' => [$ben->ben_id]
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'message' => 'Ajout effectué. 0 bénéficiaires ajoutés. 1 doublons ignorés.'
+                ]);
+    }
 }
