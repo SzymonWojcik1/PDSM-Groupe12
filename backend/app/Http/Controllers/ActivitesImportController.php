@@ -17,7 +17,7 @@ class ActivitesImportController extends Controller
     {
         $userId = $request->user()?->id;
 
-        // Log tentative d'import
+        // Log the import attempt
         Logger::log(
             'info',
             'Import activités',
@@ -85,6 +85,7 @@ class ActivitesImportController extends Controller
             }
         }
 
+        // Log the number of valid and invalid rows
         if (!empty($errors)) {
 
             $headers = array_keys($errors[0]['data']);

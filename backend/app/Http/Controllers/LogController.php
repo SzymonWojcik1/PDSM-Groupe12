@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LogController extends Controller
 {
+    /**
+     * Display a listing of the logs.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         // Allow access only to users with the "siege" role

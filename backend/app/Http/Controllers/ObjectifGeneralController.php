@@ -8,6 +8,12 @@ use App\Helpers\Logger;
 
 class ObjectifGeneralController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         $query = ObjectifGeneral::query();
@@ -17,6 +23,12 @@ class ObjectifGeneralController extends Controller
         return $query->get();
     }
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -37,11 +49,24 @@ class ObjectifGeneralController extends Controller
         return response()->json($objectif, 201);
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         return ObjectifGeneral::findOrFail($id);
     }
 
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function update(Request $request, $id)
     {
         $objectif = ObjectifGeneral::findOrFail($id);
@@ -64,6 +89,12 @@ class ObjectifGeneralController extends Controller
         return response()->json($objectif);
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function destroy($id)
     {
         $objectif = ObjectifGeneral::findOrFail($id);

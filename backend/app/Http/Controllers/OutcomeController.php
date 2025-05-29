@@ -8,7 +8,12 @@ use App\Helpers\Logger;
 
 class OutcomeController extends Controller
 {
-    // Return all outcomes, optionally filtered by objective ID
+    /**
+     * Display a listing of the outcomes.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         $query = Outcome::query();
@@ -21,7 +26,12 @@ class OutcomeController extends Controller
         return $query->get();
     }
 
-    // Create a new outcome
+    /**
+     * Store a newly created outcome in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         // Validate input data
@@ -46,7 +56,12 @@ class OutcomeController extends Controller
         return response()->json($outcome, 201);
     }
 
-    // Show a specific outcome by ID
+    /**
+     * Display the specified outcome.
+     * 
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         return Outcome::findOrFail($id);

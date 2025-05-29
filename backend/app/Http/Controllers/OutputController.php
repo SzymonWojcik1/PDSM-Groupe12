@@ -8,6 +8,12 @@ use App\Helpers\Logger;
 
 class OutputController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         $query = Output::query();
@@ -17,6 +23,12 @@ class OutputController extends Controller
         return $query->get();
     }
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -38,11 +50,24 @@ class OutputController extends Controller
         return response()->json($output, 201);
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         return Output::findOrFail($id);
     }
 
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function update(Request $request, $id)
     {
         $output = Output::findOrFail($id);
@@ -66,6 +91,12 @@ class OutputController extends Controller
         return response()->json($output);
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function destroy($id)
     {
         $output = Output::findOrFail($id);

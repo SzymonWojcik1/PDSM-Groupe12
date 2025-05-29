@@ -13,6 +13,11 @@ use App\Helpers\Logger;
 
 class UserController extends Controller
   {
+    /**
+     * Store a newly created user in storage.
+     * * @param \Illuminate\Http\Request $request
+     * * @return \Illuminate\Http\Response
+     * */
       public function store(Request $request)
       {
           if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
@@ -67,6 +72,12 @@ class UserController extends Controller
           return response()->json(['user' => $user], 201);
       }
   
+    /**
+     * Update the specified user in storage.
+     * * @param \Illuminate\Http\Request $request
+     * * @param int $id
+     * * @return \Illuminate\Http\Response
+     * */
       public function update(Request $request, $id)
     {
         $authUser = $request->user();
@@ -123,6 +134,13 @@ class UserController extends Controller
         return response()->json(['message' => 'Utilisateur mis à jour avec succès', 'user' => $user]);
     }
 
+    /**
+     * Remove the specified user from storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function destroy(Request $request, $id)
     {
         if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
@@ -143,6 +161,13 @@ class UserController extends Controller
         return response()->json(['message' => 'Utilisateur supprimé avec succès']);
     }
 
+    /**
+     * Assign a partenaire to a user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function assignPartenaire(Request $request, $id)
     {
         if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
@@ -160,6 +185,12 @@ class UserController extends Controller
         return response()->json(['message' => 'Partenaire assigné avec succès', 'user' => $user]);
     }
 
+    /**
+     * Display a listing of the users.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
@@ -183,6 +214,13 @@ class UserController extends Controller
         return response()->json($query->get());
     }
 
+    /**
+     * Display the specified user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show(Request $request, $id)
     {
         if (!$request->user() || $request->user()->role !== Role::SIEGE->value) {
@@ -194,6 +232,12 @@ class UserController extends Controller
         );
     }
 
+    /**
+     * Get the authenticated user's details.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function me(Request $request)
     {
         return response()->json($request->user()->load(['partenaire', 'superieur']));

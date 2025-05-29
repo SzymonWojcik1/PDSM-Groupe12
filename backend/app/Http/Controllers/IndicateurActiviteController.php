@@ -9,11 +9,22 @@ use App\Helpers\Logger;
 
 class IndicateurActiviteController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         return IndicateurActivite::with(['activite', 'indicateur'])->get();
     }
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -34,11 +45,24 @@ class IndicateurActiviteController extends Controller
         return $item;
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         return IndicateurActivite::with(['activite', 'indicateur'])->findOrFail($id);
     }
 
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function destroy($id)
     {
         $item = IndicateurActivite::findOrFail($id);
@@ -55,6 +79,12 @@ class IndicateurActiviteController extends Controller
         return response()->json(['message' => 'Lien supprimé avec succès']);
     }
 
+    /**
+     * Get all activities linked to an indicator with beneficiary count.
+     *
+     * @param int $id Indicator ID
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getActivitesWithCount($id)
     {
         $links = IndicateurActivite::with('activite')
@@ -79,6 +109,12 @@ class IndicateurActiviteController extends Controller
         return response()->json($result->values());
     }
 
+    /**
+     * Store multiple activity links for an indicator in batch.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function storeBatch(Request $request)
     {
         $validated = $request->validate([
