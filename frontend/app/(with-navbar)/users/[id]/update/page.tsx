@@ -18,7 +18,7 @@ type User = { id: number; nom: string; prenom: string; role: string }
 
 /**
  * Edit User Page Component
- * 
+ *
  * This component provides a form interface for editing existing users in the system.
  * Features include:
  * - Pre-filled form with user's current data
@@ -27,7 +27,7 @@ type User = { id: number; nom: string; prenom: string; role: string }
  * - Partner organization selection
  * - Internationalization support
  * - Protected admin access
- * 
+ *
  * The form allows editing:
  * - Basic user information (name, email, phone)
  * - Role assignment
@@ -103,7 +103,7 @@ export default function EditUserPage() {
         const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
         const enums = await resEnums.json()
         const rolesFromApi = enums.role || []
-        const rolesWithLabels = rolesFromApi.map((role: any) => ({
+        const rolesWithLabels = rolesFromApi.map((role: { value: string; label: string }) => ({
           value: role.value,
           label:
             role.value === 'cn' ? 'Coordination nationale' :
@@ -117,13 +117,17 @@ export default function EditUserPage() {
         const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
         const usersData = await resUsers.json()
         setSuperieurs(usersData)
-      } catch (err: any) {
-        setError(err.message || t('error_loading_data'))
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError(t('error_loading_data'))
+        }
       }
     }
 
     fetchData()
-  }, [checked, id])
+  }, [checked, id, callApi, t])
 
   /**
    * Handles form input changes
@@ -155,8 +159,12 @@ export default function EditUserPage() {
       if (!res.ok) throw new Error(data.message || t('error_update_user'))
 
       router.push('/users')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(t('error_update_user'))
+      }
     }
   }
 

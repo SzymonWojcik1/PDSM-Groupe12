@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 
@@ -44,13 +43,13 @@ type Partenaire = {
 
 /**
  * Users Management Page Component
- * 
+ *
  * This component provides a complete user management interface including:
  * - User listing with filtering and search capabilities
  * - Role-based access control
  * - User creation, editing, and deletion
  * - Integration with partner and superior relationships
- * 
+ *
  * Features:
  * - Advanced filtering (role, partner, superior)
  * - Real-time search
@@ -60,7 +59,6 @@ type Partenaire = {
  */
 export default function UsersPage() {
   const { t } = useTranslation()
-  const router = useRouter()
   const checked = useAdminGuard()
 
   const { callApi } = useApi()
@@ -96,8 +94,12 @@ export default function UsersPage() {
       if (!res.ok) throw new Error(t('error_loading_users'))
       const data: User[] = await res.json()
       setUsers(data)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(String(err))
+      }
     }
   }
 
@@ -126,8 +128,12 @@ export default function UsersPage() {
       })
       if (!res.ok) throw new Error(t('error_delete_user'))
       fetchUsers()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(String(err))
+      }
     }
   }
 
@@ -156,7 +162,8 @@ export default function UsersPage() {
         const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
         const enums = await resEnums.json()
         const rolesFromApi = enums.role || []
-        const rolesWithLabels = rolesFromApi.map((role: any) => ({
+        type RoleApi = { value: string; label: string }
+        const rolesWithLabels = rolesFromApi.map((role: RoleApi) => ({
           value: role.value,
           label:
             role.value === 'cn'
@@ -180,13 +187,17 @@ export default function UsersPage() {
         const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
         const usersData = await resUsers.json()
         setSuperieurs(usersData)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError(String(err))
+        }
       }
     }
 
     fetchMetaData()
-  }, [])
+  }, [callApi, t])
 
   // Block access if not admin
   if (!checked) return null

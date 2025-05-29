@@ -18,7 +18,7 @@ type User = { id: number; nom: string; prenom: string; role: string }
 
 /**
  * Create User Page Component
- * 
+ *
  * This component provides a form interface for creating new users in the system.
  * Features include:
  * - Form validation
@@ -26,7 +26,7 @@ type User = { id: number; nom: string; prenom: string; role: string }
  * - Partner organization selection
  * - Internationalization support
  * - Protected admin access
- * 
+ *
  * The form collects:
  * - Basic user information (name, email, phone)
  * - Role assignment
@@ -37,7 +37,7 @@ export default function CreateUserPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const checked = useAdminGuard()
-  
+
   const { callApi } = useApi()
 
   // State management for form data and metadata
@@ -69,7 +69,7 @@ export default function CreateUserPage() {
         const resEnums = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/enums`)
         const enums = await resEnums.json()
         const rolesFromApi = enums.role || []
-        const rolesWithLabels = rolesFromApi.map((role: any) => ({
+        const rolesWithLabels = rolesFromApi.map((role: { value: string; label: string }) => ({
           value: role.value,
           label:
             role.value === 'cn' ? 'Coordination nationale' :
@@ -83,13 +83,17 @@ export default function CreateUserPage() {
         const resUsers = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/users`)
         const usersData = await resUsers.json()
         setSuperieurs(usersData)
-      } catch (err: any) {
-        setErrorMessage(t('error_loading_data') || err.message)
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setErrorMessage(t('error_loading_data') || err.message)
+        } else {
+          setErrorMessage(t('error_loading_data') || 'Unknown error')
+        }
       }
     }
 
     fetchMetaData()
-  }, [checked])
+  }, [checked, callApi, t])
 
   /**
    * Handles form input changes
@@ -116,8 +120,12 @@ export default function CreateUserPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || t('error_create_user'))
       router.push('/users')
-    } catch (err: any) {
-      setErrorMessage(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message)
+      } else {
+        setErrorMessage(t('error_create_user') || 'Unknown error')
+      }
     }
   }
 
