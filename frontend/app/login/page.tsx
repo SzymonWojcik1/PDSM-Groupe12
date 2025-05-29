@@ -8,7 +8,7 @@ import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 
 /**
  * Login Page Component
- * 
+ *
  * This page handles user authentication with email and password.
  * It includes:
  * - Email and password form
@@ -21,16 +21,16 @@ import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 export default function LoginPage() {
   // Redirect if user is already authenticated
   useRedirectIfAuthenticated()
-  
+
   // Router for navigation
   const router = useRouter()
-  
+
   // Form state management
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  
+
   // Internationalization setup
   const { t, i18n } = useTranslation('common', { useSuspense: false })
   const [mounted, setMounted] = useState(false)
@@ -74,8 +74,12 @@ export default function LoginPage() {
 
       // Redirect to 2FA page
       router.push('/double-auth')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(String(err))
+      }
     } finally {
       setLoading(false)
     }

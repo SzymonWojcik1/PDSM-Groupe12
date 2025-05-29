@@ -7,7 +7,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 /**
  * Forgot Password Page Component
- * 
+ *
  * This page allows users to request a password reset link.
  * Features include:
  * - Email input form
@@ -65,8 +65,12 @@ export default function ForgotPasswordPage() {
 
       // Show success message
       setMessage(t('forgot_success'))
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(String(err))
+      }
     } finally {
       setLoading(false)
     }

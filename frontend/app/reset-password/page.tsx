@@ -17,7 +17,7 @@ interface ErrorResponse {
 
 /**
  * Reset Password Page Component
- * 
+ *
  * This page handles the password reset process after a user clicks the reset link from their email.
  * It validates the reset token and email from URL parameters and allows users to set a new password.
  */
@@ -94,8 +94,12 @@ export default function ResetPasswordPage() {
       // Show success message and redirect to login
       setMessage(t('reset_success'))
       setTimeout(() => router.push('/login'), 3000)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(t('reset_unknown_error'))
+      }
     } finally {
       setLoading(false)
     }

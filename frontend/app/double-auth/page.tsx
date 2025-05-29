@@ -9,7 +9,7 @@ import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 
 /**
  * Two-Factor Authentication Page Component
- * 
+ *
  * This page handles the second step of the authentication process.
  * Features include:
  * - 2FA code verification
@@ -22,11 +22,11 @@ import useRedirectIfAuthenticated from '@/lib/hooks/useRedirectIfAuthenticated'
 export default function VerifyPage() {
   // Redirect if user is already authenticated
   useRedirectIfAuthenticated()
-  
+
   // Internationalization setup
   const { t, i18n } = useTranslation('common', { useSuspense: false })
   const router = useRouter()
-  
+
   // Form state management
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -86,8 +86,12 @@ export default function VerifyPage() {
 
       // Redirect to home page
       router.push('/home')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(String(err))
+      }
     } finally {
       setLoading(false)
     }
