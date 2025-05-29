@@ -85,4 +85,4 @@ npm run dev
 
 ---
 
-*Project developed by Szymon Wojcik, Yann Husmann, Benoit Bonvin and Yann Gabioux
+*Project developed by **Szymon Wojcik**, **Yann Husmann**, **Yann Gabioux**, **Benoit Bonvin**

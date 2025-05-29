@@ -126,4 +126,4 @@ npm run format   # Run Prettier
 
 ## ✨ Author / Maintenance
 Developed as part of group 12.
-Maintained by: **Szymon WOJCIK**, **Yann Husmann**, **Yann Gabioux**, **Benoit Bonvin**
+Maintained by: **Szymon Wojcik**, **Yann Husmann**, **Yann Gabioux**, **Benoit Bonvin**
