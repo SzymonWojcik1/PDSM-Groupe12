@@ -10,14 +10,14 @@ import useAdminGuard from '@/lib/hooks/useAdminGuard'
 
 /**
  * Logical Framework Dashboard Component
- * 
+ *
  * This component provides a comprehensive dashboard for monitoring logical framework indicators.
  * Features include:
  * - Protected route (requires authentication and admin rights)
  * - Global statistics overview
  * - Hierarchical indicator tracking
  * - Progress visualization
- * 
+ *
  * The dashboard displays:
  * - Total indicators count
  * - Sum of target values
@@ -34,8 +34,33 @@ export default function DashboardCadreLogique() {
 
   const checked = useAdminGuard()
 
+  // Types for logical framework structure
+  interface Indicateur {
+    ind_id: number
+    ind_code: string
+    ind_nom: string
+    ind_valeurCible: number
+    valeurReelle: number
+  }
+
+  interface Output {
+    opu_nom: string
+    indicateurs: Indicateur[]
+  }
+
+  interface Outcome {
+    out_nom: string
+    outputs: Output[]
+  }
+
+  interface Objectif {
+    obj_id: number
+    obj_nom: string
+    outcomes: Outcome[]
+  }
+
   // State management for objectives and statistics
-  const [objectifs, setObjectifs] = useState<any[]>([])
+  const [objectifs, setObjectifs] = useState<Objectif[]>([])
   const [stats, setStats] = useState({
     total: 0,
     totalCible: 0,
@@ -90,7 +115,7 @@ export default function DashboardCadreLogique() {
     }
 
     fetchData()
-  }, [id])
+  }, [id, callApi])
 
   // Block access if not admin
   if (!checked) return null
@@ -159,9 +184,9 @@ export default function DashboardCadreLogique() {
                 </thead>
                 {/* Table body with hierarchical data */}
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {obj.outcomes.map((out: any) =>
-                    out.outputs.map((op: any) =>
-                      op.indicateurs.map((ind: any) => {
+                  {obj.outcomes.map((out: Outcome) =>
+                    out.outputs.map((op: Output) =>
+                      op.indicateurs.map((ind: Indicateur) => {
                         const valeur = Number(ind.valeurReelle || 0)
                         const cible = Number(ind.ind_valeurCible || 0)
                         const percent = cible > 0 ? Math.round((valeur / cible) * 100) : 0

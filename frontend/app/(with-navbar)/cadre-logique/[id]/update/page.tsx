@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Pencil, Trash } from 'lucide-react';
 import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
@@ -82,7 +81,7 @@ type ModalIndicateurInputProps = {
 
 /**
  * Indicator Modal Component
- * 
+ *
  * A modal dialog for editing indicator details
  * Features:
  * - Name editing
@@ -102,7 +101,7 @@ function ModalIndicateurInput({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
         <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Modifier un indicateur</h2>
-        <label className="block text-sm font-medium mb-1">Nom de l'indicateur</label>
+        <label className="block text-sm font-medium mb-1">Nom de l&apos;indicateur</label>
         <input
           type="text"
           value={nom}
@@ -141,7 +140,7 @@ function ModalIndicateurInput({
 
 /**
  * Update Logical Framework Page Component
- * 
+ *
  * This component provides a comprehensive interface for updating logical frameworks.
  * Features include:
  * - Protected route (requires authentication and admin rights)
@@ -149,7 +148,7 @@ function ModalIndicateurInput({
  * - Hierarchical structure management (objectives, outcomes, outputs, indicators)
  * - CRUD operations for all levels
  * - Modal-based editing interface
- * 
+ *
  * The page displays:
  * - Framework basic information form
  * - Hierarchical table of objectives, outcomes, outputs, and indicators
@@ -158,7 +157,6 @@ function ModalIndicateurInput({
 export default function UpdateCadreLogiquePage() {
   useAuthGuard();
   const { callApi } = useApi();
-  const router = useRouter();
   const { t } = useTranslation();
 
   const { id } = useParams();
@@ -201,7 +199,7 @@ export default function UpdateCadreLogiquePage() {
       fetchObjectifs();
     };
     load();
-  }, [id]);
+  }, [id, callApi]);
 
   /**
    * Fetches the complete framework structure
@@ -219,11 +217,13 @@ export default function UpdateCadreLogiquePage() {
 
   /**
    * Updates the name of any framework element
-   * 
+   *
    * @param url - API endpoint for the element
    * @param payload - Data to update
    */
-  const modifierNom = async (url: string, payload: any) => {
+  type ModifierNomPayload = { obj_nom: string } | { out_nom: string } | { opu_nom: string } | { ind_nom: string; ind_valeurCible: number; ind_code: string };
+
+  const modifierNom = async (url: string, payload: ModifierNomPayload) => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
         method: 'PUT',
@@ -239,7 +239,7 @@ export default function UpdateCadreLogiquePage() {
   /**
    * Deletes any framework element
    * Shows confirmation dialog before deletion
-   * 
+   *
    * @param url - API endpoint for the element to delete
    */
   const supprimerElement = async (url: string) => {
@@ -255,7 +255,7 @@ export default function UpdateCadreLogiquePage() {
   /**
    * Handles framework details form submission
    * Updates basic framework information
-   * 
+   *
    * @param e - Form event
    */
   const handleSubmit = async (e: React.FormEvent) => {

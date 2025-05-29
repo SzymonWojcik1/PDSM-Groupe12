@@ -1,8 +1,7 @@
 'use client'
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import '@/lib/i18n'
 import useAuthGuard from '@/lib/hooks/useAuthGuard'
@@ -32,7 +31,7 @@ type ActiviteWithCount = Activite & {
 
 /**
  * Link Activities Page Component
- * 
+ *
  * This component provides an interface for linking activities to indicators.
  * Features include:
  * - Protected route (requires authentication and admin rights)
@@ -40,7 +39,7 @@ type ActiviteWithCount = Activite & {
  * - Batch linking of activities
  * - Individual unlinking of activities
  * - Real-time beneficiary count tracking
- * 
+ *
  * The page displays:
  * - List of available activities
  * - List of linked activities
@@ -49,7 +48,6 @@ type ActiviteWithCount = Activite & {
  */
 export default function LierActivitesPage() {
   useAuthGuard()
-  const { id } = useParams()
   const searchParams = useSearchParams()
   const indicateurId = searchParams.get('ind')
   const router = useRouter()
@@ -114,7 +112,7 @@ export default function LierActivitesPage() {
   /**
    * Handles unlinking of a single activity from the indicator
    * Updates the lists after successful unlinking
-   * 
+   *
    * @param actId - ID of the activity to unlink
    */
   const handleUnlink = async (actId: number) => {
@@ -124,7 +122,8 @@ export default function LierActivitesPage() {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite`)
       if (!res.ok) throw new Error('Erreur récupération des liens')
       const data = await res.json()
-      const link = data.find((item: any) => item.ind_id == indicateurId && item.act_id == actId)
+      type IndicateurActiviteLink = { id: number; ind_id: number; act_id: number }
+      const link = (data as IndicateurActiviteLink[]).find((item) => item.ind_id == Number(indicateurId) && item.act_id == actId)
 
       if (link) {
         await callApi(`${process.env.NEXT_PUBLIC_API_URL}/indicateur-activite/${link.id}`, {
