@@ -23,7 +23,7 @@ type UserData = {
 
 /**
  * Edit Profile Page Component
- * 
+ *
  * This component provides a form interface for users to edit their profile information.
  * Features include:
  * - Protected route (requires authentication)
@@ -65,13 +65,17 @@ export default function ModifierProfilPage() {
         setNom(data.nom)
         setPrenom(data.prenom)
         setTelephone(data.telephone || '')
-      } catch (err: any) {
-        setError(err.message || t('error_fetch'))
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || t('error_fetch'))
+        } else {
+          setError(t('error_fetch'))
+        }
       }
     }
 
     fetchUser()
-  }, [t])
+  }, [t, callApi])
 
   /**
    * Handles form submission
@@ -85,7 +89,13 @@ export default function ModifierProfilPage() {
 
     if (!user) return
 
-    const payload: any = { nom, prenom, telephone }
+    const payload: {
+      nom: string
+      prenom: string
+      telephone?: string
+      password?: string
+      password_confirmation?: string
+    } = { nom, prenom, telephone }
 
     // Add password to payload if provided
     if (password) {
@@ -118,8 +128,12 @@ export default function ModifierProfilPage() {
       }
 
       router.push('/profil')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(t('error_fetch'))
+      }
     } finally {
       setLoading(false)
     }

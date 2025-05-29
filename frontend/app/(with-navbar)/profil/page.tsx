@@ -23,7 +23,7 @@ type UserData = {
 
 /**
  * Profile Page Component
- * 
+ *
  * This component displays the current user's profile information.
  * Features include:
  * - Protected route (requires authentication)
@@ -54,13 +54,17 @@ export default function ProfilPage() {
         if (!res.ok) throw new Error(t('error_fetch'))
         const data = await res.json()
         setUser(data)
-      } catch (err: any) {
-        setError(err.message || t('error_occurred'))
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError(t('error_occurred'))
+        }
       }
     }
 
     fetchUser()
-  }, [t])
+  }, [t, callApi])
 
   /**
    * Translates role codes to human-readable labels
