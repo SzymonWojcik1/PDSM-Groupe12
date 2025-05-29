@@ -12,8 +12,23 @@ export default function LogsPage() {
   const checked = useAdminGuard() // Check if the user is an admin
   const { callApi } = useApi()
 
-  const [logs, setLogs] = useState<any[]>([]) // All logs fetched from the backend
-  const [filteredLogs, setFilteredLogs] = useState<any[]>([]) // Logs after filtering
+  interface Log {
+    created_at: string
+    user_nom?: string
+    user_prenom?: string
+    user?: {
+      prenom?: string
+      nom?: string
+    }
+    user_id?: string
+    level?: string
+    action?: string
+    message?: string
+    context?: unknown
+  }
+
+  const [logs, setLogs] = useState<Log[]>([]) // All logs fetched from the backend
+  const [filteredLogs, setFilteredLogs] = useState<Log[]>([]) // Logs after filtering
   const [error, setError] = useState<string | null>(null)
 
   const [search, setSearch] = useState('') // Search input
@@ -28,8 +43,12 @@ export default function LogsPage() {
       const data = await res.json()
       setLogs(data)
       setFilteredLogs(data) // Initialize both lists
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('An unknown error occurred')
+      }
     }
   }
 

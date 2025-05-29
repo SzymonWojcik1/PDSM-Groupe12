@@ -89,9 +89,13 @@ export default function EvaluationPage() {
         } else {
           await fetchUserEvaluations(userData.id)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Erreur chargement utilisateur ou partenaires :', err)
-        setError(err.message || 'Erreur de chargement')
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('Erreur de chargement')
+        }
         setLoading(false)
       }
     }
@@ -220,7 +224,7 @@ export default function EvaluationPage() {
         doc.text('Critères :', 10, y);
         doc.setFont('helvetica', 'normal');
         y += 6;
-        eva.criteres.forEach((crit, i) => {
+        eva.criteres.forEach((crit) => {
           if (crit.reussi) {
             doc.setTextColor(0, 128, 0);
           } else {
@@ -239,7 +243,7 @@ export default function EvaluationPage() {
 
     doc.save('evaluations.pdf');
   };
-  
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] px-6 py-6">
       <div className="max-w-6xl mx-auto">
