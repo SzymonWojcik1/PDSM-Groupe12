@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ModalInput from '@/components/ModalInput';
 import { useApi } from '@/lib/hooks/useApi';
@@ -73,7 +73,7 @@ type ModalIndicateurInputProps = {
 
 /**
  * Indicator Modal Component
- * 
+ *
  * A modal dialog for creating new indicators
  * Features:
  * - Name input
@@ -88,7 +88,7 @@ function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps)
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md">
         <h2 className="text-lg font-semibold text-[#9F0F3A] mb-4">Ajouter un indicateur</h2>
-        <label className="block text-sm font-medium mb-1">Nom de l'indicateur</label>
+        <label className="block text-sm font-medium mb-1">Nom de l&#39;indicateur</label>
         <input
           type="text"
           value={nom}
@@ -124,14 +124,14 @@ function ModalIndicateurInput({ onConfirm, onClose }: ModalIndicateurInputProps)
 
 /**
  * Create Logical Framework Page Component
- * 
+ *
  * This component provides an interface for creating and managing logical frameworks.
  * Features include:
  * - Protected route (requires authentication and admin rights)
  * - Hierarchical structure management (objectives, outcomes, outputs, indicators)
  * - Dynamic form creation
  * - Real-time updates
- * 
+ *
  * The page displays:
  * - Form for adding new objectives
  * - Hierarchical table structure
@@ -142,7 +142,6 @@ export default function CadreLogiqueDetailPage() {
   useAuthGuard();
   const { id } = useParams();
   const { callApi } = useApi();
-  const router = useRouter();
   const { t } = useTranslation();
 
   const checked = useAdminGuard()
@@ -200,25 +199,6 @@ export default function CadreLogiqueDetailPage() {
     }
   };
 
-  /**
-   * Generic function to add any element to the framework
-   * 
-   * @param url - API endpoint for the element
-   * @param payload - Data to create
-   */
-  const ajouterElement = async (url: string, payload: any) => {
-    try {
-      await callApi(`${process.env.NEXT_PUBLIC_API_URL}/${url}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      fetchObjectifs();
-    } catch (err) {
-      console.error(`Erreur ajout ${url} :`, err);
-    }
-  };
-
   // Block access if not admin
   if (!checked) return null
 
@@ -264,7 +244,7 @@ export default function CadreLogiqueDetailPage() {
         </div>
 
         {/* Objectives list with hierarchical structure */}
-        {objectifs.map((obj, i) => (
+        {objectifs.map((obj) => (
           <div key={obj.obj_id} className="bg-white p-6 rounded-xl shadow mb-10 border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{obj.obj_nom}</h2>
             <table className="w-full text-sm border border-gray-300">
