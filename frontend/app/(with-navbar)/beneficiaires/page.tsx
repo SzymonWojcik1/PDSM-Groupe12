@@ -102,8 +102,6 @@ export default function BeneficiairesPage() {
 
   // Delete a beneficiary after confirmation
   const handleDelete = async (id: string) => {
-    if (!confirm(t('confirm_delete_beneficiary'))) return;
-
     try {
       await callApi(`${process.env.NEXT_PUBLIC_API_URL}/beneficiaires/${id}`, {
         method: 'DELETE',

@@ -165,12 +165,14 @@ export default function BeneficiaireTable({
                   {/* Delete button with confirmation */}
                   {onDelete && (
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         const confirmed = confirm(t('confirm_delete_beneficiary', {
                           firstname: b.ben_prenom,
                           lastname: b.ben_nom
                         }))
-                        if (confirmed) onDelete(b.ben_id)
+                        if (confirmed) {
+                          await onDelete?.(b.ben_id)
+                        }
                       }}
                       className="text-gray-500 hover:text-red-600 hover:underline"
                     >
