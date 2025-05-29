@@ -8,6 +8,14 @@ import ActiviteForm from '@/components/ActiviteForm';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
+type ActivityUpdate = {
+  act_nom: string;
+  act_dateDebut: string;
+  act_dateFin: string;
+  act_part_id: string;
+  act_pro_id: string;
+};
+
 export default function UpdateActivitePage() {
   useAuthGuard(); // Ensure only authenticated users can access the page
   const { t } = useTranslation();
@@ -55,7 +63,7 @@ export default function UpdateActivitePage() {
   }, [id]);
 
   // Handle the form submission to update the activity
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: ActivityUpdate) => {
     try {
       const res = await callApi(`${process.env.NEXT_PUBLIC_API_URL}/activites/${id}`, {
         method: 'PUT',

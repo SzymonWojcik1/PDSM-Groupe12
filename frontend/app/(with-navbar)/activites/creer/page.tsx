@@ -8,6 +8,14 @@ import ActiviteForm from '@/components/ActiviteForm';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
 import { useApi } from '@/lib/hooks/useApi';
 
+type ActivityCreate = {
+  act_nom: string;
+  act_dateDebut: string;
+  act_dateFin: string;
+  act_part_id: string;
+  act_pro_id: string;
+};
+
 export default function CreateActivitePage() {
   useAuthGuard(); // Protect the page with an authentication guard
   const { callApi } = useApi(); // Custom hook to make API calls
@@ -16,7 +24,7 @@ export default function CreateActivitePage() {
   const [loading, setLoading] = useState(false); // Loading state for the form
 
   // Handle the form submission
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: ActivityCreate) => {
     setLoading(true);
     try {
       // Send a POST request to create a new activity

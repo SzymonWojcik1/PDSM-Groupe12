@@ -58,7 +58,7 @@ export default function ActivitesPage() {
     };
 
     fetchData();
-  }, []);
+  }, [callApi]);
 
   // Apply filters to activities when filters or data change
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function ActivitesPage() {
     let ignored = 0;
     let failed = 0;
 
-    for (const [index, row] of rows.entries()) {
+    for (const row of rows) {
       try {
         const partenaireNom = row['Partenaire'];
         const projetNom = row['Projet'];
@@ -182,7 +182,7 @@ export default function ActivitesPage() {
         }
 
         imported++;
-      } catch (err) {
+      } catch {
         failed++;
         continue;
       }

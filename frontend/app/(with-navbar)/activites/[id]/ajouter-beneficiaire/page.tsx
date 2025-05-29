@@ -14,6 +14,15 @@ type Beneficiaire = {
   ben_date_naissance: string;
 };
 
+type Activity = {
+  act_id: string;
+  act_nom: string;
+  act_dateDebut: string;
+  act_dateFin: string;
+  act_part_id: string;
+  act_pro_id: string;
+};
+
 export default function AjouterBeneficiaire() {
   useAuthGuard(); // Protect the page to ensure the user is authenticated
   const { t } = useTranslation();
@@ -21,7 +30,7 @@ export default function AjouterBeneficiaire() {
   const router = useRouter();
   const { callApi } = useApi();
 
-  const [activity, setActivity] = useState<any>(null);
+  const [activity, setActivity] = useState<Activity | null>(null);
   const [allBeneficiaires, setAllBeneficiaires] = useState<Beneficiaire[]>([]);
   const [activityBeneficiaires, setActivityBeneficiaires] = useState<Beneficiaire[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
