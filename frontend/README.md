@@ -1,19 +1,22 @@
-# 🎯 Frontend – Beneficiary Management Application
+# 🎯 Frontend – Management Application
 
-This is the **frontend** of the Beneficiary Management System, built with **Next.js 14**, **TypeScript**, and **Tailwind CSS**. It provides a modern and user-friendly interface to interact with a Laravel-based backend API.
+This is the **frontend** of the Management System, built with **Next.js 14**, **TypeScript**, and **Tailwind CSS**. It provides a modern and user-friendly interface to interact with a Laravel-based backend API.
 
 ---
 
 ## 🚀 Features
 
-- Display a list of beneficiaries
-- Add, edit, and delete beneficiaries
-- Import beneficiaries via Excel files (.xlsx)
-- Real-time duplicate detection with manual confirmation
-- Advanced filtering (region, country, gender, type, etc.)
-- Multilingual UI (English, French, Spanish)
-- Enum translation system via backend API
-- Responsive and accessible interface
+- Home
+- Beneficiaries
+- Activities
+- Projects
+- Parteners
+- Logical framework
+- Users
+- Evaluations
+- Logs
+- Multi Language
+- ChatBot
 
 ---
 
