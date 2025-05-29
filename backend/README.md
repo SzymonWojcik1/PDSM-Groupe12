@@ -86,6 +86,16 @@ Each user is created with:
 - The password: `Password123!`
 - The role: `SIEGE`
 - A default `Partenaire`, created if none exists
+```php
+foreach ($users as $user) {
+    User::create([
+        ...$user,
+        'password' => Hash::make('Password123!'),
+        'role' => Role::SIEGE->value,
+        'partenaire_id' => $partenaire->part_id,
+    ]);
+}
+```
 
 You can add, remove, or change these users as needed before running the seed.
 
